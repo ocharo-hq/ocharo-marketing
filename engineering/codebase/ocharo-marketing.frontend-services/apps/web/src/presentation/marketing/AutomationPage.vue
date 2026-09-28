@@ -11,6 +11,7 @@ import type {
   CatalogueSyncReportModel,
   SlotFillReportModel,
 } from '../../domain/marketing';
+import { MarketingExtensions } from '../../domain/marketing';
 
 /** Catalogue sync, bulk post creation, posting rhythm and blog-story posts in one place. */
 defineOptions({ name: 'AutomationPage' });
@@ -61,15 +62,20 @@ const upcoming = computed(() =>
     .sort((a, b) => a.scheduledAt.localeCompare(b.scheduledAt))
     .slice(0, 12),
 );
+const shortWeekdays: Record<string, string> = {
+  Mon: 'Du',
+  Tue: 'Se',
+  Wed: 'Ch',
+  Thu: 'Pa',
+  Fri: 'Ju',
+  Sat: 'Sh',
+  Sun: 'Ya',
+};
 function localTime(value: string) {
-  return new Date(value).toLocaleString('uz-UZ', {
-    timeZone: 'Asia/Tashkent',
-    weekday: 'short',
-    day: 'numeric',
-    month: 'short',
-    hour: '2-digit',
-    minute: '2-digit',
-  });
+  const weekday = new Intl.DateTimeFormat('en-GB', { timeZone: 'Asia/Tashkent', weekday: 'short' }).format(
+    new Date(value),
+  );
+  return `${shortWeekdays[weekday] ?? ''} ${MarketingExtensions.formatDate(value, { hour: '2-digit', minute: '2-digit' })}`.trim();
 }
 function price(value: number | null | undefined) {
   return value === null || value === undefined

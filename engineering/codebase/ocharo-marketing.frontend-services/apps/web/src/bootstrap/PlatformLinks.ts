@@ -1,6 +1,6 @@
 /** The Ocharo platform family; override per environment with VITE_OCHARO_* variables. */
 export interface PlatformLink {
-  key: 'catalogue' | 'marketing' | 'blog' | 'studio';
+  key: 'brand' | 'catalogue' | 'marketing' | 'blog' | 'studio';
   label: string;
   hint: string;
   url: string;
@@ -9,6 +9,12 @@ export interface PlatformLink {
 const env = import.meta.env as Record<string, string | undefined>;
 
 export const platformLinks: PlatformLink[] = [
+  {
+    key: 'brand',
+    label: 'Brend',
+    hint: 'Logotip, ranglar, havolalar',
+    url: env.VITE_OCHARO_BRAND_URL ?? 'http://localhost:8287/',
+  },
   {
     key: 'catalogue',
     label: 'Katalog',
