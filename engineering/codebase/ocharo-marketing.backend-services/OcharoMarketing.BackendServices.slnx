@@ -1,0 +1,12 @@
+<Solution>
+  <Folder Name="/Services/">
+    <Project Path="OcharoMarketing.Api/OcharoMarketing.Api.csproj" />
+    <Project Path="OcharoMarketing.Application/OcharoMarketing.Application.csproj" />
+    <Project Path="OcharoMarketing.Domain/OcharoMarketing.Domain.csproj" />
+    <Project Path="OcharoMarketing.Infrastructure/OcharoMarketing.Infrastructure.csproj" />
+    <Project Path="OcharoMarketing.Persistence/OcharoMarketing.Persistence.csproj" />
+  </Folder>
+  <Folder Name="/Tests/">
+    <Project Path="tests/OcharoMarketing.Tests/OcharoMarketing.Tests.csproj" />
+  </Folder>
+</Solution>

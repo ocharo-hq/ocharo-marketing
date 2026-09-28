@@ -1,0 +1,276 @@
+{
+  "mode": "Actual restarted local API; all external execution gates disabled. Safety intercept blocks any accidental external command.",
+  "deliverySettings": {
+    "publishingEnabled": false,
+    "metricReadsEnabled": false,
+    "accountVerificationEnabled": false
+  },
+  "results": [
+    {
+      "name": "disconnected-desktop-connections",
+      "overflow": {
+        "page": 1440,
+        "viewport": 1440
+      }
+    },
+    {
+      "name": "disconnected-desktop-calendar",
+      "overflow": {
+        "page": 1440,
+        "viewport": 1440
+      }
+    },
+    {
+      "name": "disconnected-desktop-results",
+      "overflow": {
+        "page": 1440,
+        "viewport": 1440
+      }
+    },
+    {
+      "name": "disconnected-desktop-source-analysis",
+      "overflow": {
+        "page": 1440,
+        "viewport": 1440
+      }
+    },
+    {
+      "viewport": "desktop",
+      "verificationDisabled": true,
+      "deliveryDisabled": true,
+      "analysisDisabledAfterSourceSelection": true,
+      "readinessRefreshGetOnly": true,
+      "actualProviderCalls": 0
+    },
+    {
+      "name": "disconnected-mobile-connections",
+      "overflow": {
+        "page": 390,
+        "viewport": 390
+      }
+    },
+    {
+      "name": "disconnected-mobile-calendar",
+      "overflow": {
+        "page": 390,
+        "viewport": 390
+      }
+    },
+    {
+      "name": "disconnected-mobile-results",
+      "overflow": {
+        "page": 390,
+        "viewport": 390
+      }
+    },
+    {
+      "name": "disconnected-mobile-source-analysis",
+      "overflow": {
+        "page": 390,
+        "viewport": 390
+      }
+    },
+    {
+      "viewport": "mobile",
+      "verificationDisabled": true,
+      "deliveryDisabled": true,
+      "analysisDisabledAfterSourceSelection": true,
+      "readinessRefreshGetOnly": true,
+      "actualProviderCalls": 0
+    }
+  ],
+  "requests": [
+    {
+      "viewport": "desktop",
+      "path": "/workspace",
+      "method": "GET"
+    },
+    {
+      "viewport": "desktop",
+      "path": "/workspace",
+      "method": "GET"
+    },
+    {
+      "viewport": "desktop",
+      "path": "/workspace",
+      "method": "GET"
+    },
+    {
+      "viewport": "desktop",
+      "path": "/workspace",
+      "method": "GET"
+    },
+    {
+      "viewport": "desktop",
+      "path": "/assets/abaya-v01-front",
+      "method": "GET"
+    },
+    {
+      "viewport": "desktop",
+      "path": "/assets/kostyum-v01-front",
+      "method": "GET"
+    },
+    {
+      "viewport": "desktop",
+      "path": "/assets/nimcha-v06-front",
+      "method": "GET"
+    },
+    {
+      "viewport": "desktop",
+      "path": "/source-analysis",
+      "method": "GET"
+    },
+    {
+      "viewport": "desktop",
+      "path": "/assets/card-e899754485a94d5f81e08c92899017ea",
+      "method": "GET"
+    },
+    {
+      "viewport": "desktop",
+      "path": "/assets/card-fa68c2dd9ffe4e5bb8fb1693cfee8bf1",
+      "method": "GET"
+    },
+    {
+      "viewport": "desktop",
+      "path": "/assets/card-fedc2b12d15a438893e92eea9b4b9e7e",
+      "method": "GET"
+    },
+    {
+      "viewport": "desktop",
+      "path": "/assets/card-cdae3361783c46d68b0113f0ebde49cf",
+      "method": "GET"
+    },
+    {
+      "viewport": "desktop",
+      "path": "/assets/card-f94e263ab112417e890f9c5796dfa43e",
+      "method": "GET"
+    },
+    {
+      "viewport": "desktop",
+      "path": "/assets/card-1beb4e26158c435584ddccaa897a39ac",
+      "method": "GET"
+    },
+    {
+      "viewport": "desktop",
+      "path": "/assets/card-be080d377cb24474bfbeb534813df523",
+      "method": "GET"
+    },
+    {
+      "viewport": "desktop",
+      "path": "/assets/card-685d7fe8361546609257702ccf270c1d",
+      "method": "GET"
+    },
+    {
+      "viewport": "desktop",
+      "path": "/assets/card-a53a9bc96d674674906f0df072bbcbd2",
+      "method": "GET"
+    },
+    {
+      "viewport": "desktop",
+      "path": "/assets/587d014d012a4ec39ba1612f5c47b041",
+      "method": "GET"
+    },
+    {
+      "viewport": "desktop",
+      "path": "/workspace",
+      "method": "GET"
+    },
+    {
+      "viewport": "mobile",
+      "path": "/workspace",
+      "method": "GET"
+    },
+    {
+      "viewport": "mobile",
+      "path": "/workspace",
+      "method": "GET"
+    },
+    {
+      "viewport": "mobile",
+      "path": "/workspace",
+      "method": "GET"
+    },
+    {
+      "viewport": "mobile",
+      "path": "/workspace",
+      "method": "GET"
+    },
+    {
+      "viewport": "mobile",
+      "path": "/assets/abaya-v01-front",
+      "method": "GET"
+    },
+    {
+      "viewport": "mobile",
+      "path": "/assets/kostyum-v01-front",
+      "method": "GET"
+    },
+    {
+      "viewport": "mobile",
+      "path": "/assets/nimcha-v06-front",
+      "method": "GET"
+    },
+    {
+      "viewport": "mobile",
+      "path": "/source-analysis",
+      "method": "GET"
+    },
+    {
+      "viewport": "mobile",
+      "path": "/assets/card-e899754485a94d5f81e08c92899017ea",
+      "method": "GET"
+    },
+    {
+      "viewport": "mobile",
+      "path": "/assets/card-fa68c2dd9ffe4e5bb8fb1693cfee8bf1",
+      "method": "GET"
+    },
+    {
+      "viewport": "mobile",
+      "path": "/assets/card-fedc2b12d15a438893e92eea9b4b9e7e",
+      "method": "GET"
+    },
+    {
+      "viewport": "mobile",
+      "path": "/assets/card-cdae3361783c46d68b0113f0ebde49cf",
+      "method": "GET"
+    },
+    {
+      "viewport": "mobile",
+      "path": "/assets/card-f94e263ab112417e890f9c5796dfa43e",
+      "method": "GET"
+    },
+    {
+      "viewport": "mobile",
+      "path": "/assets/card-1beb4e26158c435584ddccaa897a39ac",
+      "method": "GET"
+    },
+    {
+      "viewport": "mobile",
+      "path": "/assets/card-be080d377cb24474bfbeb534813df523",
+      "method": "GET"
+    },
+    {
+      "viewport": "mobile",
+      "path": "/assets/card-685d7fe8361546609257702ccf270c1d",
+      "method": "GET"
+    },
+    {
+      "viewport": "mobile",
+      "path": "/assets/card-a53a9bc96d674674906f0df072bbcbd2",
+      "method": "GET"
+    },
+    {
+      "viewport": "mobile",
+      "path": "/assets/587d014d012a4ec39ba1612f5c47b041",
+      "method": "GET"
+    },
+    {
+      "viewport": "mobile",
+      "path": "/workspace",
+      "method": "GET"
+    }
+  ],
+  "blocked": [],
+  "errors": []
+}

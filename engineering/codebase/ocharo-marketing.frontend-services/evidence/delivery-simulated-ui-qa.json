@@ -1,0 +1,492 @@
+{
+  "mode": "Isolated fake API routes; no provider execution or durable schedules created.",
+  "results": [
+    {
+      "name": "simulated-desktop-delivery-confirmation",
+      "overflow": {
+        "page": 1440,
+        "viewport": 1440
+      }
+    },
+    {
+      "name": "simulated-desktop-delivery-stale",
+      "overflow": {
+        "page": 1440,
+        "viewport": 1440
+      }
+    },
+    {
+      "name": "simulated-desktop-delivery-queued",
+      "overflow": {
+        "page": 1440,
+        "viewport": 1440
+      }
+    },
+    {
+      "viewport": "desktop",
+      "queueConfirmed": true,
+      "staleConsentBlocked": true,
+      "cancelled": true,
+      "actualProviderCalls": 0
+    },
+    {
+      "name": "simulated-desktop-metrics-history",
+      "overflow": {
+        "page": 1440,
+        "viewport": 1440
+      }
+    },
+    {
+      "viewport": "desktop",
+      "cachedOnlyNavigation": true,
+      "explicitMetricRefresh": true,
+      "oldValuesPreserved": true
+    },
+    {
+      "name": "simulated-desktop-analysis-reviewed",
+      "overflow": {
+        "page": 1440,
+        "viewport": 1440
+      }
+    },
+    {
+      "name": "simulated-desktop-reviewed-copy-offer",
+      "overflow": {
+        "page": 1440,
+        "viewport": 1440
+      }
+    },
+    {
+      "viewport": "desktop",
+      "originalSuggestionPreserved": true,
+      "newerReviewEditPreserved": true,
+      "reviewedTextExplicitReuse": true,
+      "noProductMutation": true
+    },
+    {
+      "name": "simulated-mobile-delivery-confirmation",
+      "overflow": {
+        "page": 390,
+        "viewport": 390
+      }
+    },
+    {
+      "name": "simulated-mobile-delivery-stale",
+      "overflow": {
+        "page": 390,
+        "viewport": 390
+      }
+    },
+    {
+      "name": "simulated-mobile-delivery-queued",
+      "overflow": {
+        "page": 390,
+        "viewport": 390
+      }
+    },
+    {
+      "viewport": "mobile",
+      "queueConfirmed": true,
+      "staleConsentBlocked": true,
+      "cancelled": true,
+      "actualProviderCalls": 0
+    },
+    {
+      "name": "simulated-mobile-metrics-history",
+      "overflow": {
+        "page": 390,
+        "viewport": 390
+      }
+    },
+    {
+      "viewport": "mobile",
+      "cachedOnlyNavigation": true,
+      "explicitMetricRefresh": true,
+      "oldValuesPreserved": true
+    },
+    {
+      "name": "simulated-mobile-analysis-reviewed",
+      "overflow": {
+        "page": 390,
+        "viewport": 390
+      }
+    },
+    {
+      "name": "simulated-mobile-reviewed-copy-offer",
+      "overflow": {
+        "page": 390,
+        "viewport": 390
+      }
+    },
+    {
+      "viewport": "mobile",
+      "originalSuggestionPreserved": true,
+      "newerReviewEditPreserved": true,
+      "reviewedTextExplicitReuse": true,
+      "noProductMutation": true
+    }
+  ],
+  "errors": [],
+  "requests": [
+    {
+      "viewport": "desktop",
+      "method": "GET",
+      "path": "/workspace",
+      "mode": "isolated fake API"
+    },
+    {
+      "viewport": "desktop",
+      "method": "GET",
+      "path": "/assets/card-e899754485a94d5f81e08c92899017ea",
+      "mode": "isolated fake API"
+    },
+    {
+      "viewport": "desktop",
+      "method": "GET",
+      "path": "/workspace",
+      "mode": "isolated fake API"
+    },
+    {
+      "viewport": "desktop",
+      "method": "POST",
+      "path": "/schedules/simulated-plan/queue",
+      "mode": "isolated fake API"
+    },
+    {
+      "viewport": "desktop",
+      "method": "GET",
+      "path": "/workspace",
+      "mode": "isolated fake API"
+    },
+    {
+      "viewport": "desktop",
+      "method": "POST",
+      "path": "/schedules/simulated-plan/cancel",
+      "mode": "isolated fake API"
+    },
+    {
+      "viewport": "desktop",
+      "method": "GET",
+      "path": "/workspace",
+      "mode": "isolated fake API"
+    },
+    {
+      "viewport": "desktop",
+      "method": "GET",
+      "path": "/schedules/simulated-metrics-plan/metrics",
+      "mode": "isolated fake API"
+    },
+    {
+      "viewport": "desktop",
+      "method": "POST",
+      "path": "/schedules/simulated-metrics-plan/metrics/refresh",
+      "mode": "isolated fake API"
+    },
+    {
+      "viewport": "desktop",
+      "method": "GET",
+      "path": "/workspace",
+      "mode": "isolated fake API"
+    },
+    {
+      "viewport": "desktop",
+      "method": "GET",
+      "path": "/workspace",
+      "mode": "isolated fake API"
+    },
+    {
+      "viewport": "desktop",
+      "method": "GET",
+      "path": "/assets/abaya-v01-front",
+      "mode": "isolated fake API"
+    },
+    {
+      "viewport": "desktop",
+      "method": "GET",
+      "path": "/assets/kostyum-v01-front",
+      "mode": "isolated fake API"
+    },
+    {
+      "viewport": "desktop",
+      "method": "GET",
+      "path": "/assets/nimcha-v06-front",
+      "mode": "isolated fake API"
+    },
+    {
+      "viewport": "desktop",
+      "method": "GET",
+      "path": "/source-analysis",
+      "mode": "isolated fake API"
+    },
+    {
+      "viewport": "desktop",
+      "method": "GET",
+      "path": "/assets/card-e899754485a94d5f81e08c92899017ea",
+      "mode": "isolated fake API"
+    },
+    {
+      "viewport": "desktop",
+      "method": "GET",
+      "path": "/assets/card-fa68c2dd9ffe4e5bb8fb1693cfee8bf1",
+      "mode": "isolated fake API"
+    },
+    {
+      "viewport": "desktop",
+      "method": "GET",
+      "path": "/assets/card-fedc2b12d15a438893e92eea9b4b9e7e",
+      "mode": "isolated fake API"
+    },
+    {
+      "viewport": "desktop",
+      "method": "GET",
+      "path": "/assets/card-cdae3361783c46d68b0113f0ebde49cf",
+      "mode": "isolated fake API"
+    },
+    {
+      "viewport": "desktop",
+      "method": "GET",
+      "path": "/assets/card-f94e263ab112417e890f9c5796dfa43e",
+      "mode": "isolated fake API"
+    },
+    {
+      "viewport": "desktop",
+      "method": "GET",
+      "path": "/assets/card-1beb4e26158c435584ddccaa897a39ac",
+      "mode": "isolated fake API"
+    },
+    {
+      "viewport": "desktop",
+      "method": "GET",
+      "path": "/assets/card-be080d377cb24474bfbeb534813df523",
+      "mode": "isolated fake API"
+    },
+    {
+      "viewport": "desktop",
+      "method": "GET",
+      "path": "/assets/card-685d7fe8361546609257702ccf270c1d",
+      "mode": "isolated fake API"
+    },
+    {
+      "viewport": "desktop",
+      "method": "GET",
+      "path": "/assets/card-a53a9bc96d674674906f0df072bbcbd2",
+      "mode": "isolated fake API"
+    },
+    {
+      "viewport": "desktop",
+      "method": "GET",
+      "path": "/assets/587d014d012a4ec39ba1612f5c47b041",
+      "mode": "isolated fake API"
+    },
+    {
+      "viewport": "desktop",
+      "method": "POST",
+      "path": "/source-analysis/simulated-analysis/review",
+      "mode": "isolated fake API"
+    },
+    {
+      "viewport": "desktop",
+      "method": "GET",
+      "path": "/workspace",
+      "mode": "isolated fake API"
+    },
+    {
+      "viewport": "desktop",
+      "method": "POST",
+      "path": "/source-analysis/simulated-analysis/review",
+      "mode": "isolated fake API"
+    },
+    {
+      "viewport": "desktop",
+      "method": "GET",
+      "path": "/workspace",
+      "mode": "isolated fake API"
+    },
+    {
+      "viewport": "desktop",
+      "method": "POST",
+      "path": "/cards/preview",
+      "mode": "isolated fake API"
+    },
+    {
+      "viewport": "mobile",
+      "method": "GET",
+      "path": "/workspace",
+      "mode": "isolated fake API"
+    },
+    {
+      "viewport": "mobile",
+      "method": "GET",
+      "path": "/assets/card-e899754485a94d5f81e08c92899017ea",
+      "mode": "isolated fake API"
+    },
+    {
+      "viewport": "mobile",
+      "method": "GET",
+      "path": "/workspace",
+      "mode": "isolated fake API"
+    },
+    {
+      "viewport": "mobile",
+      "method": "POST",
+      "path": "/schedules/simulated-plan/queue",
+      "mode": "isolated fake API"
+    },
+    {
+      "viewport": "mobile",
+      "method": "GET",
+      "path": "/workspace",
+      "mode": "isolated fake API"
+    },
+    {
+      "viewport": "mobile",
+      "method": "POST",
+      "path": "/schedules/simulated-plan/cancel",
+      "mode": "isolated fake API"
+    },
+    {
+      "viewport": "mobile",
+      "method": "GET",
+      "path": "/workspace",
+      "mode": "isolated fake API"
+    },
+    {
+      "viewport": "mobile",
+      "method": "GET",
+      "path": "/schedules/simulated-metrics-plan/metrics",
+      "mode": "isolated fake API"
+    },
+    {
+      "viewport": "mobile",
+      "method": "POST",
+      "path": "/schedules/simulated-metrics-plan/metrics/refresh",
+      "mode": "isolated fake API"
+    },
+    {
+      "viewport": "mobile",
+      "method": "GET",
+      "path": "/workspace",
+      "mode": "isolated fake API"
+    },
+    {
+      "viewport": "mobile",
+      "method": "GET",
+      "path": "/workspace",
+      "mode": "isolated fake API"
+    },
+    {
+      "viewport": "mobile",
+      "method": "GET",
+      "path": "/assets/abaya-v01-front",
+      "mode": "isolated fake API"
+    },
+    {
+      "viewport": "mobile",
+      "method": "GET",
+      "path": "/assets/kostyum-v01-front",
+      "mode": "isolated fake API"
+    },
+    {
+      "viewport": "mobile",
+      "method": "GET",
+      "path": "/assets/nimcha-v06-front",
+      "mode": "isolated fake API"
+    },
+    {
+      "viewport": "mobile",
+      "method": "GET",
+      "path": "/source-analysis",
+      "mode": "isolated fake API"
+    },
+    {
+      "viewport": "mobile",
+      "method": "GET",
+      "path": "/assets/card-e899754485a94d5f81e08c92899017ea",
+      "mode": "isolated fake API"
+    },
+    {
+      "viewport": "mobile",
+      "method": "GET",
+      "path": "/assets/card-fa68c2dd9ffe4e5bb8fb1693cfee8bf1",
+      "mode": "isolated fake API"
+    },
+    {
+      "viewport": "mobile",
+      "method": "GET",
+      "path": "/assets/card-fedc2b12d15a438893e92eea9b4b9e7e",
+      "mode": "isolated fake API"
+    },
+    {
+      "viewport": "mobile",
+      "method": "GET",
+      "path": "/assets/card-cdae3361783c46d68b0113f0ebde49cf",
+      "mode": "isolated fake API"
+    },
+    {
+      "viewport": "mobile",
+      "method": "GET",
+      "path": "/assets/card-f94e263ab112417e890f9c5796dfa43e",
+      "mode": "isolated fake API"
+    },
+    {
+      "viewport": "mobile",
+      "method": "GET",
+      "path": "/assets/card-1beb4e26158c435584ddccaa897a39ac",
+      "mode": "isolated fake API"
+    },
+    {
+      "viewport": "mobile",
+      "method": "GET",
+      "path": "/assets/card-be080d377cb24474bfbeb534813df523",
+      "mode": "isolated fake API"
+    },
+    {
+      "viewport": "mobile",
+      "method": "GET",
+      "path": "/assets/card-685d7fe8361546609257702ccf270c1d",
+      "mode": "isolated fake API"
+    },
+    {
+      "viewport": "mobile",
+      "method": "GET",
+      "path": "/assets/card-a53a9bc96d674674906f0df072bbcbd2",
+      "mode": "isolated fake API"
+    },
+    {
+      "viewport": "mobile",
+      "method": "GET",
+      "path": "/assets/587d014d012a4ec39ba1612f5c47b041",
+      "mode": "isolated fake API"
+    },
+    {
+      "viewport": "mobile",
+      "method": "POST",
+      "path": "/source-analysis/simulated-analysis/review",
+      "mode": "isolated fake API"
+    },
+    {
+      "viewport": "mobile",
+      "method": "GET",
+      "path": "/workspace",
+      "mode": "isolated fake API"
+    },
+    {
+      "viewport": "mobile",
+      "method": "POST",
+      "path": "/source-analysis/simulated-analysis/review",
+      "mode": "isolated fake API"
+    },
+    {
+      "viewport": "mobile",
+      "method": "GET",
+      "path": "/workspace",
+      "mode": "isolated fake API"
+    },
+    {
+      "viewport": "mobile",
+      "method": "POST",
+      "path": "/cards/preview",
+      "mode": "isolated fake API"
+    }
+  ]
+}

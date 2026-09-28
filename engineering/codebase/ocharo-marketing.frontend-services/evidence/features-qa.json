@@ -1,0 +1,74 @@
+{
+  "proof": {
+    "previewGeometry": {
+      "rect": {
+        "x": 620,
+        "y": 255,
+        "width": 360,
+        "height": 450,
+        "top": 255,
+        "right": 980,
+        "bottom": 705,
+        "left": 620
+      },
+      "width": "1080",
+      "height": "1350",
+      "transform": "matrix(0.333333, 0, 0, 0.333333, 0, 0)",
+      "windowScrollY": 0
+    },
+    "atlasPdf": "ocharo-card-atlas.pdf",
+    "scan": {
+      "status": 200,
+      "body": {
+        "summary": "Captured 3 source lines for review.",
+        "suggestions": [
+          "Nimcha",
+          "Material: Synthetic fabric",
+          "Sizes: S, M, L, XL, XXXL"
+        ],
+        "issues": [
+          "These are pasted-text suggestions, not verified product facts.",
+          "Review product identity, material, sizes and prices before adding them to copy."
+        ]
+      }
+    },
+    "upload": {
+      "status": 200,
+      "body": {
+        "id": "587d014d012a4ec39ba1612f5c47b041",
+        "fileName": "nimcha-original-front-ui-verification.png",
+        "contentType": "image/png",
+        "byteLength": 1658761,
+        "sha256": "da7afdb483818308d1ed22b55f3600b0d8766df278c9330e13f2e2d0277c5c52",
+        "provenance": "UI verification: duplicate of recorded original Nimcha front cutout.",
+        "url": "/api/marketing/assets/587d014d012a4ec39ba1612f5c47b041",
+        "role": "reference"
+      }
+    },
+    "providerChoices": [
+      "OpenAI",
+      "Gemini"
+    ],
+    "geminiSelection": "Gemini",
+    "unconfiguredGeneration": {
+      "status": 409,
+      "body": {
+        "type": "https://tools.ietf.org/html/rfc9110#section-15.5.10",
+        "title": "Marketing command rejected",
+        "status": 409,
+        "detail": "This image provider is not enabled and configured."
+      },
+      "request": {
+        "provider": "openai",
+        "prompt": "Verification only: preserve the front garment and propose a plain studio background.",
+        "productId": "abaya-v01",
+        "referenceAssetIds": [
+          "abaya-v01-front"
+        ]
+      }
+    },
+    "visibleProviderFailure": "This image provider is not enabled and configured.",
+    "finalTitle": "Atlas · Ocharo Marketing"
+  },
+  "errors": []
+}

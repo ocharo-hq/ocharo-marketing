@@ -1,0 +1,30 @@
+{
+  "verifiedAt": "2026-09-26T19:44:43.954266+00:00",
+  "productId": "nimcha-v06",
+  "cardAssetIds": [
+    "card-fedc2b12d15a438893e92eea9b4b9e7e",
+    "card-cdae3361783c46d68b0113f0ebde49cf"
+  ],
+  "jobIds": [
+    "fedc2b12d15a438893e92eea9b4b9e7e",
+    "cdae3361783c46d68b0113f0ebde49cf"
+  ],
+  "draftId": "8b25c1823be04b2e94caeff9dd7311c4",
+  "cancelledScheduleId": "16591e83a0c64ef39b77a980aa4e2397",
+  "checks": [
+    "two real 1080x1350 renders",
+    "approved ZIP repeats byte-identically",
+    "ZIP contains exact selected PNG",
+    "disconnected schedule remains planned",
+    "edit clears approval",
+    "schedule retains the approved revision",
+    "plan cancelled",
+    "PDF export"
+  ],
+  "files": {
+    "approved-post-proof.zip": "4d49d4bd4b71735860bc8eba528eb8b99d55a8a21ed28c90d818e964188dddfa",
+    "t02-charcoal.png": "c5e775170d297a28f6d5cfb5c02081a3580f3e31df1c7ca79c21ca64643405ec",
+    "t02-bone.png": "ac76cd1cd8401df92e756af919b3f6c187db8a4d6283fe715d0e1cf1f6957999"
+  },
+  "atlasEvidence": "card-shape-evidence.json supersedes the initial two-card PDF hash"
+}

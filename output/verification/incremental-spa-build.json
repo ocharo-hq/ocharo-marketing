@@ -1,0 +1,29 @@
+{
+  "rootCause": "Content Remove disk glob after deployment missed evaluated identities for deleted Vite hashes.",
+  "fix": "Remove exact pre-build Content identities under wwwroot before deployment, then include current files.",
+  "verification": {
+    "consecutiveCombinedBuildsPassed": 2,
+    "eachBuildDeletedDistinctEvaluatedStaleProbe": true,
+    "objDeleted": false,
+    "publishPassed": true,
+    "spaFilesMatchedInPublishAndRunningApi": 26,
+    "staleProbeAbsentFromBuildAndPublishManifests": true,
+    "privateRuntimeDataInPublish": false
+  },
+  "apiSessionPreserved": 5749,
+  "bundle": "/private/tmp/ocharo-marketing-publish-incremental-20260927",
+  "indexSha256": "31acaa0ff0c84b510f2ef66e1ea9c85325f388a1364b4e97658b189aa1a9b040",
+  "buildCommand": "PATH=\"/Users/max/.nvm/versions/node/v24.11.0/bin:$PATH\" dotnet build OcharoMarketing.BackendServices.slnx -p:BuildSpa=true -m:1 --no-restore",
+  "buildExitCodes": [
+    0,
+    0
+  ],
+  "publishCommand": "dotnet publish OcharoMarketing.Api/OcharoMarketing.Api.csproj -c Debug --no-build --no-restore -p:BuildSpa=false -o /private/tmp/ocharo-marketing-publish-incremental-20260927",
+  "publishExitCode": 0,
+  "probeNames": [
+    "incremental-stale-probe-first.js",
+    "incremental-stale-probe-second.js"
+  ],
+  "file": "engineering/codebase/ocharo-marketing.backend-services/OcharoMarketing.Api/OcharoMarketing.Api.csproj",
+  "verificationScope": "Generated wwwroot probes model a previous Vite hash disappearing during deploy. No authored frontend source was modified for this check."
+}

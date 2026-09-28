@@ -1,0 +1,24 @@
+{
+  "apiSession": 5749,
+  "healthStatus": 200,
+  "health": {
+    "status": "healthy",
+    "service": "OcharoMarketing",
+    "mode": "local-pilot"
+  },
+  "workspaceCounts": {
+    "products": 3,
+    "assets": 12,
+    "drafts": 2,
+    "schedules": 3,
+    "generationJobs": 9,
+    "presets": 3
+  },
+  "scheduleTitlesPresent": true,
+  "builtSpaServed": true,
+  "originChecks": {
+    "https://localhost:8242": 200,
+    "https://foreign.example": 403
+  },
+  "configuredProviderCount": 0
+}

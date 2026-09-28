@@ -1,0 +1,131 @@
+{
+  "results": [
+    {
+      "viewport": "desktop",
+      "path": "/",
+      "heading": "Postingizga shakl bering.",
+      "overflow": {
+        "page": 1440,
+        "viewport": 1440
+      }
+    },
+    {
+      "viewport": "desktop",
+      "path": "/posts",
+      "heading": "Postlar",
+      "overflow": {
+        "page": 1440,
+        "viewport": 1440
+      }
+    },
+    {
+      "viewport": "desktop",
+      "path": "/products",
+      "heading": "Mahsulotlar va tasvirlar",
+      "overflow": {
+        "page": 1440,
+        "viewport": 1440
+      }
+    },
+    {
+      "viewport": "desktop",
+      "path": "/atlas",
+      "heading": "Bir mahsulot, turli ifoda.",
+      "overflow": {
+        "page": 1440,
+        "viewport": 1440
+      }
+    },
+    {
+      "viewport": "desktop",
+      "path": "/calendar",
+      "heading": "Shoshilmasdan, muntazam.",
+      "overflow": {
+        "page": 1440,
+        "viewport": 1440
+      }
+    },
+    {
+      "viewport": "desktop",
+      "path": "/results",
+      "heading": "Nima odamlarni qiziqtirdi?",
+      "overflow": {
+        "page": 1440,
+        "viewport": 1440
+      }
+    },
+    {
+      "viewport": "desktop",
+      "path": "/connections",
+      "heading": "Har kanalning o‘z yo‘li bor.",
+      "overflow": {
+        "page": 1440,
+        "viewport": 1440
+      }
+    },
+    {
+      "viewport": "mobile",
+      "path": "/",
+      "heading": "Postingizga shakl bering.",
+      "overflow": {
+        "page": 390,
+        "viewport": 390
+      }
+    },
+    {
+      "viewport": "mobile",
+      "path": "/posts",
+      "heading": "Postlar",
+      "overflow": {
+        "page": 390,
+        "viewport": 390
+      }
+    },
+    {
+      "viewport": "mobile",
+      "path": "/products",
+      "heading": "Mahsulotlar va tasvirlar",
+      "overflow": {
+        "page": 390,
+        "viewport": 390
+      }
+    },
+    {
+      "viewport": "mobile",
+      "path": "/atlas",
+      "heading": "Bir mahsulot, turli ifoda.",
+      "overflow": {
+        "page": 390,
+        "viewport": 390
+      }
+    },
+    {
+      "viewport": "mobile",
+      "path": "/calendar",
+      "heading": "Shoshilmasdan, muntazam.",
+      "overflow": {
+        "page": 390,
+        "viewport": 390
+      }
+    },
+    {
+      "viewport": "mobile",
+      "path": "/results",
+      "heading": "Nima odamlarni qiziqtirdi?",
+      "overflow": {
+        "page": 390,
+        "viewport": 390
+      }
+    },
+    {
+      "viewport": "mobile",
+      "path": "/connections",
+      "heading": "Har kanalning o‘z yo‘li bor.",
+      "overflow": {
+        "page": 390,
+        "viewport": 390
+      }
+    }
+  ],
+  "errors": []
+}

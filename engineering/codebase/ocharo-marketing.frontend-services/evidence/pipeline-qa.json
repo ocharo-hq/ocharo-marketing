@@ -1,0 +1,87 @@
+{
+  "proof": {
+    "zipName": "ocharo-post-387eb969d40e4630b143b9e0e6de9af6.zip",
+    "dateInput": {
+      "tag": "INPUT",
+      "type": "text",
+      "placeholder": "Sana va vaqtni tanlang"
+    },
+    "planMessage": "Saved as a plan. Live delivery is disabled; export this approved revision for manual publishing.",
+    "calendar": "POSTLAR TAQVIMI\n\nShoshilmasdan, muntazam.\n\nVaqtlar Toshkent bo‘yicha. “Rejada” holati post hali joylanmaganini bildiradi.\n\nPostni tanlash\nM09 21 — M09 27\nShu hafta\nMon\n21\nTue\n22\nWed\n23\nThu\n24\nFri\n25\nSat\n26\nSun\n27\nUlanmagan kanal uchun saqlangan vaqt qo‘lda joylash rejasidir. Kanal keyinroq sozlansa ham, oldingi rejalar o‘z-o‘zidan yuborilmaydi.\nBarcha rejalar\nSaqlangan post\n\nInstagram · M09 29 00:36 · 1-talqin\n\nCancelled locally; no unsend was attempted.\n\nBekor qilingan\n\nQoralama yangilangan. Hozirgi talqinni ochish.\n\nSaqlangan post\n\nInstagram · M09 29 00:44 · 3-talqin\n\nCancelled locally; no unsend was attempted.\n\nBekor qilingan\n\nQoralama yangilangan. Hozirgi talqinni ochish.\n\nNimcha\n\nInstagram · M10 2 12:00 · 1-talqin\n\nSaved as a plan. Live delivery is disabled; export this approved revision for manual publishing.\n\nRejada\nBekor qilish",
+    "draft": {
+      "id": "387eb969d40e4630b143b9e0e6de9af6",
+      "title": "Nimcha",
+      "productId": "nimcha-v06",
+      "presetId": "t02-bone",
+      "locale": "uz",
+      "caption": "Nimcha\nMato: Synthetic fabric\nO'lchamlar: S, M, L, XL, XXXL",
+      "channels": [
+        "instagram"
+      ],
+      "mediaIds": [
+        "card-a53a9bc96d674674906f0df072bbcbd2"
+      ],
+      "revision": 1,
+      "approvedRevision": 1,
+      "status": "approved",
+      "createdAt": "2026-09-26T19:48:55.622805+00:00",
+      "updatedAt": "2026-09-26T19:48:55.622805+00:00",
+      "composition": {
+        "title": "Nimcha",
+        "subtitle": "Old ko‘rinish",
+        "fabricAssetId": null,
+        "scale": 1,
+        "offsetX": 0,
+        "offsetY": 0
+      }
+    },
+    "schedule": {
+      "id": "d39b90343c3b44308cd626e421fe235e",
+      "draftId": "387eb969d40e4630b143b9e0e6de9af6",
+      "draftRevision": 1,
+      "channel": "instagram",
+      "scheduledAt": "2026-10-02T07:00:00+00:00",
+      "status": "planned",
+      "message": "Saved as a plan. Live delivery is disabled; export this approved revision for manual publishing.",
+      "externalId": null
+    },
+    "reopenedSubtitle": "Old ko‘rinish",
+    "mobileOverflow": {
+      "page": 390,
+      "viewport": 390
+    }
+  },
+  "requests": [
+    {
+      "url": "/api/marketing/cards/preview",
+      "status": 200,
+      "method": "POST"
+    },
+    {
+      "url": "/api/marketing/cards/render",
+      "status": 200,
+      "method": "POST"
+    },
+    {
+      "url": "/api/marketing/cards/preview",
+      "status": 200,
+      "method": "POST"
+    },
+    {
+      "url": "/api/marketing/drafts",
+      "status": 200,
+      "method": "POST"
+    },
+    {
+      "url": "/api/marketing/drafts/387eb969d40e4630b143b9e0e6de9af6/approve",
+      "status": 200,
+      "method": "POST"
+    },
+    {
+      "url": "/api/marketing/drafts/387eb969d40e4630b143b9e0e6de9af6/schedule",
+      "status": 200,
+      "method": "POST"
+    }
+  ],
+  "errors": []
+}

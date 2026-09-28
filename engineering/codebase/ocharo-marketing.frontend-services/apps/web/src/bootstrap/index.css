@@ -1,0 +1,57 @@
+@import 'tailwindcss';
+@import '@wow-two-beta/ui-vue/styles.css';
+@source '../../node_modules/@wow-two-beta/ui-vue/dist';
+
+@theme {
+  --color-background: #f5f2eb;
+  --color-foreground: #272924;
+  --color-card: #fffdf8;
+  --color-card-foreground: #272924;
+  --color-primary: #783e4c;
+  --color-primary-foreground: #fffdf8;
+  --color-primary-soft: #f3e7e9;
+  --color-primary-soft-foreground: #783e4c;
+  --color-secondary: #eeeae0;
+  --color-secondary-foreground: #494c43;
+  --color-muted: #efede6;
+  --color-muted-foreground: #76796e;
+  --color-border: #e6e2d8;
+  --color-ring: #783e4c;
+  --color-success: #426553;
+  --color-success-soft: #e9f0e9;
+  --color-success-soft-foreground: #426553;
+  --color-warning: #906623;
+  --color-warning-soft: #f8efdd;
+  --color-warning-soft-foreground: #906623;
+  --color-destructive: #a0443d;
+  --color-destructive-soft: #fae9e6;
+  --color-destructive-soft-foreground: #a0443d;
+  --font-sans: 'Avenir Next', 'Segoe UI', sans-serif;
+  --font-editorial: Georgia, 'Times New Roman', serif;
+  --shadow-paper: 0 12px 35px #25292306;
+}
+
+html {
+  color: var(--color-foreground);
+  background: var(--color-background);
+  font-family: var(--font-sans);
+}
+body {
+  margin: 0;
+  min-width: 320px;
+}
+button,
+a,
+input,
+textarea,
+select {
+  -webkit-tap-highlight-color: transparent;
+}
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms;
+    transition-duration: 0.01ms;
+  }
+}

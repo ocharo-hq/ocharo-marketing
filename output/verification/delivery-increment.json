@@ -1,0 +1,114 @@
+{
+  "backendTests": {
+    "passed": 171,
+    "failed": 0,
+    "skipped": 0,
+    "evidence": "delivery-backend-tests.trx",
+    "mode": "fake providers; real SQLite; real local Chromium card rendering"
+  },
+  "combinedBuild": {
+    "exitCode": 0,
+    "nodeVersion": "24.11.0",
+    "vueComponentsCompiled": 21,
+    "finalFrontendRebundle": true
+  },
+  "publish": {
+    "exitCode": 0,
+    "matchingSpaFiles": 27,
+    "seedImages": 3,
+    "privateRuntimeDataIncluded": false,
+    "localPackagePath": "/private/tmp/ocharo-marketing-publish-delivery-final-20260927",
+    "staticFileHashes": {
+      "assets/AtlasPage-D1-7Rhfj.js": "4f26c7daf3fb550b74a9841bd81249453b16aabc5afd53e65c59afec6407c5a0",
+      "assets/CalendarPage-bA2O3eol.js": "a2faa5ee58a201c8030c25047ccad4f1d85111516770f6ee0f10caa553d9a13e",
+      "assets/CardPreview.vue_vue_type_script_setup_true_lang-B1lWVd8Y.js": "d0460ec6799980d420ea023158bc86fcf26938015200290d5973fc3be587176c",
+      "assets/CommandPaletteModalSeparator.vue_vue_type_script_setup_true_lang-Bdw_UkZ9-DhQ5Qv75.js": "40289ef2f444ead8c725be88d3d81b8cdee9c063566f3b4acdb97c0a69cee7d7",
+      "assets/ConnectionsPage-B9qerdFt.js": "22946775d0b9f22fc7232cd44feb65e26772ab4afc2e4f59c11f70380c88d501",
+      "assets/ExactNumberInput.vue_vue_type_script_setup_true_lang-20GMHPCu-DOlX-iVy.js": "5b96732309d4251853a379efb023e8d73bfba34452bb4700c7db697ec7c05951",
+      "assets/GenerationPanel.vue_vue_type_script_setup_true_lang-q0vsa0Sv.js": "6c07f86cde7f492042e11df0287b1d686b886886a918eeb50c60475224973a30",
+      "assets/Guid-B7Tl9qf4-KRflfh_F.js": "90da762b507421baf16d1fee4d29a3044a694bfc5e5f99b3f0d581c27b2a16d9",
+      "assets/MarketingExtensions-B2G6Kxpv.js": "4c5b2085dcc327a6a61d4cb3d364677d561a02ea2ee195ff51ba8180e649d385",
+      "assets/NotFoundPage-DR40krDi.js": "80319f113845d16114a3171eb03446200ae2c5718d05582226441a8222eab2de",
+      "assets/PickerTrigger.vue_vue_type_script_setup_true_lang-DTmyHsFx.js": "b32201f9cf8c65a1f5116c59297ef14468d3a10d9e6e511045a87add941e574a",
+      "assets/PostComposerRoute-DqF323U7.js": "c72fab8cdfd414ba27c8132a3dd7439e2455aaced57b588bea35c81bdcdd6306",
+      "assets/PostsPage-DcRPGAlH.js": "84431b1821cc3f74790b84bb344218451e2834be398b158f131e98b23d76a8b4",
+      "assets/ProductsPage-84bZF1ro.js": "59f1f0c39a58353d930948a12327f0a9c3ddc0bb7bcdfe10a79f019666d75820",
+      "assets/ResultsPage-CEX4tBpZ.js": "4c2c10b556fce2572ad88833dea584ae6c290d6d73837b137578a57fe2cbd7b4",
+      "assets/StatusIndicator.vue_vue_type_script_setup_true_lang-BKd9cKIH.js": "611b715eb3ba4373cda43a96a3012274e0d97e00d15e266f5dec0f0dd359eaeb",
+      "assets/TodayPage-DTnej1Nd.js": "4ca12ca918072379418bef9a6cbb419f186b7ec1f6a25beb1a333c2f08154060",
+      "assets/arrow-right-BzijEVe2.js": "5a3878182f3188c89853250778b27baf75428c02ff1b78ae82dff2ca42a891c5",
+      "assets/arrow-up-right-BGY4wTqG.js": "1104626faf14553cee2972e13c6d1c9420c7d3eb3587e1a6e81c84dcbab2dc87",
+      "assets/image-plus-4xXMrl6V.js": "4f383ea7bf5ac88042b7b6c5bb4707e8949c857f26c1f971625b11ad3a69016f",
+      "assets/index-3cak2Fes.js": "aed51fb1b1c1cabeb07a6642b57a45396e7138478e1cafe87b8367b22def0f38",
+      "assets/index-C3mz0Fu4.js": "6c5e02a419e4cd44bd1908de612f1703ca04fadb892b2730e93d826bebb04498",
+      "assets/index-ROAMYodG.css": "3700d5f53ce4b82fb854d796337395932ef3fe1e0635c91f49fa059a7ff9981d",
+      "assets/plus-BJJVKVk3.js": "097f6940dc0d87478539268da7f45d5ecb901857773304d1f348f0c19dd9b108",
+      "assets/shield-check-CU6cuHBM.js": "9ec187507c416d87fd18f4bb29e0086eed435175de70421f94fce019b287ff2e",
+      "assets/sparkles-CIrsBtQN.js": "b74f8afa93c28cfb756f5e505dc9b3c13a9cbf6810b01ea19799a3f52f78cb3a",
+      "index.html": "33c2d51090b4562b30563dcb730d4b55429e791de51eb7503fc3ab5f2e6afd95"
+    }
+  },
+  "migration": {
+    "before": [
+      "202609270001_InitialMarketing"
+    ],
+    "after": [
+      "202609270001_InitialMarketing",
+      "20260927000200_DeliveryPipeline"
+    ],
+    "beforeCounts": {
+      "Products": 3,
+      "Assets": 13,
+      "Drafts": 2,
+      "DraftRevisions": 5,
+      "Schedules": 3,
+      "GenerationJobs": 9
+    },
+    "afterCounts": {
+      "Products": 3,
+      "Assets": 13,
+      "Drafts": 2,
+      "DraftRevisions": 5,
+      "Schedules": 3,
+      "GenerationJobs": 9
+    },
+    "preserved": true,
+    "newTableCounts": {
+      "DeliveryConnections": 0,
+      "PublicationOperations": 0,
+      "MetricObservations": 0,
+      "MetricReadAttempts": 0,
+      "SourceAnalyses": 0
+    },
+    "privateBackupCreated": true,
+    "backupRelativePath": "engineering/codebase/ocharo-marketing.backend-services/OcharoMarketing.Api/App_Data/backups/marketing-before-delivery-7208f94b54f748bebcd7185ebfe9361b.db"
+  },
+  "runtime": {
+    "apiSession": 81804,
+    "httpPort": 8277,
+    "httpsPort": 8276,
+    "health": {
+      "status": "healthy",
+      "service": "OcharoMarketing",
+      "mode": "local-pilot"
+    },
+    "deliverySettings": {
+      "publishingEnabled": false,
+      "metricReadsEnabled": false,
+      "accountVerificationEnabled": false
+    },
+    "negativePathStatusCodes": {
+      "verifyDisabled": 409,
+      "queueDisabled": 409,
+      "metricReadWithoutReceipt": 409
+    },
+    "cachedMetricsEmpty": true,
+    "matchingServedStaticFiles": 27,
+    "unchangedApiSession": true,
+    "publicationOperationCount": 0
+  },
+  "liveProviderCalls": 0,
+  "paidReads": 0,
+  "realMessagesSent": 0,
+  "finalPackagingVerifiedAtUtc": "2026-09-26T20:52:05.272266+00:00"
+}

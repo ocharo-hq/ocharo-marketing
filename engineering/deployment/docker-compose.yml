@@ -1,0 +1,20 @@
+# Unverified future-host packaging reference. Current pilot startup rejects
+# Production and non-loopback callers; this is not a deployable service yet.
+# An explicit profile prevents ordinary compose startup from launching it.
+# SQLite and private blobs share the named volume in the future host shape.
+services:
+  ocharomarketing:
+    build:
+      context: ../codebase
+      dockerfile: ../deployment/Dockerfile
+    image: ocharomarketing
+    container_name: ocharomarketing
+    profiles: ["future-host"]
+    restart: "no"
+    ports:
+      - "127.0.0.1:8277:8080"
+    volumes:
+      - ocharomarketing-data:/data
+
+volumes:
+  ocharomarketing-data:

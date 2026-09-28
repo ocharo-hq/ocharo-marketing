@@ -1,0 +1,26 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <IsPackable>false</IsPackable>
+    <IsTestProject>true</IsTestProject>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Microsoft.NET.Test.Sdk" />
+    <PackageReference Include="WoW2.Sdk.Backend.Beta.Testing" />
+    <PackageReference Include="WoW2.Sdk.Backend.Beta.Testing.Data" />
+    <PackageReference Include="xunit" />
+    <PackageReference Include="xunit.runner.visualstudio" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\..\OcharoMarketing.Application\OcharoMarketing.Application.csproj" />
+    <ProjectReference Include="..\..\OcharoMarketing.Domain\OcharoMarketing.Domain.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="../../OcharoMarketing.Infrastructure/OcharoMarketing.Infrastructure.csproj" />
+    <ProjectReference Include="../../OcharoMarketing.Persistence/OcharoMarketing.Persistence.csproj" />
+    <ProjectReference Include="../../OcharoMarketing.Api/OcharoMarketing.Api.csproj" />
+  </ItemGroup>
+</Project>

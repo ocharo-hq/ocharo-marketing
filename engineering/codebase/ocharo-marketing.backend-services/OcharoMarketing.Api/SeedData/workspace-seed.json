@@ -1,0 +1,192 @@
+{
+  "brand": {
+    "name": "OCHARO",
+    "timezone": "Asia/Tashkent",
+    "handle": null
+  },
+  "products": [
+    {
+      "id": "nimcha-v06",
+      "name": "Nimcha",
+      "category": "nimcha",
+      "material": "Synthetic fabric",
+      "description": "",
+      "heroAssetId": "nimcha-v06-front",
+      "assetIds": [
+        "nimcha-v06-front"
+      ],
+      "sizes": [
+        "S",
+        "M",
+        "L",
+        "XL",
+        "XXXL"
+      ],
+      "price": null,
+      "currency": "UZS",
+      "reviewStatus": "needs-review",
+      "sourceRevision": "47269bbf2089d7a1f2335100fd03502ac74b8767f90b3f51ec19f2090a725b91",
+      "issues": [
+        "Localized copy remains draft.",
+        "No dedicated matching fabric swatch imported."
+      ],
+      "locales": {
+        "uz": {
+          "status": "draft",
+          "name": "Nimcha",
+          "fabric": "Sintetik mato",
+          "decoration": "Yo‘q",
+          "description": null
+        },
+        "ru": {
+          "status": "draft",
+          "name": "Жилет",
+          "fabric": "Синтетическая ткань",
+          "decoration": "Нет",
+          "description": null
+        },
+        "en": {
+          "status": "draft",
+          "name": "Vest",
+          "fabric": "Synthetic fabric",
+          "decoration": "None",
+          "description": null
+        }
+      }
+    },
+    {
+      "id": "abaya-v01",
+      "name": "Abaya",
+      "category": "abaya",
+      "material": "Synthetic poplin",
+      "description": "",
+      "heroAssetId": "abaya-v01-front",
+      "assetIds": [
+        "abaya-v01-front"
+      ],
+      "sizes": [
+        "S",
+        "M",
+        "L",
+        "XL",
+        "XXXL"
+      ],
+      "price": null,
+      "currency": "UZS",
+      "reviewStatus": "needs-review",
+      "sourceRevision": "15f176eba6fd8b69834c7bf79ed59f1204aaebd4cc465ee0eadcbaf40014c279",
+      "issues": [
+        "Localized copy remains draft.",
+        "No dedicated matching fabric swatch imported."
+      ],
+      "locales": {
+        "uz": {
+          "status": "draft",
+          "name": "Abaya",
+          "fabric": "Sintetik poplin",
+          "decoration": "Yo‘q",
+          "description": null
+        },
+        "ru": {
+          "status": "draft",
+          "name": "Абая",
+          "fabric": "Синтетический поплин",
+          "decoration": "Нет",
+          "description": null
+        },
+        "en": {
+          "status": "draft",
+          "name": "Abaya",
+          "fabric": "Synthetic poplin",
+          "decoration": "None",
+          "description": null
+        }
+      }
+    },
+    {
+      "id": "kostyum-v01",
+      "name": "Kostyum",
+      "category": "kostyum",
+      "material": "Atlas",
+      "description": "",
+      "heroAssetId": "kostyum-v01-front",
+      "assetIds": [
+        "kostyum-v01-front"
+      ],
+      "sizes": [
+        "S",
+        "M",
+        "L",
+        "XL",
+        "XXXL"
+      ],
+      "price": null,
+      "currency": "UZS",
+      "reviewStatus": "needs-review",
+      "sourceRevision": "208a2365e0d80166d8ede57c7b03ddab9f1b14d72477261a7ee40b46ecefd9e9",
+      "issues": [
+        "Localized copy remains draft.",
+        "No dedicated matching fabric swatch imported."
+      ],
+      "locales": {
+        "uz": {
+          "status": "draft",
+          "name": "Kostyum",
+          "fabric": "Atlas",
+          "decoration": "Popukli bezak",
+          "description": null
+        },
+        "ru": {
+          "status": "draft",
+          "name": "Жакет-кейп",
+          "fabric": "Атлас",
+          "decoration": "Бахрома",
+          "description": null
+        },
+        "en": {
+          "status": "draft",
+          "name": "Cropped cape jacket",
+          "fabric": "Atlas",
+          "decoration": "Fringe",
+          "description": null,
+          "name_status": "user_confirmed"
+        }
+      }
+    }
+  ],
+  "assets": [
+    {
+      "id": "nimcha-v06-front",
+      "fileName": "nimcha-v06-front.png",
+      "contentType": "image/png",
+      "byteLength": 1658761,
+      "sha256": "da7afdb483818308d1ed22b55f3600b0d8766df278c9330e13f2e2d0277c5c52",
+      "provenance": "Existing generated front reference with transparent derivative; canonical product record retains original provenance. Imported for draft review.",
+      "url": "/api/marketing/assets/nimcha-v06-front",
+      "role": "front",
+      "relativePath": "assets/nimcha-v06-front.png"
+    },
+    {
+      "id": "abaya-v01-front",
+      "fileName": "abaya-v01-front.png",
+      "contentType": "image/png",
+      "byteLength": 1763949,
+      "sha256": "56baea18afe89e81ed2358a9cbd444577e9d2abe8d96b33463aee2c6ffe5a20b",
+      "provenance": "Existing generated front reference with transparent derivative; canonical product record retains original provenance. Imported for draft review.",
+      "url": "/api/marketing/assets/abaya-v01-front",
+      "role": "front",
+      "relativePath": "assets/abaya-v01-front.png"
+    },
+    {
+      "id": "kostyum-v01-front",
+      "fileName": "kostyum-v01-front.png",
+      "contentType": "image/png",
+      "byteLength": 1643858,
+      "sha256": "b56df3a171911ab14d1bbf7857e086793d276bc7416838f7112a876244405933",
+      "provenance": "Existing generated front reference with transparent derivative; canonical product record retains original provenance. Imported for draft review.",
+      "url": "/api/marketing/assets/kostyum-v01-front",
+      "role": "front",
+      "relativePath": "assets/kostyum-v01-front.png"
+    }
+  ]
+}

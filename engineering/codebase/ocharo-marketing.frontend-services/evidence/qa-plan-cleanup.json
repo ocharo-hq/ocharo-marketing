@@ -1,0 +1,25 @@
+{
+  "creationEvidence": "/Users/max/Projects/10x-ws/workbench/career/engineering/wow-two/wow-two-ws/workbench/ventures/ventures.ocharo-marketing/engineering/codebase/ocharo-marketing.frontend-services/evidence/pipeline-qa.json",
+  "verifiedBeforeCleanup": {
+    "id": "d39b90343c3b44308cd626e421fe235e",
+    "draftId": "387eb969d40e4630b143b9e0e6de9af6",
+    "draftRevision": 1,
+    "channel": "instagram",
+    "scheduledAt": "2026-10-02T07:00:00+00:00",
+    "status": "planned",
+    "message": "Saved as a plan. Live delivery is disabled; export this approved revision for manual publishing.",
+    "externalId": null,
+    "draftTitle": "Nimcha"
+  },
+  "cancelledOwnQaPlan": {
+    "id": "d39b90343c3b44308cd626e421fe235e",
+    "draftId": "387eb969d40e4630b143b9e0e6de9af6",
+    "draftRevision": 1,
+    "channel": "instagram",
+    "scheduledAt": "2026-10-02T07:00:00+00:00",
+    "status": "cancelled",
+    "message": "Cancelled locally; no unsend was attempted.",
+    "externalId": null,
+    "draftTitle": null
+  }
+}

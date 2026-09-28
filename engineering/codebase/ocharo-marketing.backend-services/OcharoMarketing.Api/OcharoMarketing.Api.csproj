@@ -1,0 +1,42 @@
+<Project Sdk="Microsoft.NET.Sdk.Web">
+
+  <ItemGroup>
+    <!-- Kit: mediator (ISender), Result/DomainError, web/problem-details. -->
+    <PackageReference Include="WoW2.Sdk.Backend.Beta" />
+    <PackageReference Include="Microsoft.AspNetCore.OpenApi" />
+    <PackageReference Include="Microsoft.EntityFrameworkCore.Design" PrivateAssets="all" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\OcharoMarketing.Application\OcharoMarketing.Application.csproj" />
+    <ProjectReference Include="..\OcharoMarketing.Infrastructure\OcharoMarketing.Infrastructure.csproj" />
+    <ProjectReference Include="..\OcharoMarketing.Persistence\OcharoMarketing.Persistence.csproj" />
+    <ProjectReference Include="..\OcharoMarketing.Domain\OcharoMarketing.Domain.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Content Remove="SeedData/**/*" />
+    <Content Include="SeedData/**/*" CopyToOutputDirectory="PreserveNewest" CopyToPublishDirectory="PreserveNewest" />
+  </ItemGroup>
+
+  <PropertyGroup>
+    <SpaRoot>$(MSBuildProjectDirectory)/../../ocharo-marketing.frontend-services/</SpaRoot>
+  </PropertyGroup>
+  <Target Name="BuildSpa" BeforeTargets="PrepareForBuild;ResolveProjectStaticWebAssets"
+          Condition="'$(BuildSpa)' != 'false' and '$(DesignTimeBuild)' != 'true' and '$(NoBuild)' != 'true'">
+    <!-- Capture evaluated items before deployment removes old Vite hashes. A disk
+         glob after deployment cannot remove identities whose files disappeared. -->
+    <ItemGroup>
+      <_SpaPreviousContent Include="@(Content)"
+                           Condition="$([System.String]::Copy('%(Content.Identity)').Replace('\', '/').StartsWith('wwwroot/'))" />
+      <Content Remove="@(_SpaPreviousContent)" />
+      <_SpaPreviousContent Remove="@(_SpaPreviousContent)" />
+    </ItemGroup>
+    <Exec Command="pnpm install --frozen-lockfile" WorkingDirectory="$(SpaRoot)" />
+    <Exec Command="pnpm build" WorkingDirectory="$(SpaRoot)" />
+    <Exec Command="node scripts/deploy.mjs" WorkingDirectory="$(SpaRoot)" />
+    <ItemGroup>
+      <Content Include="wwwroot/**/*" CopyToOutputDirectory="PreserveNewest" CopyToPublishDirectory="PreserveNewest" />
+    </ItemGroup>
+  </Target>
+</Project>
