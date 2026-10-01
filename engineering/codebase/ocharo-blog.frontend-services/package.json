@@ -10,7 +10,6 @@
   },
   "scripts": {
     "dev": "pnpm --dir ../ocharo-marketing.frontend-services dev:editorial",
-    "dev:http": "pnpm --dir ../ocharo-marketing.frontend-services --filter @ocharomarketing/editorial dev:http",
     "typecheck": "pnpm --dir ../ocharo-marketing.frontend-services --filter @ocharomarketing/editorial typecheck",
     "build": "pnpm --dir ../ocharo-marketing.frontend-services build:editorial",
     "preview": "pnpm --dir ../ocharo-marketing.frontend-services --filter @ocharomarketing/editorial preview",

@@ -7,9 +7,9 @@ public sealed class LocalPilotBoundaryMiddleware(RequestDelegate next)
 {
     private static readonly HashSet<string> TrustedDevelopmentOrigins = new(StringComparer.OrdinalIgnoreCase)
     {
-        "http://localhost:8358", "https://localhost:8358",
-        "http://127.0.0.1:8358", "https://127.0.0.1:8358",
-        "http://[::1]:8358", "https://[::1]:8358"
+        "https://localhost:8358",
+        "https://127.0.0.1:8358",
+        "https://[::1]:8358"
     };
 
     /// <summary>Rejects non-local requests and cross-origin state changes before application work.</summary>
@@ -43,7 +43,7 @@ public sealed class LocalPilotBoundaryMiddleware(RequestDelegate next)
 
     private static bool IsAllowedOrigin(string origin, HttpRequest request)
     {
-        if (!Uri.TryCreate(origin, UriKind.Absolute, out var uri) || uri.Scheme is not ("http" or "https")
+        if (!Uri.TryCreate(origin, UriKind.Absolute, out var uri) || uri.Scheme != Uri.UriSchemeHttps
             || uri.UserInfo.Length > 0 || uri.AbsolutePath != "/" || uri.Query.Length > 0 || uri.Fragment.Length > 0)
             return false;
         var authority = uri.GetLeftPart(UriPartial.Authority);

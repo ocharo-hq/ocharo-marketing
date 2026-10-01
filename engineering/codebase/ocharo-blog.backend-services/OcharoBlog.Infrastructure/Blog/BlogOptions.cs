@@ -23,7 +23,7 @@ public sealed class BlogOptions
     /// <summary>Ocharo Catalogue origin for the public feed, e.g. https://localhost:8278.</summary>
     public string? CatalogueBaseUrl { get; set; }
 
-    /// <summary>Ocharo Brand origin; when reachable its logo and links replace the blog's own, e.g. http://localhost:8287.</summary>
+    /// <summary>Ocharo Brand origin; when reachable its logo and links replace the blog's own, e.g. https://localhost:8286.</summary>
     public string? BrandBaseUrl { get; set; }
 
     /// <summary>How often scheduled stories are checked.</summary>

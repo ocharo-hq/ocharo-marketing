@@ -10,7 +10,6 @@
   },
   "scripts": {
     "dev": "pnpm --filter @ocharomarketing/web dev",
-    "dev:http": "pnpm --filter @ocharomarketing/web dev:http",
     "typecheck": "pnpm --filter @ocharomarketing/web typecheck",
     "build": "pnpm --filter @ocharomarketing/web build",
     "preview": "pnpm --filter @ocharomarketing/web preview",
