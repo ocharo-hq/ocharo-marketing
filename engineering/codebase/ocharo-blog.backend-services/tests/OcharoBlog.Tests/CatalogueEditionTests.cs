@@ -144,7 +144,7 @@ public sealed class CatalogueEditionTests
     }
 
     [Theory]
-    [InlineData("uz")][InlineData("ru")][InlineData("en")]
+    [InlineData("uz")][InlineData("ru")][InlineData("en")][InlineData("fr")][InlineData("ar")][InlineData("zh-Hans")]
     public async Task Buyer_reader_and_exports_preserve_selected_locale(string locale)
     {
         var feed = new FakeFeed();
@@ -166,6 +166,26 @@ public sealed class CatalogueEditionTests
             Assert.DoesNotContain("?locale=" + other, exported);
         var fallback = await client.GetStringAsync("/catalogue/?locale=invalid");
         Assert.Equal("en", feed.LastLocale); Assert.Contains("lang=\"en\"", fallback);
+    }
+
+    [Theory]
+    [InlineData("fr")][InlineData("ar")][InlineData("zh-Hans")]
+    public async Task Expanded_locale_requests_are_exact_and_public_selector_shows_only_released_editions(string locale)
+    {
+        var handler = new FeedHandler(Feed(locale: locale));
+        var result = await Reader(handler).GetCatalogueAsync(default, locale);
+        Assert.Equal("?locale=" + locale, handler.LastUri!.Query);
+        Assert.Equal(locale, result.Edition!.Locale);
+        Assert.Equal(new[] { locale }, result.AvailableLocales);
+        Assert.Null((await Reader(new FeedHandler(Feed())).GetCatalogueAsync(default, locale)).Edition);
+        var feed = new FakeFeed { Current = new([Piece], Edition with { Locale = locale }, [locale]) };
+        await using var h = Harness(feed);
+        var html = await h.Client().GetStringAsync("/catalogue/?locale=" + locale);
+        Assert.Contains($"href=\"/catalogue/?locale={locale}\" lang=\"{locale}\"", html);
+        Assert.DoesNotContain("href=\"/catalogue/?locale=ru\" lang=\"ru\"", html);
+        Assert.DoesNotContain("href=\"/catalogue/?locale=uz\" lang=\"uz\"", html);
+        Assert.Contains($"data-content-locale=\"{locale}\"", html);
+        Assert.Contains($"lang=\"{locale}\" dir=\"{(locale == "ar" ? "rtl" : "ltr")}\"", html);
     }
 
     private static object Feed(string? pdf = null, int pageCount = 2, string locale = "en") => new

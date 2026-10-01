@@ -78,7 +78,7 @@ public sealed partial class PublicationSiteService
         string SortOption(string value, string label) => $"<option value=\"{value}\"{(state.Sort == value ? " selected" : "")}>{E(label)}</option>";
         var sorts = SortOption("", "Catalogue order") + SortOption("name", "Name, A–Z")
             + (currency is null ? "" : SortOption("price-asc", $"Price, low to high ({currency})") + SortOption("price-desc", $"Price, high to low ({currency})"));
-        var cards = Join(products.Select(item => DiscoveryCard(item.Product, item.Index, !IsDiscoveryMatch(item.Product, state))));
+        var cards = Join(products.Select(item => DiscoveryCard(model, item.Product, item.Index, !IsDiscoveryMatch(item.Product, state))));
         return $$"""
         <form class="filters catalogue-filters" data-catalogue-discovery method="get" action="/catalogue/#pieces" role="search" aria-label="Find catalogue pieces" data-price-currency="{{E(currency)}}">
         <input type="hidden" name="locale" value="{{model.Locale}}">
@@ -95,10 +95,10 @@ public sealed partial class PublicationSiteService
         """;
     }
 
-    private static string DiscoveryCard(CatalogueProduct product, int index, bool hidden)
+    private static string DiscoveryCard(Model model, CatalogueProduct product, int index, bool hidden)
     {
         var attributes = $" data-catalogue-item data-order=\"{index}\" data-name=\"{E(product.Name)}\" data-category=\"{E(product.Category)}\" data-fabric=\"{E(product.Fabric)}\" data-sizes=\"{E(JsonSerializer.Serialize(product.Sizes ?? []))}\" data-price=\"{SortPrice(product)?.ToString(CultureInfo.InvariantCulture)}\"{(hidden ? " hidden" : "")}";
-        return ProductCard(product).Replace("<article ", "<article" + attributes + " ", StringComparison.Ordinal)
+        return ProductCard(model, product).Replace("<article ", "<article" + attributes + " ", StringComparison.Ordinal)
             .Replace($"data-search=\"{E(product.Name + " " + product.Fabric + " " + product.Category)}\"", $"data-search=\"{E(ProductSearch(product))}\"", StringComparison.Ordinal);
     }
 

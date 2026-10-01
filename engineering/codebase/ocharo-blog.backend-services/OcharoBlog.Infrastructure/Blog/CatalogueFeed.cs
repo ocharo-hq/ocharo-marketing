@@ -14,7 +14,7 @@ public sealed class CatalogueFeed(HttpClient http, IOptions<BlogOptions> options
 
     public async Task<CatalogueSnapshot> GetCatalogueAsync(CancellationToken ct, string locale = "en")
     {
-        locale = locale is "uz" or "ru" ? locale : "en";
+        locale = CatalogueLanguages.Normalize(locale);
         var canonical = !string.IsNullOrWhiteSpace(options.Value.PlatformBaseUrl);
         var origin = (canonical ? options.Value.PlatformBaseUrl : options.Value.CatalogueBaseUrl)?.TrimEnd('/');
         if (string.IsNullOrEmpty(origin)) return new([]);
@@ -26,7 +26,11 @@ public sealed class CatalogueFeed(HttpClient http, IOptions<BlogOptions> options
                 || !feed.TryGetProperty("release", out var release) || release.ValueKind != JsonValueKind.Object
                 || !release.TryGetProperty("id", out var releaseId) || !Guid.TryParse(releaseId.GetString(), out _))) return new([]);
             var products = feed.GetProperty("products").EnumerateArray().Select(p => Parse(p, origin, canonical)).Where(p=>p is not null).Cast<CatalogueProduct>().ToList();
-            return new(products, canonical ? ParseEdition(feed, origin, options.Value.BrandSlug, locale) : null);
+            var edition = canonical ? ParseEdition(feed, origin, options.Value.BrandSlug, locale) : null;
+            var available = Strings(feed, "availableLocales").Where(CatalogueLanguages.Supported).Distinct(StringComparer.Ordinal).ToList();
+            // Older Platform releases can prove only the edition included in this exact feed.
+            if (edition is not null && !available.Contains(edition.Locale)) available.Add(edition.Locale);
+            return new(products, edition, available);
         }
         catch (Exception e) when (e is HttpRequestException or JsonException or TaskCanceledException or KeyNotFoundException or InvalidOperationException or FormatException)
         {

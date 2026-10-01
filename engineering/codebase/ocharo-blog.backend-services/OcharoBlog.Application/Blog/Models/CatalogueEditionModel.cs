@@ -1,7 +1,7 @@
 namespace OcharoBlog.Application.Blog.Models;
 
 /// <summary>A single public release read. Products and its fixed-page edition share the same release boundary.</summary>
-public sealed record CatalogueSnapshot(IReadOnlyList<CatalogueProduct> Products, CatalogueEdition? Edition = null);
+public sealed record CatalogueSnapshot(IReadOnlyList<CatalogueProduct> Products, CatalogueEdition? Edition = null, IReadOnlyList<string>? AvailableLocales = null);
 
 /// <summary>Platform-owned, explicitly released presentation. Marketing does not author or mutate its pages.</summary>
 public sealed record CatalogueEdition(string Id, string BrandId, string SourceDesignId, int SourceRevision,
