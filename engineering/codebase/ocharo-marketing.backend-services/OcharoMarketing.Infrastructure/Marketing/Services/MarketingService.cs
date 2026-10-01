@@ -33,6 +33,8 @@ public sealed class MarketingService(IMarketingRepository repository, IAssetServ
                 || !double.IsFinite(recipe.OffsetX) || Math.Abs(recipe.OffsetX) > 0.12
                 || !double.IsFinite(recipe.OffsetY) || Math.Abs(recipe.OffsetY) > 0.06)
                 throw new MarketingException("The saved composition exceeds the supported framing range.");
+            if (recipe.BoundMediaIds is { } bound && (bound.Length > 10 || bound.Any(id => !mediaIds.Contains(id))))
+                throw new MarketingException("Recipe-bound artwork must be selected in this draft.");
             if (recipe.FabricAssetId is not null && await repository.FindAssetAsync(recipe.FabricAssetId, ct) is null)
                 throw new MarketingException("The selected fabric asset no longer exists.", 409);
         }

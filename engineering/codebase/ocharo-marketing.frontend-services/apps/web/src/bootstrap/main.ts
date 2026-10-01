@@ -1,3 +1,4 @@
+import { initializeIntegration } from '@ocharomarketing/connect';
 import { createApp } from 'vue';
 import { createMarketingWorkspace, MarketingWorkspaceKey } from '../application/marketing';
 import AppRoot from './AppRoot.vue';
@@ -10,6 +11,7 @@ const workspace = createMarketingWorkspace((path) => {
 });
 app.provide(MarketingWorkspaceKey, workspace);
 app.use(marketingRouter);
-void marketingRouter.isReady().then(() => {
+void marketingRouter.isReady().then(async () => {
+  await initializeIntegration();
   app.mount('#root');
 });

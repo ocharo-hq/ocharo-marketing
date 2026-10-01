@@ -1,0 +1,40 @@
+{
+  "created_at": "2026-09-26 11:29 PM",
+  "assets": [
+    {
+      "asset": "public/assets/och-logo.png",
+      "source": "context/domains/external/work/career/designer/portfolio/brand/logo/och-logo-black-transparent-v1.png",
+      "kind": "Existing transparent wordmark; copied without alteration",
+      "sha256": "13db2d2f47ef9c74d9f769cafe17e09cdb4eacc7efb4dc44df4e65a7a074fd70",
+      "copied_byte_identically": true
+    },
+    {
+      "asset": "public/assets/och-collection.png",
+      "source": "context/domains/external/work/career/designer/portfolio/catalogue/images/collection/car-collection-layered-nimcha-r01.png",
+      "kind": "Collection composition using existing garment visuals",
+      "sha256": "92b51f8fea3752ef9529c8d55f46d30f66425a0ff6f1dfed218b53d53ab20fd5",
+      "copied_byte_identically": true
+    },
+    {
+      "asset": "public/assets/och-collection-study.png",
+      "source": "context/domains/external/work/career/designer/portfolio/catalogue/images/collection/car-nimcha-mannequins-all-r01.png",
+      "kind": "Generated collection visualisation, labelled in the site",
+      "sha256": "97061576bb4518f3e9988179d6d798c3f293c494a1f291e1a2a047180729038a",
+      "copied_byte_identically": true
+    },
+    {
+      "asset": "public/assets/och-nimcha.png",
+      "source": "context/domains/external/work/career/designer/portfolio/products/nimcha-v06/references/och-nimcha-v06-product-front-r01-transparent.png",
+      "kind": "Approved generated product reference derivative, labelled as a visualisation",
+      "sha256": "da7afdb483818308d1ed22b55f3600b0d8766df278c9330e13f2e2d0277c5c52",
+      "copied_byte_identically": true
+    },
+    {
+      "asset": "public/assets/och-cape.png",
+      "source": "context/domains/external/work/career/designer/portfolio/products/kostyum-v01/references/och-kostyum-v01-product-front-r01-transparent.png",
+      "kind": "Approved generated product reference derivative, labelled as a visualisation",
+      "sha256": "b56df3a171911ab14d1bbf7857e086793d276bc7416838f7112a876244405933",
+      "copied_byte_identically": true
+    }
+  ]
+}

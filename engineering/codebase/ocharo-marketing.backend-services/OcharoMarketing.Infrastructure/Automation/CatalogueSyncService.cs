@@ -18,6 +18,7 @@ public sealed class CatalogueSyncService(IMarketingRepository repository, IAsset
 {
     public async Task<CatalogueSyncReport> SyncAsync(CancellationToken ct)
     {
+        if (!string.IsNullOrWhiteSpace(options.Value.PlatformBaseUrl)) return await SyncPlatformAsync(ct);
         var origin = options.Value.CatalogueBaseUrl?.TrimEnd('/');
         if (string.IsNullOrWhiteSpace(origin)) throw new MarketingException("Katalog manzili sozlanmagan (Marketing:CatalogueBaseUrl).", 409);
         JsonElement feed;
@@ -71,17 +72,51 @@ public sealed class CatalogueSyncService(IMarketingRepository repository, IAsset
         return new CatalogueSyncReport(received, created.Count, updated, images, [.. created], [], [.. warnings]);
     }
 
+    private async Task<CatalogueSyncReport> SyncPlatformAsync(CancellationToken ct)
+    {
+        var origin=options.Value.PlatformBaseUrl!.TrimEnd('/');
+        if(!Uri.TryCreate(origin,UriKind.Absolute,out var baseUri)||baseUri.Scheme!="https")
+            throw new MarketingException("The canonical Platform URL must use HTTPS.",409);
+        var slug=Uri.EscapeDataString(options.Value.BrandSlug);
+        JsonElement feed;
+        try{feed=await http.GetFromJsonAsync<JsonElement>($"{origin}/api/public/v1/brands/{slug}/catalogue?locale=uz",ct);}
+        catch(Exception e)when(e is HttpRequestException or TaskCanceledException or JsonException)
+        {throw new MarketingException("The published Platform catalogue is unavailable. Existing drafts are preserved.",502);}
+        if(!feed.TryGetProperty("schemaVersion",out var schema)||schema.GetInt32()!=1||!feed.TryGetProperty("release",out var release)
+            ||!release.TryGetProperty("id",out var releaseId)||!Guid.TryParse(releaseId.GetString(),out var revision))
+            throw new MarketingException("Platform returned no supported published release.",502);
+        var created=new List<string>();var warnings=new List<string>();int received=0,updated=0,images=0;
+        foreach(var item in feed.GetProperty("products").EnumerateArray())
+        {
+            received++;var id=Text(item,"id")!;
+            var publicImages=item.GetProperty("images").EnumerateArray().Where(i=>i.TryGetProperty("provenance",out var p)&&p.TryGetProperty("approvedForPublication",out var a)&&a.ValueKind==JsonValueKind.True).ToList();
+            var hero=publicImages.FirstOrDefault();if(hero.ValueKind!=JsonValueKind.Object){warnings.Add($"{id}: no approved image");continue;}
+            var image=await StoreAsync(origin,id,"front",hero,ct);if(image is null){warnings.Add($"{id}: image integrity unavailable");continue;}
+            if(image.Value.Stored)images++;
+            decimal? amount=null;string currency="UZS";
+            if(item.TryGetProperty("price",out var price)&&price.ValueKind==JsonValueKind.Object){if(price.TryGetProperty("amount",out var number)&&number.TryGetDecimal(out var value))amount=value;currency=Text(price,"currency")??currency;}
+            var name=Text(item,"title")??id;var fabric=Text(item,"fabric")??"";var description=Text(item,"description")??"";
+            var copy=new Dictionary<string,ProductCopyModel>{{"uz",new("approved",name,fabric,Text(item,"decoration"),description)}};
+            var product=new ProductModel(id,name,Text(item,"category")??"",fabric,description,image.Value.Id,[image.Value.Id],
+                item.GetProperty("sizes").EnumerateArray().Select(x=>x.GetString()!).ToArray(),amount,currency,"approved-copy",
+                $"platform:{revision}:product:{id}",[],copy,null,Text(item,"availability"));
+            if(await repository.UpsertProductAsync(product,ct))created.Add(id);else updated++;
+        }
+        return new CatalogueSyncReport(received,created.Count,updated,images,[..created],[],[..warnings]);
+    }
+
     private async Task<(string Id, bool Stored)?> StoreAsync(string origin, string productId, string role, JsonElement image, CancellationToken ct)
     {
         var url = image.GetProperty("url").GetString();
         var sha = image.GetProperty("sha256").GetString();
         if (url is null || sha is null) return null;
         byte[] bytes;
-        try { bytes = await http.GetByteArrayAsync(origin + url, ct); }
+        if(!Uri.TryCreate(new Uri(origin+"/"),url,out var assetUri)||assetUri.GetLeftPart(UriPartial.Authority)!=new Uri(origin).GetLeftPart(UriPartial.Authority))return null;
+        try { bytes = await http.GetByteArrayAsync(assetUri, ct); }
         catch (Exception exception) when (exception is HttpRequestException or TaskCanceledException) { return null; }
         if (Convert.ToHexStringLower(SHA256.HashData(bytes)) != sha) return null;
         var baseId = $"{productId}-{(role == "front" ? "front" : "model")}";
-        var fileName = Path.GetFileName(new Uri(origin + url).AbsolutePath) + (bytes.Length > 4 && bytes[0] == 0x89 ? ".png" : ".jpg");
+        var fileName = Path.GetFileName(assetUri.AbsolutePath) + (bytes.Length > 4 && bytes[0] == 0x89 ? ".png" : ".jpg");
         var provenance = $"Ocharo Catalogue {productId} · sha256 {sha}";
         var existing = await repository.FindAssetAsync(baseId, ct);
         foreach (var candidate in new[] { baseId, $"{baseId}-{sha[..8]}" })

@@ -2,7 +2,7 @@
 import { computed, onMounted, ref, watch } from 'vue';
 import { BookOpen, CalendarClock, Plus, RefreshCw, Sparkles, Trash2, Zap } from 'lucide-vue-next';
 import { Icon } from '@wow-two-beta/ui-vue/foundation/icons';
-import Button from './compatibility/ActionButton.vue';
+import { Button } from '@wow-two-beta/ui-vue/presentation/actions';
 import { useMarketingWorkspace } from '../../application/marketing';
 import type {
   AutomationRunModel,

@@ -33,7 +33,7 @@
       <_SpaPreviousContent Remove="@(_SpaPreviousContent)" />
     </ItemGroup>
     <Exec Command="pnpm install --frozen-lockfile" WorkingDirectory="$(SpaRoot)" />
-    <Exec Command="pnpm build" WorkingDirectory="$(SpaRoot)" />
+    <Exec Command="pnpm build" WorkingDirectory="$(SpaRoot)" EnvironmentVariables="APP_VERSION=$(FrontendAppVersion)" />
     <Exec Command="node scripts/deploy.mjs" WorkingDirectory="$(SpaRoot)" />
     <ItemGroup>
       <Content Include="wwwroot/**/*" CopyToOutputDirectory="PreserveNewest" CopyToPublishDirectory="PreserveNewest" />

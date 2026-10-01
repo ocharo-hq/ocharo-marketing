@@ -1,6 +1,12 @@
-# ventures.ocharo-marketing
+# ocharo-marketing
 
-Maftuna’s local marketing desk for product cards, copy, channel planning, and measured response.
+Ocharo's recognition, editorial publishing, public applications, distribution and lead platform.
+The current marketing desk and both Blog implementations are preserved here.
+Marketing owns the frontend workspace: `apps/web` (desk), `apps/editorial` (revisioned editor),
+and `apps/{atlas,wear,blog,catalogue}` (independent published artifacts).
+The adopted backend remains `ocharo-blog.backend-services`; the old frontend root is a command compatibility shim.
+See `engineering/architecture/blog-adoption.md` for independent hosts and source boundaries.
+Platform owns canonical brand/product facts; this repository owns editorial and campaign lifecycles.
 
 ## Lazy loading
 
@@ -21,4 +27,5 @@ engineering/             ← the HOW
     └── ocharo-marketing.frontend-services/   ← private pnpm workspace; Vue app in apps/web/
 ```
 
-Conventions: wow-two-ws/conventions/
+Workspace guidance: [Ocharo](../../CLAUDE.md) and [WoW2](../../../../../CLAUDE.md).
+Conventions: [WoW2 convention index](../../../../../conventions/conventions.md).

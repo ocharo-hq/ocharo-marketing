@@ -2,7 +2,7 @@
 import { computed, onBeforeUnmount, ref, watch } from 'vue';
 import { RefreshCw } from 'lucide-vue-next';
 import { Icon } from '@wow-two-beta/ui-vue/foundation/icons';
-import Button from './compatibility/ActionButton.vue';
+import { Button } from '@wow-two-beta/ui-vue/presentation/actions';
 import StatusIndicator from './StatusIndicator.vue';
 import { useMarketingWorkspace } from '../../application/marketing';
 import { MarketingExtensions, type MetricCacheModel, type ScheduleModel } from '../../domain/marketing';

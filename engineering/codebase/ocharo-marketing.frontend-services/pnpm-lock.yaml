@@ -8,11 +8,20 @@ importers:
 
   .: {}
 
-  apps/web:
+  apps/atlas: {}
+
+  apps/blog: {}
+
+  apps/catalogue: {}
+
+  apps/editorial:
     dependencies:
+      '@ocharomarketing/connect':
+        specifier: workspace:*
+        version: link:../../packages/connect
       '@wow-two-beta/ui-vue':
-        specifier: 0.0.7
-        version: 0.0.7(@vue/test-utils@2.5.1(@vue/compiler-dom@3.5.43)(@vue/server-renderer@3.5.43)(vue@3.5.43(typescript@5.9.3)))(tailwindcss@4.3.3)(vue-router@4.6.4(vue@3.5.43(typescript@5.9.3)))(vue@3.5.43(typescript@5.9.3))
+        specifier: 0.0.12
+        version: 0.0.12(@vue/test-utils@2.5.1(@vue/compiler-dom@3.5.43)(@vue/server-renderer@3.5.43)(vue@3.5.43(typescript@5.9.3)))(tailwindcss@4.3.3)(vue-router@4.6.4(vue@3.5.43(typescript@5.9.3)))(vue@3.5.43(typescript@5.9.3))
       lucide-vue-next:
         specifier: ^0.460.0
         version: 0.460.0(vue@3.5.43(typescript@5.9.3))
@@ -80,6 +89,90 @@ importers:
       vue-tsc:
         specifier: ^2.2.0
         version: 2.2.12(typescript@5.9.3)
+
+  apps/wear: {}
+
+  apps/web:
+    dependencies:
+      '@ocharomarketing/connect':
+        specifier: workspace:*
+        version: link:../../packages/connect
+      '@wow-two-beta/ui-vue':
+        specifier: 0.0.9
+        version: 0.0.9(@vue/test-utils@2.5.1(@vue/compiler-dom@3.5.43)(@vue/server-renderer@3.5.43)(vue@3.5.43(typescript@5.9.3)))(tailwindcss@4.3.3)(vue-router@4.6.4(vue@3.5.43(typescript@5.9.3)))(vue@3.5.43(typescript@5.9.3))
+      lucide-vue-next:
+        specifier: ^0.460.0
+        version: 0.460.0(vue@3.5.43(typescript@5.9.3))
+      vue:
+        specifier: ^3.5.13
+        version: 3.5.43(typescript@5.9.3)
+      vue-router:
+        specifier: ^4.6.4
+        version: 4.6.4(vue@3.5.43(typescript@5.9.3))
+    devDependencies:
+      '@eslint/js':
+        specifier: ^9.14.0
+        version: 9.39.5
+      '@tailwindcss/vite':
+        specifier: ^4.1.0
+        version: 4.3.3(vite@6.4.3(@types/node@24.19.0)(jiti@2.7.0)(lightningcss@1.32.0))
+      '@types/node':
+        specifier: ^24.0.0
+        version: 24.19.0
+      '@vitejs/plugin-vue':
+        specifier: ^5.2.1
+        version: 5.2.4(vite@6.4.3(@types/node@24.19.0)(jiti@2.7.0)(lightningcss@1.32.0))(vue@3.5.43(typescript@5.9.3))
+      '@vue/compiler-sfc':
+        specifier: ^3.5.13
+        version: 3.5.43
+      '@vue/test-utils':
+        specifier: ^2.4.6
+        version: 2.5.1(@vue/compiler-dom@3.5.43)(@vue/server-renderer@3.5.43)(vue@3.5.43(typescript@5.9.3))
+      eslint:
+        specifier: ^9.14.0
+        version: 9.39.5(jiti@2.7.0)
+      eslint-plugin-vue:
+        specifier: ^9.32.0
+        version: 9.33.0(eslint@9.39.5(jiti@2.7.0))
+      globals:
+        specifier: ^16.0.0
+        version: 16.5.0
+      happy-dom:
+        specifier: ^20.11.2
+        version: 20.14.5
+      prettier:
+        specifier: ^3.9.6
+        version: 3.9.9
+      tailwindcss:
+        specifier: ^4.1.0
+        version: 4.3.3
+      typescript:
+        specifier: ~5.9.3
+        version: 5.9.3
+      typescript-eslint:
+        specifier: ^8.13.0
+        version: 8.70.1(eslint@9.39.5(jiti@2.7.0))(typescript@5.9.3)
+      vite:
+        specifier: ^6.0.0
+        version: 6.4.3(@types/node@24.19.0)(jiti@2.7.0)(lightningcss@1.32.0)
+      vite-plugin-mkcert:
+        specifier: ^1.17.8
+        version: 1.17.12(vite@6.4.3(@types/node@24.19.0)(jiti@2.7.0)(lightningcss@1.32.0))
+      vitest:
+        specifier: ^4.1.10
+        version: 4.1.11(@types/node@24.19.0)(happy-dom@20.14.5)(vite@6.4.3(@types/node@24.19.0)(jiti@2.7.0)(lightningcss@1.32.0))
+      vue-eslint-parser:
+        specifier: ^9.4.3
+        version: 9.4.3(eslint@9.39.5(jiti@2.7.0))
+      vue-tsc:
+        specifier: ^2.2.0
+        version: 2.2.12(typescript@5.9.3)
+
+  packages/connect:
+    dependencies:
+      vue:
+        specifier: ^3.5.13
+        version: 3.5.43(typescript@5.9.3)
 
 packages:
 
@@ -763,8 +856,30 @@ packages:
       '@vue/server-renderer':
         optional: true
 
-  '@wow-two-beta/ui-vue@0.0.7':
-    resolution: {integrity: sha512-BqXXzJ5E2JbJ5Xiy6TJUg1m7TXk3RtxRxi5OION0FEhNcXMeinmbzRBLzwWMzXkTXuRbINqe0RE5Byg8ZDo/tg==}
+  '@wow-two-beta/ui-vue@0.0.12':
+    resolution: {integrity: sha512-Kq/HHUsaMwz5hVv5fHLsWjo0G74c0NfOy1An7jB93fASqksNmOX/6ldDDVosk1TCHffA0ZC+N9F/WosYKZ1P3A==}
+    engines: {node: '>=20.0.0'}
+    peerDependencies:
+      '@tanstack/vue-form': ^1.0.0
+      '@tanstack/vue-query': ^5.102.8
+      '@vue/test-utils': ^2.4.6
+      tailwindcss: ^4.1.0
+      vue: ^3.5.0
+      vue-router: ^4.0.0
+    peerDependenciesMeta:
+      '@tanstack/vue-form':
+        optional: true
+      '@tanstack/vue-query':
+        optional: true
+      '@vue/test-utils':
+        optional: true
+      tailwindcss:
+        optional: true
+      vue-router:
+        optional: true
+
+  '@wow-two-beta/ui-vue@0.0.9':
+    resolution: {integrity: sha512-R8ooh0fkCcuP7ktcveNOmJrEfzYg+OijawZlVq+aA99NTVd5GzGaVAAag+TDciwh6K/1SRkrqFuUGn49aUm94A==}
     engines: {node: '>=20.0.0'}
     peerDependencies:
       '@tanstack/vue-form': ^1.0.0
@@ -2240,7 +2355,26 @@ snapshots:
     optionalDependencies:
       '@vue/server-renderer': 3.5.43
 
-  '@wow-two-beta/ui-vue@0.0.7(@vue/test-utils@2.5.1(@vue/compiler-dom@3.5.43)(@vue/server-renderer@3.5.43)(vue@3.5.43(typescript@5.9.3)))(tailwindcss@4.3.3)(vue-router@4.6.4(vue@3.5.43(typescript@5.9.3)))(vue@3.5.43(typescript@5.9.3))':
+  '@wow-two-beta/ui-vue@0.0.12(@vue/test-utils@2.5.1(@vue/compiler-dom@3.5.43)(@vue/server-renderer@3.5.43)(vue@3.5.43(typescript@5.9.3)))(tailwindcss@4.3.3)(vue-router@4.6.4(vue@3.5.43(typescript@5.9.3)))(vue@3.5.43(typescript@5.9.3))':
+    dependencies:
+      '@floating-ui/vue': 1.1.11(vue@3.5.43(typescript@5.9.3))
+      bignumber.js: 11.1.5
+      clsx: 2.1.1
+      lossless-json: 4.3.1
+      lucide-vue-next: 0.460.0(vue@3.5.43(typescript@5.9.3))
+      marked: 18.0.14
+      tailwind-merge: 3.7.0
+      tailwind-variants: 3.3.1(tailwind-merge@3.7.0)(tailwindcss@4.3.3)
+      temporal-polyfill: 1.0.5
+      vue: 3.5.43(typescript@5.9.3)
+    optionalDependencies:
+      '@vue/test-utils': 2.5.1(@vue/compiler-dom@3.5.43)(@vue/server-renderer@3.5.43)(vue@3.5.43(typescript@5.9.3))
+      tailwindcss: 4.3.3
+      vue-router: 4.6.4(vue@3.5.43(typescript@5.9.3))
+    transitivePeerDependencies:
+      - '@vue/composition-api'
+
+  '@wow-two-beta/ui-vue@0.0.9(@vue/test-utils@2.5.1(@vue/compiler-dom@3.5.43)(@vue/server-renderer@3.5.43)(vue@3.5.43(typescript@5.9.3)))(tailwindcss@4.3.3)(vue-router@4.6.4(vue@3.5.43(typescript@5.9.3)))(vue@3.5.43(typescript@5.9.3))':
     dependencies:
       '@floating-ui/vue': 1.1.11(vue@3.5.43(typescript@5.9.3))
       bignumber.js: 11.1.5

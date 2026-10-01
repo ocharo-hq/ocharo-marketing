@@ -1,0 +1,569 @@
+{
+  "schemaVersion": 1,
+  "status": "draft-only",
+  "source": "Preserved Ocharo editorial research and existing story manuscripts; local review required",
+  "articles": [
+    {
+      "slug": "bukhara-pardah-2006-152",
+      "title": "Five widths of Bukhara colour",
+      "kind": "textile",
+      "publication": "atlas",
+      "topic": "cloth",
+      "language": "en",
+      "sections": [
+        {
+          "heading": "Read the joins",
+          "paragraphs": [
+            "Begin with the whole object. Follow the narrow vertical joins, then notice where the pattern changes direction. The hanging is assembled from five loom widths, so the arrangement matters as much as a single motif."
+          ],
+          "list": [
+            "Find one diagonal line and follow it towards the next panel.",
+            "Step back from the image and look at the whole composition again."
+          ],
+          "sourceIndexes": [
+            0
+          ]
+        }
+      ],
+      "sources": [
+        {
+          "label": "Cleveland Museum of Art — Wall hanging (pardah), 2006.152",
+          "url": "https://www.clevelandart.org/art/2006.152",
+          "supports": "Object attribution, period, five-panel construction, materials and image credit."
+        }
+      ],
+      "places": [
+        "Bukhara"
+      ],
+      "techniques": [
+        "Warp-resist dyed ikat"
+      ],
+      "motifs": [
+        "Chevrons",
+        "Elongated forms"
+      ],
+      "occasions": [],
+      "textileSlugs": [],
+      "relatedSlugs": [],
+      "productIds": [],
+      "excerpt": "A nineteenth-century hanging brings five narrow lengths into one room-sized composition.",
+      "intro": "Follow the joins. At first this hanging reads as one field of red, cream and dark colour. Look again and its neighbouring lengths reveal different rhythms: diagonal peaks, elongated forms and rounded details.",
+      "textile": {
+        "objectId": "2006.152",
+        "collection": "Cleveland Museum of Art",
+        "place": "Bukhara, Uzbekistan",
+        "period": "1850–75",
+        "materials": "Silk warp and cotton weft; printed-cotton lining",
+        "technique": "Ikat, five joined loom widths",
+        "dimensions": null,
+        "maker": "Not identified in the referenced collection record",
+        "attributionNote": "Place and date follow the museum attribution. Motif labels here describe visible shapes, not symbolic meanings."
+      },
+      "takeaway": "A joined textile can carry several rhythms in one surface.",
+      "asset": {
+        "fileName": "och-bukhara-pardah-2006-152.jpg",
+        "sha256": "429794a040d2b4e3c6e084691b9aae0d03907b10590c69c8ea4bd21922531c93",
+        "provenance": {
+          "kind": "archival",
+          "credit": "Wall hanging (pardah), Bukhara, 1850–75. Cleveland Museum of Art, Gift of Guido Goldman, 2006.152.",
+          "rights": "CC0; Cleveland Museum of Art Open Access",
+          "sourceUrl": "https://www.clevelandart.org/art/2006.152"
+        }
+      },
+      "coverAlt": "Bukhara ikat hanging with red and cream chevrons beside elongated diamond and oval forms.",
+      "coverCaption": "Wall hanging (pardah), Bukhara, 1850–75. Cleveland Museum of Art, Gift of Guido Goldman, 2006.152."
+    },
+    {
+      "slug": "samarkand-fabric-merchant-archive",
+      "title": "A Samarkand shop, before the cloth unfolds",
+      "kind": "archive",
+      "publication": "atlas",
+      "topic": "cloth",
+      "language": "en",
+      "sections": [
+        {
+          "heading": "Choose a folded edge",
+          "paragraphs": [
+            "Look behind the merchant and choose a single length you would like to see opened. The shelves compress many large patterns into thin bands. Compare them with the pattern visible across the merchant’s robe."
+          ],
+          "list": null,
+          "sourceIndexes": [
+            0
+          ]
+        }
+      ],
+      "sources": [
+        {
+          "label": "Library of Congress — Fabric merchant, Samarkand",
+          "url": "https://www.loc.gov/pictures/item/2018680238/",
+          "supports": "Photographer, date, place, image process and digital-composite credit."
+        }
+      ],
+      "places": [
+        "Samarkand"
+      ],
+      "techniques": [
+        "Three-color photography"
+      ],
+      "motifs": [],
+      "occasions": [],
+      "textileSlugs": [],
+      "relatedSlugs": [],
+      "productIds": [],
+      "excerpt": "An archival photograph opens a view into a shop filled with folded cloth and carpet.",
+      "intro": "The folded edges make their own pattern. A line of dots, a pale stripe, a red band: each offers only a glimpse of the full textile. This record is a photograph of a fabric shop, not a material identification for every length on its shelves.",
+      "textile": {
+        "objectId": "LC-DIG-prokc-21725",
+        "collection": "Library of Congress",
+        "place": "Samarkand (Samarqand)",
+        "period": "1905–1915",
+        "materials": "Photographic record; the catalogue identifies silk, cotton, wool fabrics and carpets",
+        "technique": "Three-frame colour-separation negative; digital composite, 2004",
+        "dimensions": null,
+        "maker": "Sergei Mikhailovich Prokudin-Gorskii; digital composite by Blaise Agüera y Arcas",
+        "attributionNote": "A historical image, not a fabric specimen. Individual textile compositions and makers cannot be established from the photograph alone."
+      },
+      "takeaway": "A folded length can be the beginning of a textile question.",
+      "asset": {
+        "fileName": "och-samarkand-fabric-merchant.jpg",
+        "sha256": "76084babbdf0c11f73b7e269de80c747c7b66b5479394e6e7e8f17af9c212d70",
+        "provenance": {
+          "kind": "archival",
+          "credit": "Sergei Mikhailovich Prokudin-Gorskii, Fabric merchant, Samarkand, 1905–1915. Library of Congress. Digital composite by Blaise Agüera y Arcas, 2004. LC-DIG-prokc-21725.",
+          "rights": "No known restrictions on publication (Library of Congress); not labelled CC0",
+          "sourceUrl": "https://www.loc.gov/pictures/item/2018680238/"
+        }
+      },
+      "coverAlt": "A seated Samarkand fabric merchant surrounded by stacked textiles in a wooden shop doorway.",
+      "coverCaption": "Sergei Mikhailovich Prokudin-Gorskii, Fabric merchant, Samarkand, 1905–1915. Library of Congress. Digital composite by Blaise Agüera y Arcas, 2004. LC-DIG-prokc-21725."
+    },
+    {
+      "slug": "bukhara-five-widths-one-room",
+      "title": "Five widths, one brilliant Bukhara room",
+      "kind": "story",
+      "publication": "atlas",
+      "topic": "cloth",
+      "language": "en",
+      "sections": [
+        {
+          "heading": "A room-sized composition",
+          "paragraphs": [
+            "The Cleveland Museum of Art dates this pardah to 1850–75. Five loom widths make its front: silk threads run lengthways, crossed by cotton. The reverse has a printed-cotton lining. The museum places such hangings in the reception rooms of Central Asia’s urban elite. Here, fabric helped shape the room itself.",
+            "Imagine the difference between seeing a folded length on a shelf and meeting this whole expanse on a wall. A motif that fits beneath your hand becomes part of your surroundings. The eye can travel through it while the body stays still."
+          ],
+          "list": null,
+          "sourceIndexes": [
+            0
+          ]
+        },
+        {
+          "heading": "The joins change the rhythm",
+          "paragraphs": [
+            "Look near the middle, where the diagonal bands gather into repeated peaks. Follow them towards the right and the movement changes: elongated shapes stack above one another, followed by a narrower strip of rounded forms. The cloth does not settle into one repeated gesture across its entire width.",
+            "Those changes make the joins worth noticing. Try covering one side of the image with your hand. The remaining piece has a different balance. Uncover it and the neighbouring pattern changes how the centre feels again. Arrangement is doing as much work as any individual shape."
+          ],
+          "list": null,
+          "sourceIndexes": [
+            0
+          ]
+        },
+        {
+          "heading": "Bukhara had more than one silk story",
+          "paragraphs": [
+            "The Russian Museum of Ethnography describes a wider Bukhara textile world that included silk shoyi, mixed silk-and-cotton adras, and silk velvet called bakhmal. It also records polishing shoyi and adras to heighten their sheen. Different surfaces gave colour different ways to appear.",
+            "That variety invites another kind of looking. A pattern has scale and direction, but its material also meets the light. Imagine the same red beside a window, across a fold, or on a soft velvet surface. The colour stays in the conversation; its voice changes."
+          ],
+          "list": null,
+          "sourceIndexes": [
+            1
+          ]
+        },
+        {
+          "heading": "Let the whole cloth return",
+          "paragraphs": [
+            "Pull back from the details. The narrow joins recede, and the hanging becomes one confident field again. Its pleasure lies in that exchange: a room-filling composition becomes several lengths of cloth, then becomes a room-filling composition once more."
+          ],
+          "list": null,
+          "sourceIndexes": [
+            0
+          ]
+        }
+      ],
+      "sources": [
+        {
+          "label": "Cleveland Museum of Art — Wall hanging (pardah), 2006.152",
+          "url": "https://www.clevelandart.org/art/2006.152",
+          "supports": "Object attribution, period, five-panel construction, materials and image credit."
+        },
+        {
+          "label": "Russian Museum of Ethnography — Silk Fabrics of Bukhara and Samarqand",
+          "url": "https://ethnomuseum.ru/en/resources/silks-in-the-culture-of-the-peoples-of-eurasia/silk-fabrics-of-bukhara-and-samarqand/",
+          "supports": "Regional textile-making context; does not identify every fabric visible in the image."
+        }
+      ],
+      "places": [
+        "Bukhara"
+      ],
+      "techniques": [
+        "Warp-resist dyed ikat"
+      ],
+      "motifs": [],
+      "occasions": [],
+      "textileSlugs": [
+        "bukhara-pardah-2006-152"
+      ],
+      "relatedSlugs": [],
+      "productIds": [],
+      "excerpt": "A nineteenth-century hanging reveals how narrow lengths of cloth can fill a room with colour.",
+      "intro": "The red arrives first. Then the diagonals begin to climb, pale lines interrupt the dark, and small flashes of blue pull your eye sideways. This Bukhara hanging seems restless even on a screen. Stay with it for a moment and another feature emerges: its different patterns are neighbours, meeting along long, narrow joins.",
+      "asset": {
+        "fileName": "och-bukhara-pardah-2006-152.jpg",
+        "sha256": "429794a040d2b4e3c6e084691b9aae0d03907b10590c69c8ea4bd21922531c93",
+        "provenance": {
+          "kind": "archival",
+          "credit": "Wall hanging (pardah), Bukhara, 1850–75. Cleveland Museum of Art, Gift of Guido Goldman, 2006.152.",
+          "rights": "CC0; Cleveland Museum of Art Open Access",
+          "sourceUrl": "https://www.clevelandart.org/art/2006.152"
+        }
+      },
+      "coverAlt": "Bukhara ikat hanging with red and cream chevrons beside elongated diamond and oval forms.",
+      "coverCaption": "Wall hanging (pardah), Bukhara, 1850–75. Cleveland Museum of Art, Gift of Guido Goldman, 2006.152.",
+      "takeaway": "Neighbouring patterns can give a textile as much character as individual motifs.",
+      "closingQuestion": "Which panel would you place beside the central diagonals?"
+    },
+    {
+      "slug": "samarkand-a-shop-full-of-cloth",
+      "title": "A Samarkand shop, stacked with colour",
+      "kind": "story",
+      "publication": "atlas",
+      "topic": "cloth",
+      "language": "en",
+      "sections": [
+        {
+          "heading": "A whole shop in a single frame",
+          "paragraphs": [
+            "Sergei Mikhailovich Prokudin-Gorskii photographed this Samarkand merchant between 1905 and 1915. The Library of Congress identifies silk, cotton, wool fabrics, and carpets in the display. Its catalogue brings several textile worlds into the same small shop; the photograph lets you linger among them.",
+            "Start at the threshold. The patterned floor covering reaches towards the street, while the wooden doors frame the darker interior. Cloth occupies the space behind the merchant almost like another wall. You can see how much has been fitted into the depth of the opening."
+          ],
+          "list": null,
+          "sourceIndexes": [
+            0
+          ]
+        },
+        {
+          "heading": "Folds offer a different view of pattern",
+          "paragraphs": [
+            "An unfolded textile lets a design spread out. Here, folded edges compress the view into thin bands. One length offers a line of dots, another a pale stripe; larger forms remain tucked away. The stacks create a second pattern from the many patterns they contain.",
+            "The merchant’s robe gives the eye a different experience. Its rounded forms extend across a clothed body, gathering and changing direction at the folds. Look back at the shelves: how would one of those small glimpses behave if a whole length were opened?"
+          ],
+          "list": null,
+          "sourceIndexes": [
+            0
+          ]
+        },
+        {
+          "heading": "Beyond the doorway",
+          "paragraphs": [
+            "A separate Russian Museum of Ethnography exhibition includes Samarqand fabric samples dated 1900–1902, alongside regional yarn, dyes, and loom equipment. It places Samarqand and Bukhara within a history of silk weaving. The shop belongs to a city whose cloth stories also reached into workshops.",
+            "Think of those two views together: the small selection visible on a folded edge, and the many stages needed to make a length of fabric. A shop concentrates that work into choices of colour, surface, and scale. Its shelves are a starting point for following the cloth further."
+          ],
+          "list": null,
+          "sourceIndexes": [
+            1
+          ]
+        },
+        {
+          "heading": "The colour has its own journey",
+          "paragraphs": [
+            "This version of the photograph is a digital colour composite made from the original glass negative’s three frames. The brilliant bands around its edge belong to that photographic image. Inside them, the wooden doorway offers another frame: a quiet rectangle filled with things to notice.",
+            "Return to one stack. Choose the folded length you would most like to see opened. Its hidden pattern is where this encounter leaves you."
+          ],
+          "list": null,
+          "sourceIndexes": [
+            0
+          ]
+        }
+      ],
+      "sources": [
+        {
+          "label": "Library of Congress — Fabric merchant, Samarkand",
+          "url": "https://www.loc.gov/pictures/item/2018680238/",
+          "supports": "Photographer, date, place, image process and digital-composite credit."
+        },
+        {
+          "label": "Russian Museum of Ethnography — Silk Fabrics of Bukhara and Samarqand",
+          "url": "https://ethnomuseum.ru/en/resources/silks-in-the-culture-of-the-peoples-of-eurasia/silk-fabrics-of-bukhara-and-samarqand/",
+          "supports": "Regional textile-making context; does not identify every fabric visible in the image."
+        }
+      ],
+      "places": [
+        "Samarkand"
+      ],
+      "techniques": [
+        "Three-color photography"
+      ],
+      "motifs": [],
+      "occasions": [],
+      "textileSlugs": [
+        "samarkand-fabric-merchant-archive"
+      ],
+      "relatedSlugs": [],
+      "productIds": [],
+      "excerpt": "One early-twentieth-century photograph opens a view into a city’s textile world, fold by fold.",
+      "intro": "The doorway is barely wider than the display. Cloth rises behind the seated merchant in close horizontal layers: pale edges, dark bands, small repeating marks, a sudden stretch of red. Above him, the stacks disappear into shadow. Before you identify a single fabric, the photograph gives you the pleasure of choosing where to look.",
+      "asset": {
+        "fileName": "och-samarkand-fabric-merchant.jpg",
+        "sha256": "76084babbdf0c11f73b7e269de80c747c7b66b5479394e6e7e8f17af9c212d70",
+        "provenance": {
+          "kind": "archival",
+          "credit": "Sergei Mikhailovich Prokudin-Gorskii, Fabric merchant, Samarkand, 1905–1915. Library of Congress. Digital composite by Blaise Agüera y Arcas, 2004. LC-DIG-prokc-21725.",
+          "rights": "No known restrictions on publication (Library of Congress); not labelled CC0",
+          "sourceUrl": "https://www.loc.gov/pictures/item/2018680238/"
+        }
+      },
+      "coverAlt": "A seated Samarkand fabric merchant surrounded by stacked textiles in a wooden shop doorway.",
+      "coverCaption": "Sergei Mikhailovich Prokudin-Gorskii, Fabric merchant, Samarkand, 1905–1915. Library of Congress. Digital composite by Blaise Agüera y Arcas, 2004. LC-DIG-prokc-21725.",
+      "takeaway": "A fabric shop can reveal a textile culture through arrangement, variety and the promise of an unfolded length.",
+      "closingQuestion": "Which folded fabric would you ask the merchant to open?"
+    },
+    {
+      "slug": "wear-a-special-piece-on-tuesday",
+      "topic": "style",
+      "title": "A special piece on an ordinary Tuesday",
+      "excerpt": "Give a distinctive garment a small, real part in an ordinary day.",
+      "format": "Everyday-use essay and bounded experiment",
+      "readerPromise": "Try a distinctive piece during a familiar activity without constructing an occasion around it.",
+      "intro": "The piece is ready. The occasion keeps moving further into the calendar. Try a smaller stage: a familiar lunch, a visit to a bookshop, or an hour spent at home. A garment you call special can have an ordinary part in the day, if you want it to.",
+      "sections": [
+        {
+          "heading": "Decide what “special” means here",
+          "paragraphs": [
+            "Perhaps you use the word because the garment has a striking outline. Perhaps its pattern contains details you enjoy examining. Perhaps you associate it with evening clothes. These are different reasons. Name yours before choosing where to try it, and keep any practical limits in view.",
+            "The ordinary activity still needs to suit the individual garment. A long hem, an unusual fastening, or a care requirement may narrow your choice. Check the information you have for that piece. Pick a place where you can wear it normally and enjoy its detail, without spending the hour protecting it from the task you chose."
+          ]
+        },
+        {
+          "heading": "Give it one ordinary hour",
+          "paragraphs": [
+            "Choose a familiar activity with a clear beginning and end. You might wear the piece for a short lunch, or while reading at home before deciding whether to take it outside. Keep the rest of the clothes you would normally choose for that activity. There is no need to build a theatrical departure around one interesting layer.",
+            "Picture a patterned vest over your usual shirt and trousers, with the shoes you wear for the walk. The vest makes a visible change. Your hands, pockets, and stride still have their usual jobs. Try sitting down and carrying your normal bag before leaving. Then let the hour proceed, with the garment along for it."
+          ],
+          "list": [
+            "Choose a familiar activity with a clear beginning and end.",
+            "Use the companions you would ordinarily wear there.",
+            "Check the actions and conditions you expect.",
+            "Keep the trial short enough to remain a choice."
+          ]
+        },
+        {
+          "heading": "Notice what remained interesting",
+          "paragraphs": [
+            "After the hour, name one detail you enjoyed. Maybe you liked seeing a patterned edge each time you looked down. Maybe the outline made a familiar shirt feel different. Maybe you enjoyed putting the garment on and barely noticed it afterwards. None of those answers requires a report from other people.",
+            "Name any inconvenience just as precisely. Did the bag cover the detail you wanted to see? Did you keep changing the fastening? Did the activity make you worry about care? Those observations help you choose another arrangement or another occasion. They also leave room to decide that this piece belongs to a narrower part of your week."
+          ]
+        },
+        {
+          "heading": "Keep the ordinary version if you like it",
+          "paragraphs": [
+            "You may keep an evening arrangement and an ordinary one: different shoes, another shirt, a bag that sits elsewhere. You may also prefer one particular occasion and stop there. The ordinary hour has given you something concrete to choose from, including the possibility of saving the garment for the kind of evening you enjoy.",
+            "If you enjoyed the ordinary hour, repeat it once. A garment can earn a place in a familiar day through that small experience. Let the next use come from the detail you liked and the practical conditions you checked, rather than from waiting for a perfect invitation."
+          ]
+        }
+      ],
+      "takeaway": "Choose a suitable ordinary activity, wear the distinctive piece normally, and keep the version you enjoyed.",
+      "closingQuestion": "Which special piece would you choose for one ordinary hour, and where would you wear it?",
+      "sources": [],
+      "cardPrompt": "Tuesday is an occasion.",
+      "relatedSlugs": [
+        "a-special-piece-on-tuesday"
+      ],
+      "publication": "wear",
+      "kind": "guide",
+      "language": "en",
+      "occasions": [
+        "Everyday"
+      ],
+      "places": [],
+      "techniques": [],
+      "motifs": [],
+      "textileSlugs": [],
+      "productIds": []
+    },
+    {
+      "slug": "wear-one-outfit-three-invitations",
+      "topic": "style",
+      "title": "One outfit, three invitations",
+      "excerpt": "Try three styling intentions without making the outfit start again each time.",
+      "format": "Three-setting styling essay",
+      "readerPromise": "Explore how one familiar outfit can support different styling intentions in three proposed settings.",
+      "intro": "Imagine three invitations for one Saturday: lunch with a friend, an afternoon exhibition, and an evening gathering. You have a shirt, trousers, and a patterned layer you want to wear. Keep that outfit in the conversation. What would you want to notice about it in each setting?",
+      "sections": [
+        {
+          "heading": "Choose the question before changing the clothes",
+          "paragraphs": [
+            "Before a real invitation, check any stated dress expectations and the practical conditions. With those settled, ask what you would like to enjoy wearing. Perhaps you want more of the shirt to show, perhaps the layer’s outline interests you, or perhaps you have been looking for a place to wear a favourite pair of earrings.",
+            "That small preference gives a change somewhere to begin. The open collar from lunch might appeal to you just as much later in the evening. Keep it if it does. You can enter another room wearing the familiar arrangement you already chose, and spend your attention on the room."
+          ]
+        },
+        {
+          "heading": "Lunch: make room for the shirt",
+          "paragraphs": [
+            "For lunch, suppose you want to enjoy the shirt you usually hide beneath the patterned layer. Try opening that layer if it is designed to be worn open. Let the shirt occupy a larger visible area. Its collar, front, and cuffs now join the outfit more fully; the pattern becomes an edge around them.",
+            "Keep your existing shoes and accessories while you look. The wider opening may reveal a shirt detail you had almost forgotten: a line of buttons, a curved hem, a collar that sits unevenly. You might keep the opening for that detail. Or you might close it again because the layer’s original outline remains your favourite part."
+          ]
+        },
+        {
+          "heading": "The exhibition: look at the outline",
+          "paragraphs": [
+            "For the second version, focus on the layer’s shape. Wear its normal fastening as intended, and look at the line from shoulder to hem. See how that outline meets the trousers. Try a different sleeve arrangement only if it helps explore a detail you want to see.",
+            "Maybe a closed front gives you one continuous patterned surface. Maybe a shirt cuff appearing beyond the sleeve makes the outline more interesting. These are details you can enjoy while looking at other things too. Choose the arrangement, step away from the mirror, and let the exhibition occupy the rest of your attention."
+          ]
+        },
+        {
+          "heading": "The evening: bring one object you enjoy",
+          "paragraphs": [
+            "For the third version, choose an object you like wearing: perhaps earrings, a scarf, or a watch. Try it with the original outfit first. Notice where it appears and whether it covers a clothing detail you wanted to see. You can move it, keep the overlap, or leave it off.",
+            "Put the three versions beside one another, in your mind or in photographs. Which change interests you enough to repeat? Perhaps the collar opening belongs to all three; perhaps the earrings make the evening version your favourite. Keep the useful differences. A familiar outfit can hold several possibilities without asking you to start from the wardrobe door every time."
+          ],
+          "list": [
+            "Lunch prompt: which part of the shirt would you like to see?",
+            "Exhibition prompt: which garment outline interests you?",
+            "Evening prompt: which familiar object would you enjoy wearing?"
+          ]
+        }
+      ],
+      "takeaway": "Choose a styling intention, try a limited change, and keep the original arrangement when it already works for you.",
+      "closingQuestion": "What would you want to notice about the same outfit in three different settings?",
+      "sources": [],
+      "cardPrompt": "Same outfit. Three invitations.",
+      "relatedSlugs": [
+        "one-outfit-three-invitations"
+      ],
+      "publication": "wear",
+      "kind": "guide",
+      "language": "en",
+      "occasions": [
+        "Celebrations",
+        "Dinner"
+      ],
+      "places": [],
+      "techniques": [],
+      "motifs": [],
+      "textileSlugs": [],
+      "productIds": []
+    },
+    {
+      "slug": "wear-the-view-across-the-table",
+      "topic": "style",
+      "title": "The view across the table",
+      "excerpt": "An outfit has more than one composition. Take a seat and look at another.",
+      "format": "Seated-composition observation essay",
+      "readerPromise": "Explore which details remain visible when an outfit is seen from across a table.",
+      "intro": "The full-length photograph shows everything. At a table, your trousers and shoes may disappear from view. What remains? A collar, sleeves, hands, and whichever layer you have kept on. Take a seat and look at that smaller composition before deciding whether you want to change anything.",
+      "sections": [
+        {
+          "heading": "Notice the frame your day creates",
+          "paragraphs": [
+            "Think of an ordinary lunch, a meeting around a table, or an evening spent talking while seated. Much of the outfit you selected may sit below the tabletop. You can still enjoy those clothes. For this exercise, pay attention to the part another person might see across from you, without trying to predict what they will think.",
+            "Use a mirror if its position allows a seated view, or take a single photograph from across a table at home. Keep the arrangement ordinary. Rest your hands where they would usually be, and leave the collar as you would wear it. Look at the clothes and objects inside that smaller frame."
+          ]
+        },
+        {
+          "heading": "Give the upper half its own question",
+          "paragraphs": [
+            "Suppose you are wearing a shirt under a patterned layer. Standing, you enjoy the relationship between the layer and wide trousers. Seated, the relationship that catches you might be between the shirt collar and the patterned opening. Describe what you can see now. Is there a gap, an overlap, or a repeated shape?",
+            "Try the layer open and closed if its construction allows both. The visible shirt may become a larger area or a narrow strip. A pale collar might form an almost complete shape at the top; an open front might let the shirt continue down towards the table. Choose the view you enjoy. The trousers can stay interesting underneath it."
+          ]
+        },
+        {
+          "heading": "Let hands and objects enter the picture",
+          "paragraphs": [
+            "A cuff can appear beside a watch. A scarf end can sit near the front opening. A cup or notebook may occupy part of the view. These objects are already involved in the activity, so include them in the observation instead of clearing the table to create an idealised clothing portrait.",
+            "Choose one relationship that interests you. Perhaps you enjoy a shirt cuff extending beyond the sleeve of a short layer. Perhaps you prefer the cuff fastened with no visible fold. Try both using the garment’s normal construction, then return your hands to the table. Notice what changes in the composition without deciding that either version must work for everyone."
+          ],
+          "list": [
+            "Neckline: what becomes visible around the opening?",
+            "Sleeves: where do the layers meet near your hands?",
+            "Objects: what shares the view during the activity?"
+          ]
+        },
+        {
+          "heading": "Keep the whole outfit in the conversation",
+          "paragraphs": [
+            "Stand up again and see whether you still like the arrangement. An adjustment that interests you at a table might feel less appealing in the full view. Keep both observations. You can choose a version for a seated afternoon, or leave the outfit as it was because its overall relationship matters more to you.",
+            "You might leave the outfit exactly as it was and still notice more within it: a cuff emerging as you lift a cup, or the patterned opening beside a collar. The larger outline slips beneath the table, and these smaller relationships have a little more room to hold your attention."
+          ]
+        }
+      ],
+      "takeaway": "Look at the seated composition as another view of the outfit, and notice one relationship already there.",
+      "closingQuestion": "Which detail in your outfit would you enjoy seeing from across a table?",
+      "sources": [],
+      "cardPrompt": "Across the table.",
+      "relatedSlugs": [
+        "the-view-across-the-table"
+      ],
+      "publication": "wear",
+      "kind": "guide",
+      "language": "en",
+      "occasions": [
+        "Dinner"
+      ],
+      "places": [],
+      "techniques": [],
+      "motifs": [],
+      "textileSlugs": [],
+      "productIds": []
+    },
+    {
+      "slug": "wear-the-outfit-has-to-get-there-too",
+      "topic": "pieces",
+      "title": "The outfit has to get there, too",
+      "excerpt": "A beautiful combination still needs to meet your coat, bag, and journey. Try the whole departure before choosing a piece.",
+      "intro": "Picture the outfit ready by the door. The top has wide sleeves; the coat will not close comfortably over it. Your destination is a short ride away, and the outer layer was forgotten until the last minute. The final photograph was never the whole outfit. Before choosing a distinctive piece, rehearse the clothes you will wear on the way there.",
+      "format": "Departure rehearsal",
+      "readerPromise": "Test a garment with the outer layer, bag, and ordinary actions that will accompany it.",
+      "sections": [
+        {
+          "heading": "Begin at the door",
+          "paragraphs": [
+            "Choose a journey you expect to make. You might walk a little, sit during a ride, carry a bag, and take off an outer layer when you arrive. Give the outfit that sequence. The coat, the seat, and the bag all get a turn. If you are choosing a piece for one particular outing, begin with the route you will actually take to it.",
+            "Build the outfit as completely as you can with things you already own. Include the coat or jacket you expect to take, even if it will not appear in the eventual photograph. Fasten it in the way you normally would. Then check what the layers ask you to rearrange: a sleeve, a collar, a tie, or a hem.",
+            "Try this short departure script. Use the shoes and bag you intend to take. Give yourself enough room to sit and stand normally, with the layers arranged as they would be once you leave the mirror."
+          ],
+          "list": [
+            "Put on the outer layer without carefully staging the layers beneath it.",
+            "Lift and carry the bag you intend to use.",
+            "Sit, stand, and reach for the closure you will need.",
+            "Remove the outer layer and notice where the outfit settles."
+          ]
+        },
+        {
+          "heading": "Separate the piece from the combination",
+          "paragraphs": [
+            "Return to the wide sleeves and the coat. Try another outer layer you already own, keeping the rest of the outfit stable. Does it give the sleeve enough room, or move the difficulty somewhere else? Take it off again. Notice whether the top settles back into place or needs another careful arrangement. That small transition belongs to the outing too.",
+            "A bag deserves the same attention. Notice where its strap crosses a fastening or detail, and whether you like that interaction. Try reaching inside with the outfit complete. Does a sleeve catch on the strap? Does the tie end up under the bag? Move the bag to another position you normally use and see whether the problem changes with it.",
+            "If the combination still does not work, ask which part you want to keep. Perhaps the top is right for an outing where you need a different outer layer. Perhaps you want the outline but would prefer another sleeve shape. Remember the detail that mattered in the first place. You can return to it with a clearer question, and a better picture of the whole journey."
+          ]
+        }
+      ],
+      "takeaway": "Try a candidate garment with its actual outer layer and bag, including the moment you take them off.",
+      "closingQuestion": "Which part of leaving the house most often changes the outfit you planned?",
+      "sources": [],
+      "cardPrompt": "What happens at the door?",
+      "relatedSlugs": [
+        "the-outfit-has-to-get-there-too"
+      ],
+      "publication": "wear",
+      "kind": "guide",
+      "language": "en",
+      "occasions": [
+        "Travel"
+      ],
+      "places": [],
+      "techniques": [],
+      "motifs": [],
+      "textileSlugs": [],
+      "productIds": []
+    }
+  ]
+}

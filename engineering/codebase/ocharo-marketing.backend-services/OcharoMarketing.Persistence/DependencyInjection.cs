@@ -20,6 +20,8 @@ public static class DependencyInjection
             ?? $"Data Source={Path.Combine(dataRoot, "marketing.db")};Default Timeout=30";
         services.AddDbContext<OcharoMarketingDbContext>(options => options.UseSqlite(connectionString));
         services.AddScoped<IMarketingRepository, MarketingRepository>();
+        services.AddScoped<IOperationsRepository, OperationsRepository>();
+        services.AddScoped<OcharoMarketing.Application.Inquiries.IInquiryRepository, OcharoMarketing.Persistence.Inquiries.InquiryRepository>();
         services.AddScoped<IDeliveryRepository, DeliveryRepository>();
         services.AddScoped<ISourceAnalysisRepository, SourceAnalysisRepository>();
         services.AddEfMigrationsRunner<OcharoMarketingDbContext>(options => options.MaxConnectAttempts = 1);

@@ -1,15 +1,11 @@
 <script setup lang="ts">
 import { SelectPickerTrigger, type SelectPickerTriggerProps } from '@wow-two-beta/ui-vue/presentation/forms';
-/** Defines the SDK trigger with its runtime-supported accessible label. */
+/** SDK 0.0.9 still omits native accessible naming from this component declaration. */
 interface Props extends /* @vue-ignore */ SelectPickerTriggerProps {
-  /** Names the native trigger for assistive technology. */
-  // eslint-disable-next-line vue/prop-name-casing -- Declares the native ARIA attribute missing from SDK types.
+  // eslint-disable-next-line vue/prop-name-casing -- Native attribute absent from the published declaration.
   'aria-label'?: string;
 }
-/** Preserves the SDK compound trigger and forwards a typed accessible name. */
 defineOptions({ name: 'PickerTrigger' });
 const props = defineProps<Props>();
 </script>
-<template>
-  <SelectPickerTrigger v-bind="props"><slot /></SelectPickerTrigger>
-</template>
+<template><SelectPickerTrigger v-bind="props"><slot /></SelectPickerTrigger></template>

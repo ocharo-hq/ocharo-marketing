@@ -5,7 +5,7 @@ import { ArrowLeft, CalendarPlus, Check, Download, RotateCcw, Sparkles } from 'l
 
 import { downloadBlob } from '@wow-two-beta/ui-vue/foundation/files';
 import { Icon } from '@wow-two-beta/ui-vue/foundation/icons';
-import Button from './compatibility/ActionButton.vue';
+import { Button } from '@wow-two-beta/ui-vue/presentation/actions';
 import {
   DateTimeInput,
   NumberInput,
@@ -30,6 +30,7 @@ import { useNavigationBlocker } from '@wow-two-beta/ui-vue/router';
 import { useMarketingWorkspace } from '../../application/marketing';
 import { MarketingExtensions, type DraftModel, type GenerationJobModel } from '../../domain/marketing';
 import CardPreview from './CardPreview.vue';
+import PostMediaPicker from './PostMediaPicker.vue';
 import StatusIndicator from './StatusIndicator.vue';
 
 /** Prepares one bounded card and its separately reviewed caption. */
@@ -50,6 +51,11 @@ const form = reactive({
   channels: original?.channels ?? ['instagram'],
   mediaIds: [...(original?.mediaIds ?? [])],
 });
+// Only artwork rendered from this recipe is invalidated when its composition changes.
+// An independently selected original photograph keeps its meaning when a title is edited.
+const compositionBoundMedia = ref(
+  new Set((original?.composition?.boundMediaIds ?? []).filter((id) => original?.mediaIds.includes(id))),
+);
 const currentId = ref(original?.id);
 const revision = ref(original?.revision ?? 0);
 const approvedRevision = ref(original?.approvedRevision ?? null);
@@ -120,7 +126,10 @@ const blocker = useNavigationBlocker(dirty);
 watch(
   compositionSignature,
   () => {
-    if (!restoring) form.mediaIds = [];
+    if (!restoring) {
+      form.mediaIds = form.mediaIds.filter((id) => !compositionBoundMedia.value.has(id));
+      compositionBoundMedia.value = new Set();
+    }
   },
   { flush: 'sync' },
 );
@@ -175,6 +184,7 @@ async function save() {
         scale: scale.value ?? 1,
         offsetX: offsetX.value ?? 0,
         offsetY: offsetY.value ?? 0,
+        boundMediaIds: [...compositionBoundMedia.value].filter((id) => form.mediaIds.includes(id)),
       },
       channels: [...form.channels],
       mediaIds: [...form.mediaIds],
@@ -203,6 +213,7 @@ async function render() {
 function useOutput(job: GenerationJobModel | undefined) {
   if (!job || !canUseOutput.value) return;
   form.mediaIds = [...job.outputAssetIds];
+  compositionBoundMedia.value = new Set(job.outputAssetIds);
   desk.notice.value = 'Tayyor tasvir postga qo‘shildi.';
 }
 
@@ -576,6 +587,11 @@ function toggleChannel(channel: string) {
             <li v-for="issue in product.issues.slice(0, 3)" :key="issue">{{ issue }}</li>
           </ul>
         </div>
+        <PostMediaPicker
+          v-model="form.mediaIds"
+          :assets="workspace?.assets ?? []"
+          :product-asset-ids="product?.assetIds ?? []"
+        />
         <div v-if="selectedOutput" class="rounded-xl border border-border p-3">
           <p class="mb-2 text-xs font-semibold">Postga qo‘shilgan tasvir</p>
           <img
@@ -586,7 +602,7 @@ function toggleChannel(channel: string) {
           <p class="mt-2 text-xs text-muted-foreground">Tekshirish va eksport aynan shu tasvirni ishlatadi.</p>
         </div>
         <p v-else class="rounded-lg bg-warning-soft p-3 text-xs leading-5 text-warning">
-          Tasvirni tayyorlang va natijani postga qo‘shing.
+          Kutubxonadan tasvir tanlang yoki yangi kartani tayyorlang.
         </p>
         <div class="space-y-2 border-t border-border pt-4">
           <Button

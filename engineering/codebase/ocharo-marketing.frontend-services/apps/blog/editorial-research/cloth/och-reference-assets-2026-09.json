@@ -1,0 +1,36 @@
+{
+  "updated_at": "2026-09-29 12:00 PM (GMT+5)",
+  "status": "Research-only reference assets; excluded from blog output",
+  "assets": [
+    {
+      "asset": "reference-images/och-bukhara-pardah-2006-152.jpg",
+      "source_page": "https://www.clevelandart.org/art/2006.152",
+      "download_url": "https://openaccess-cdn.clevelandart.org/2006.152/2006.152_web.jpg",
+      "rights": "CC0; Cleveland Museum of Art Open Access",
+      "credit": "Wall hanging (pardah), Bukhara, 1850–75. Cleveland Museum of Art, Gift of Guido Goldman, 2006.152.",
+      "dimensions": [
+        666,
+        893
+      ],
+      "bytes": 584339,
+      "sha256": "429794a040d2b4e3c6e084691b9aae0d03907b10590c69c8ea4bd21922531c93",
+      "alterations": "None; original downloaded bytes",
+      "use": "Unpublished research and draft illustration"
+    },
+    {
+      "asset": "reference-images/och-samarkand-fabric-merchant.jpg",
+      "source_page": "https://www.loc.gov/pictures/item/2018680238/",
+      "download_url": "https://tile.loc.gov/storage-services/service/pnp/prokc/21700/21725v.jpg",
+      "rights": "No known restrictions on publication (Library of Congress); not labelled CC0",
+      "credit": "Sergei Mikhailovich Prokudin-Gorskii, Fabric merchant, Samarkand, 1905–1915. Library of Congress. Digital composite by Blaise Agüera y Arcas, 2004. LC-DIG-prokc-21725.",
+      "dimensions": [
+        1015,
+        1023
+      ],
+      "bytes": 838596,
+      "sha256": "76084babbdf0c11f73b7e269de80c747c7b66b5479394e6e7e8f17af9c212d70",
+      "alterations": "None; original downloaded bytes",
+      "use": "Unpublished research and draft illustration"
+    }
+  ]
+}

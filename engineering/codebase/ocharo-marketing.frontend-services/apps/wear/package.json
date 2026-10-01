@@ -1,0 +1,10 @@
+{
+  "name": "@ocharomarketing/wear",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "build": "python3 ../../scripts/build-public.py wear",
+    "preview": "python3 -u -m http.server 8773 --bind 127.0.0.1 --directory dist"
+  }
+}

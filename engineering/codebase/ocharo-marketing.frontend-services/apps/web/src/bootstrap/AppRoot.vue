@@ -1,4 +1,8 @@
 <script setup lang="ts">
+import BuildVersion from '@ocharomarketing/connect/BuildVersion.vue';
+const appVersion = typeof __APP_VERSION__ === 'string' ? __APP_VERSION__ : 'dev';
+import ConnectDesk from '@ocharomarketing/connect/ConnectDesk.vue';
+const connectPlatformUrl = import.meta.env.VITE_PLATFORM_URL ?? 'https://localhost:8264/';
 import { computed, onMounted, onScopeDispose, watch } from 'vue';
 import { RouterView, useRoute } from 'vue-router';
 import {
@@ -17,7 +21,7 @@ import {
   Zap,
 } from 'lucide-vue-next';
 import { Icon } from '@wow-two-beta/ui-vue/foundation/icons';
-import Button from '../presentation/marketing/compatibility/ActionButton.vue';
+import { Button } from '@wow-two-beta/ui-vue/presentation/actions';
 import { AppErrorBoundary, RouteAnnouncer } from '@wow-two-beta/ui-vue/router';
 import { useMarketingWorkspace } from '../application/marketing';
 import { platformLinks } from './PlatformLinks';
@@ -34,6 +38,10 @@ const navigation = [
   { path: '/atlas', label: 'Atlas', icon: BookOpen },
   { path: '/calendar', label: 'Taqvim', icon: CalendarDays },
   { path: '/automation', label: 'Avtomatika', icon: Zap },
+  { path: '/creative-imports', label: 'Studio imports', icon: FolderOpen },
+  { path: '/inquiries', label: 'Enquiries', icon: Link2 },
+  { path: '/channels', label: 'Kanallar xaritasi', icon: Link2 },
+  { path: '/monitoring', label: 'Monitoring', icon: TrendingUp },
   { path: '/results', label: 'Natijalar', icon: TrendingUp },
   { path: '/connections', label: 'Ulanishlar', icon: Link2 },
 ];
@@ -76,7 +84,9 @@ onScopeDispose(() => {
       class="sr-only focus:not-sr-only focus:fixed focus:left-5 focus:top-4 focus:z-50 focus:rounded-lg focus:bg-card focus:px-5 focus:py-3"
       >Asosiy bo‘limga o‘tish</a
     >
-    <aside class="fixed inset-y-0 left-0 z-20 hidden w-60 flex-col border-r border-border bg-card lg:flex">
+    <aside
+      class="fixed inset-y-0 left-0 z-20 hidden w-60 flex-col overflow-y-auto border-r border-border bg-card lg:flex"
+    >
       <div class="px-7 pb-9 pt-9">
         <p class="font-editorial text-4xl tracking-tight">Ocharo<span class="text-primary">.</span></p>
         <p class="mt-2 text-[10px] uppercase tracking-[0.25em] text-muted-foreground">Marketing ish stoli</p>
@@ -133,10 +143,11 @@ onScopeDispose(() => {
         <div class="flex items-center gap-3">
           <span class="font-editorial text-2xl lg:hidden">Ocharo.</span
           ><span class="hidden text-xs text-muted-foreground sm:inline">Ish stoli</span
-          ><Icon :icon="ChevronRight" :size="13" class="hidden text-muted-foreground sm:block" /><span
-            class="text-xs font-semibold"
-            >{{ section }}</span
-          >
+          ><BuildVersion :app-version="appVersion" service-label="Marketing" /><Icon
+            :icon="ChevronRight"
+            :size="13"
+            class="hidden text-muted-foreground sm:block"
+          /><span class="text-xs font-semibold">{{ section }}</span>
         </div>
         <div class="flex items-center gap-3">
           <Button
@@ -166,6 +177,7 @@ onScopeDispose(() => {
         </button>
       </nav>
       <main id="main-content" tabindex="-1" class="mx-auto max-w-[1600px] px-5 py-8 sm:px-8 xl:px-10">
+        <ConnectDesk :platform-url="connectPlatformUrl" />
         <div
           v-if="desk.error.value"
           role="alert"

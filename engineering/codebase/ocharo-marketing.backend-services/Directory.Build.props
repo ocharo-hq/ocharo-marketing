@@ -5,6 +5,11 @@
     Per-project .csproj files stay minimal: they declare only references, not these settings.
   -->
   <PropertyGroup>
+    <Version Condition="'$(APP_VERSION)' != '' and '$(APP_VERSION)' != 'dev'">$(APP_VERSION)</Version>
+    <Version Condition="'$(Version)' == ''">0.0.0</Version>
+    <InformationalVersion Condition="'$(Version)' == '0.0.0'">dev</InformationalVersion>
+    <FrontendAppVersion Condition="'$(Version)' != '0.0.0'">$(Version)</FrontendAppVersion>
+    <FrontendAppVersion Condition="'$(FrontendAppVersion)' == ''">dev</FrontendAppVersion>
     <TargetFramework>net10.0</TargetFramework>
     <Nullable>enable</Nullable>
     <ImplicitUsings>enable</ImplicitUsings>

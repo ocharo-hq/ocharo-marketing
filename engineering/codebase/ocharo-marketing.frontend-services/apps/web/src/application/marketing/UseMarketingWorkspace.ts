@@ -3,7 +3,13 @@ import { computed, inject, ref, shallowRef, type InjectionKey } from 'vue';
 import type { ApiFailure } from '@wow-two-beta/ui-vue/foundation/http';
 import { type Result } from '@wow-two-beta/ui-vue/foundation/results';
 
-import type { AutomationSettingsModel, CardCompositionModel, WorkspaceModel } from '../../domain/marketing';
+import type {
+  ChannelStrategyModel,
+  EngagementInput,
+  AutomationSettingsModel,
+  CardCompositionModel,
+  WorkspaceModel,
+} from '../../domain/marketing';
 import {
   marketingApi,
   type DraftCreateUpdateApiRequest,
@@ -76,6 +82,11 @@ export function createMarketingWorkspace(navigate: (path: string) => void) {
     navigate,
     refresh,
     failureMessage,
+    getOperations: (signal?: AbortSignal) => marketingApi.getOperations(signal),
+    getChannelStrategies: (signal?: AbortSignal) => marketingApi.getChannelStrategies(signal),
+    saveChannelStrategy: (body: ChannelStrategyModel) =>
+      execute('channel', () => marketingApi.saveChannelStrategy(body)),
+    recordEngagement: (body: EngagementInput) => execute('engagement', () => marketingApi.recordEngagement(body)),
     verifyConnection: (id: string) => execute('verify', () => marketingApi.verifyConnection(id)),
     queuePublication: (id: string, body: QueuePublicationApiRequest) =>
       execute('queue', () => marketingApi.queuePublication(id, body)),

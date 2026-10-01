@@ -11,10 +11,11 @@ using OcharoMarketing.Infrastructure.Marketing.Services;
 namespace OcharoMarketing.Infrastructure.Marketing.BackgroundServices;
 
 /// <summary>Processes durable local jobs with a fresh dependency scope and conservative external recovery.</summary>
-public sealed class GenerationWorker(IServiceScopeFactory scopeFactory, ILogger<GenerationWorker> logger) : BackgroundService
+public sealed class GenerationWorker(IServiceScopeFactory scopeFactory, ILogger<GenerationWorker> logger, WorkerHealthService health) : BackgroundService
 {
     protected override async Task ExecuteAsync(CancellationToken stoppingToken)
     {
+        health.Started("generation");
         while (!stoppingToken.IsCancellationRequested)
         {
             try
@@ -22,6 +23,7 @@ public sealed class GenerationWorker(IServiceScopeFactory scopeFactory, ILogger<
                 using var scope = scopeFactory.CreateScope();
                 var repository = scope.ServiceProvider.GetRequiredService<IMarketingRepository>();
                 var claim = await repository.ClaimAsync(DateTimeOffset.UtcNow, TimeSpan.FromMinutes(15), stoppingToken);
+                health.Completed("generation");
                 if (claim is null)
                 {
                     await Task.Delay(TimeSpan.FromSeconds(1), stoppingToken);
@@ -51,6 +53,7 @@ public sealed class GenerationWorker(IServiceScopeFactory scopeFactory, ILogger<
                 }
                 catch (Exception exception)
                 {
+                    health.Failed("generation");
                     logger.LogWarning("Marketing job {JobId} failed with {FailureType}.", claim.Id, exception.GetType().Name);
                     var safeMessage = claim.Kind == "card"
                         ? exception is CardRenderingException controlled ? controlled.Message
@@ -62,7 +65,8 @@ public sealed class GenerationWorker(IServiceScopeFactory scopeFactory, ILogger<
             catch (OperationCanceledException) when (stoppingToken.IsCancellationRequested) { return; }
             catch (Exception exception)
             {
-                logger.LogWarning("Marketing worker paused after {FailureType}.", exception.GetType().Name);
+                health.Failed("generation");
+                    logger.LogWarning("Marketing worker paused after {FailureType}.", exception.GetType().Name);
                 await Task.Delay(TimeSpan.FromSeconds(3), stoppingToken);
             }
         }

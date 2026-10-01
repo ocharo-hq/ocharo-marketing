@@ -1,3 +1,4 @@
+import { integrationFetch } from '@ocharomarketing/connect';
 import type { QueuePublicationApiRequest } from './models/QueuePublicationApiRequest';
 import type { SourceAnalysisCreateApiRequest } from './models/SourceAnalysisCreateApiRequest';
 import {
@@ -8,6 +9,10 @@ import {
 } from '@wow-two-beta/ui-vue/foundation/http';
 
 import type {
+  ChannelStrategyModel,
+  EngagementInput,
+  EngagementObservationModel,
+  OperationsOverviewModel,
   AutomationRunModel,
   AutomationSettingsModel,
   BlogStoryModel,
@@ -45,10 +50,34 @@ const MarketingEnvelope: ResponseEnvelope = {
 };
 
 /** Creates the same-origin marketing endpoint boundary with explicit, non-retried mutations. */
-export function createMarketingApi(fetchImplementation: typeof fetch = globalThis.fetch) {
+export function createMarketingApi(fetchImplementation: typeof fetch = integrationFetch) {
   const client = createApiClient({ envelope: MarketingEnvelope, retry: false, fetch: fetchImplementation });
   const root = '/api/marketing';
   return {
+    getOperations(signal?: AbortSignal) {
+      return client.get<OperationsOverviewModel>(`${root}/operations`, {
+        signal,
+        decode: (value) => MarketingDecoders.decode(MarketingDecoders.operations, value),
+      });
+    },
+    getChannelStrategies(signal?: AbortSignal) {
+      return client.get<ChannelStrategyModel[]>(`${root}/operations/channels`, {
+        signal,
+        decode: (value) => MarketingDecoders.decode(MarketingDecoders.channelStrategies, value),
+      });
+    },
+    saveChannelStrategy(body: ChannelStrategyModel) {
+      return client.put<ChannelStrategyModel>(`${root}/operations/channels/${encodeURIComponent(body.channel)}`, {
+        body,
+        decode: (value) => MarketingDecoders.decode(MarketingDecoders.channelStrategy, value),
+      });
+    },
+    recordEngagement(body: EngagementInput) {
+      return client.post<EngagementObservationModel>(`${root}/operations/observations`, {
+        body,
+        decode: (value) => MarketingDecoders.decode(MarketingDecoders.engagementObservation, value),
+      });
+    },
     verifyConnection(id: string) {
       return client.post<ConnectionModel>(`${root}/connections/${encodeURIComponent(id)}/verify`, {
         body: {},

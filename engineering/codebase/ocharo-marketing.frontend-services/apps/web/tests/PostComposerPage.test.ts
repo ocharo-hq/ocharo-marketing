@@ -1,6 +1,7 @@
 import { flushPromises, mount } from '@vue/test-utils';
 import { shallowRef, ref } from 'vue';
 import { afterEach, describe, expect, it, vi } from 'vitest';
+import { ApiFailureFactory } from '@wow-two-beta/ui-vue/foundation/http';
 import { ResultExtensions } from '@wow-two-beta/ui-vue/foundation/results';
 import { createAppRouter, RouterHistoryMode } from '@wow-two-beta/ui-vue/router';
 import { MarketingWorkspaceKey, type MarketingWorkspace } from '../src/application/marketing';
@@ -66,8 +67,9 @@ function fixture(): WorkspaceModel {
 }
 
 /** Mounts the real composer with explicit application ports. */
-async function render(original?: DraftModel) {
+async function render(original?: DraftModel, assetRole = 'front') {
   const source = fixture();
+  source.assets[0]!.role = assetRole;
   if (original) source.drafts = [original];
   const workspace = shallowRef(source);
   const job = {
@@ -245,6 +247,56 @@ describe('post composer output ownership', () => {
     await wrapper.get('input[aria-label="Post sarlavhasi"]').setValue('Changed title');
     expect(wrapper.findAll('button').some((button) => button.text() === 'Postga qo‘shish')).toBe(false);
     expect(wrapper.text()).toContain('tasvirni qayta tayyorlang');
+  });
+
+  it('preserves selected original photographs while editing the title and caption', async () => {
+    const { wrapper, desk } = await render();
+    desk.saveDraft = vi.fn(async () => ResultExtensions.fail(ApiFailureFactory.create('transport')));
+    await wrapper.get('button[aria-label="front.png"]').trigger('click');
+    await wrapper.get('input[aria-label="Post sarlavhasi"]').setValue('Independent photograph');
+    await wrapper.get('textarea[aria-label="Post matni"]').setValue('An edited caption');
+    expect(wrapper.get('button[aria-label="front.png"]').attributes('aria-pressed')).toBe('true');
+    await wrapper
+      .findAll('button')
+      .find((button) => button.text() === 'Saqlash')!
+      .trigger('click');
+    await flushPromises();
+    expect(desk.saveDraft).toHaveBeenCalledWith(
+      expect.objectContaining({ mediaIds: ['front'], caption: 'An edited caption' }),
+      undefined,
+    );
+  });
+
+  it('does not infer recipe ownership for a saved independently selected library card', async () => {
+    const { wrapper } = await render(
+      {
+        id: 'saved-library',
+        title: 'Saved title',
+        productId: 'product',
+        presetId: 't02-bone',
+        locale: 'uz',
+        caption: 'Caption',
+        channels: ['instagram'],
+        mediaIds: ['front'],
+        revision: 1,
+        approvedRevision: null,
+        status: 'draft',
+        createdAt: '2026-09-27T00:00:00Z',
+        updatedAt: '2026-09-27T00:00:00Z',
+        composition: {
+          title: 'Saved title',
+          subtitle: '',
+          fabricAssetId: null,
+          scale: 1,
+          offsetX: 0,
+          offsetY: 0,
+          boundMediaIds: [],
+        },
+      },
+      'card',
+    );
+    await wrapper.get('input[aria-label="Post sarlavhasi"]').setValue('New title');
+    expect(wrapper.get('button[aria-label="front.png"]').attributes('aria-pressed')).toBe('true');
   });
 
   it('invalidates selected artwork after a composition change', async () => {

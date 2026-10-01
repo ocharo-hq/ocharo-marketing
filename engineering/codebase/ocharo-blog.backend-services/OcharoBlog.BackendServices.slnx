@@ -1,0 +1,15 @@
+<Solution>
+  <Configurations>
+    <Platform Name="Any CPU" />
+    <Platform Name="x64" />
+    <Platform Name="x86" />
+  </Configurations>
+  <Folder Name="/tests/">
+    <Project Path="tests/OcharoBlog.Tests/OcharoBlog.Tests.csproj" />
+  </Folder>
+  <Project Path="OcharoBlog.Api/OcharoBlog.Api.csproj" />
+  <Project Path="OcharoBlog.Application/OcharoBlog.Application.csproj" />
+  <Project Path="OcharoBlog.Domain/OcharoBlog.Domain.csproj" />
+  <Project Path="OcharoBlog.Infrastructure/OcharoBlog.Infrastructure.csproj" />
+  <Project Path="OcharoBlog.Persistence/OcharoBlog.Persistence.csproj" />
+</Solution>

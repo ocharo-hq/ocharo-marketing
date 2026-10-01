@@ -3,6 +3,16 @@ import { createAppRouter } from '@wow-two-beta/ui-vue/router';
 export const marketingRouter = createAppRouter(
   [
     { path: '/', lazy: () => import('../presentation/marketing/TodayPage.vue'), handle: { title: 'Bugun' } },
+    {
+      path: '/channels',
+      lazy: () => import('../presentation/marketing/ChannelsPage.vue'),
+      handle: { title: 'Kanallar xaritasi' },
+    },
+    {
+      path: '/monitoring',
+      lazy: () => import('../presentation/marketing/MonitoringPage.vue'),
+      handle: { title: 'Monitoring' },
+    },
     { path: '/posts', lazy: () => import('../presentation/marketing/PostsPage.vue'), handle: { title: 'Postlar' } },
     { path: '/posts/new', lazy: () => import('./PostComposerRoute.vue'), handle: { title: 'Yangi post' } },
     { path: '/posts/:id', lazy: () => import('./PostComposerRoute.vue'), handle: { title: 'Postni tayyorlash' } },
@@ -10,6 +20,16 @@ export const marketingRouter = createAppRouter(
       path: '/products',
       lazy: () => import('../presentation/marketing/ProductsPage.vue'),
       handle: { title: 'Mahsulotlar' },
+    },
+    {
+      path: '/creative-imports',
+      lazy: () => import('../presentation/marketing/CreativeImportsPage.vue'),
+      handle: { title: 'Studio imports' },
+    },
+    {
+      path: '/inquiries',
+      lazy: () => import('../presentation/marketing/InquiriesPage.vue'),
+      handle: { title: 'Enquiries' },
     },
     { path: '/atlas', lazy: () => import('../presentation/marketing/AtlasPage.vue'), handle: { title: 'Atlas' } },
     {

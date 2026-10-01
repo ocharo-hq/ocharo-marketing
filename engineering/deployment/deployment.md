@@ -4,7 +4,7 @@
 
 ## Supported pilot
 
-The supported runtime is one local operator with SQLite and private files. API binds HTTPS 8276 and HTTP 8277; Vue binds HTTPS 8242. Development mode, a loopback peer and an approved local Host are required. Writes require the same origin or the explicit local Vite origin on port 8242; unrelated browser origins are rejected. Remote hosting and authenticated multi-user operation are not implemented.
+The supported runtime is one local operator with SQLite and private files. API binds HTTPS 8276 and HTTP 8277; Vue binds HTTPS 8358. Development mode, a loopback peer and an approved local Host are required. Writes require the same origin or the explicit local Vite origin on port 8358; unrelated browser origins are rejected. Connected mode introspects Platform membership for private access and requires the configured organization binding. Remote hosting remains outside the current loopback review boundary.
 
 Run the backend from its solution directory in a managed terminal:
 

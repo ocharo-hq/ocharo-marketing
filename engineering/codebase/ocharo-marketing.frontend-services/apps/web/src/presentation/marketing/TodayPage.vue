@@ -3,7 +3,7 @@ import { computed } from 'vue';
 import { ArrowRight, CalendarDays, Check, ImagePlus, Plus, Sparkles } from 'lucide-vue-next';
 
 import { Icon } from '@wow-two-beta/ui-vue/foundation/icons';
-import Button from './compatibility/ActionButton.vue';
+import { Button } from '@wow-two-beta/ui-vue/presentation/actions';
 
 import { useMarketingWorkspace } from '../../application/marketing';
 import { MarketingExtensions } from '../../domain/marketing';

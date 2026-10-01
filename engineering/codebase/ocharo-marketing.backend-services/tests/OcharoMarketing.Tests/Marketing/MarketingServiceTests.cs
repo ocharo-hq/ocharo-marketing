@@ -60,6 +60,17 @@ public sealed class MarketingServiceTests : IAsyncLifetime
     }
 
     [Fact]
+    public async Task RecipeBindingIsExplicitPersistedAndCannotNameUnselectedAssets()
+    {
+        await using var db = database.NewContext();
+        var service = Services(db).Service;
+        var bound = await service.SaveDraftAsync(null, Input() with { Composition = new("Title", "", null, BoundMediaIds: ["front"]) }, default);
+        await using var reopened = database.NewContext();
+        Assert.Equal(["front"], (await new MarketingRepository(reopened).FindDraftAsync(bound.Id, default))!.Composition!.BoundMediaIds);
+        await Assert.ThrowsAsync<MarketingException>(() => service.SaveDraftAsync(null, Input() with { Composition = new("Title", "", null, BoundMediaIds: ["not-selected"]) }, default));
+    }
+
+    [Fact]
     public async Task IncompleteT01FabricCanBeSavedButInvalidRecipeCannot()
     {
         await using var db = database.NewContext();
@@ -113,7 +124,7 @@ public sealed class MarketingServiceTests : IAsyncLifetime
             .AddScoped<IMarketingRepository, MarketingRepository>()
             .AddScoped<IAssetService>(services => Services(services.GetRequiredService<OcharoMarketingDbContext>()).Assets)
             .AddSingleton<ICardRenderingService>(cards).BuildServiceProvider();
-        using var worker = new GenerationWorker(provider.GetRequiredService<IServiceScopeFactory>(), NullLogger<GenerationWorker>.Instance);
+        using var worker = new GenerationWorker(provider.GetRequiredService<IServiceScopeFactory>(), NullLogger<GenerationWorker>.Instance, new WorkerHealthService(TimeProvider.System));
         await worker.StartAsync(default);
         try
         {

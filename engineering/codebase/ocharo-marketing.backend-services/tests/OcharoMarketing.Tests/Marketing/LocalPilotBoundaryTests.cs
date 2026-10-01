@@ -14,12 +14,13 @@ public sealed class LocalPilotBoundaryTests
     [InlineData("localhost:8277", "192.0.2.1", "", 403)]
     [InlineData("localhost:8277", "127.0.0.1", "https://evil.example", 403)]
     [InlineData("localhost:8277", "127.0.0.1", "http://localhost:8277", 204)]
-    [InlineData("localhost:8277", "127.0.0.1", "https://localhost:8242", 204)]
-    [InlineData("localhost:8277", "127.0.0.1", "http://127.0.0.1:8242", 204)]
+    [InlineData("localhost:8277", "127.0.0.1", "https://localhost:8358", 204)]
+    [InlineData("localhost:8277", "127.0.0.1", "https://localhost:8242", 403)]
+    [InlineData("localhost:8277", "127.0.0.1", "http://127.0.0.1:8358", 204)]
     [InlineData("localhost:8277", "127.0.0.1", "https://localhost:8277", 403)]
     [InlineData("localhost:8277", "127.0.0.1", "https://localhost:8243", 403)]
-    [InlineData("localhost:8277", "127.0.0.1", "https://localhost.evil.example:8242", 403)]
-    [InlineData("localhost:8277", "127.0.0.1", "https://localhost:8242@evil.example", 403)]
+    [InlineData("localhost:8277", "127.0.0.1", "https://localhost.evil.example:8358", 403)]
+    [InlineData("localhost:8277", "127.0.0.1", "https://localhost:8358@evil.example", 403)]
     public async Task RejectsRemoteHostsAndCrossOriginWrites(string host, string remote, string origin, int expected)
     {
         using var services = new ServiceCollection().AddLogging().BuildServiceProvider();

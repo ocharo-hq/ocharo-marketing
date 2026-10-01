@@ -1,0 +1,11 @@
+{
+  "name": "@ocharomarketing/blog",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "build": "python3 ../../scripts/build-public.py blog",
+    "preview": "python3 -u -m http.server 8774 --bind 127.0.0.1 --directory dist",
+    "build:archive": "node och-build.mjs"
+  }
+}

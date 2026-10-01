@@ -1,0 +1,23 @@
+{
+  "name": "ocharoblog-frontend",
+  "private": true,
+  "version": "0.0.0",
+  "type": "module",
+  "description": "Compatibility command entrypoint; editorial source is owned by Marketing apps/editorial.",
+  "packageManager": "pnpm@10.33.2",
+  "engines": {
+    "node": ">=24.11.0 <25"
+  },
+  "scripts": {
+    "dev": "pnpm --dir ../ocharo-marketing.frontend-services dev:editorial",
+    "dev:http": "pnpm --dir ../ocharo-marketing.frontend-services --filter @ocharomarketing/editorial dev:http",
+    "typecheck": "pnpm --dir ../ocharo-marketing.frontend-services --filter @ocharomarketing/editorial typecheck",
+    "build": "pnpm --dir ../ocharo-marketing.frontend-services build:editorial",
+    "preview": "pnpm --dir ../ocharo-marketing.frontend-services --filter @ocharomarketing/editorial preview",
+    "test": "pnpm --dir ../ocharo-marketing.frontend-services test:editorial",
+    "format": "pnpm --dir ../ocharo-marketing.frontend-services --filter @ocharomarketing/editorial format",
+    "format:check": "pnpm --dir ../ocharo-marketing.frontend-services --filter @ocharomarketing/editorial format:check",
+    "lint": "pnpm --dir ../ocharo-marketing.frontend-services --filter @ocharomarketing/editorial lint",
+    "deploy": "pnpm --dir ../ocharo-marketing.frontend-services deploy:editorial"
+  }
+}

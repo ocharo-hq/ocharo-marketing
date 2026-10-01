@@ -1,0 +1,28 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <IsPackable>false</IsPackable>
+    <IsTestProject>true</IsTestProject>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <FrameworkReference Include="Microsoft.AspNetCore.App" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Microsoft.NET.Test.Sdk" />
+    <PackageReference Include="xunit" />
+    <PackageReference Include="xunit.runner.visualstudio" />
+    <PackageReference Include="SkiaSharp" />
+    <PackageReference Include="Microsoft.AspNetCore.Mvc.Testing" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\..\OcharoBlog.Api\OcharoBlog.Api.csproj" />
+    <ProjectReference Include="..\..\OcharoBlog.Application\OcharoBlog.Application.csproj" />
+    <ProjectReference Include="..\..\OcharoBlog.Domain\OcharoBlog.Domain.csproj" />
+    <ProjectReference Include="..\..\OcharoBlog.Infrastructure\OcharoBlog.Infrastructure.csproj" />
+    <ProjectReference Include="..\..\OcharoBlog.Persistence\OcharoBlog.Persistence.csproj" />
+  </ItemGroup>
+
+</Project>

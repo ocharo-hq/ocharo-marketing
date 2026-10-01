@@ -1,0 +1,14 @@
+{
+  "name": "@ocharomarketing/connect",
+  "private": true,
+  "version": "0.0.0",
+  "type": "module",
+  "exports": {
+    ".": "./src/session.ts",
+    "./ConnectDesk.vue": "./src/ConnectDesk.vue",
+    "./BuildVersion.vue": "./src/BuildVersion.vue"
+  },
+  "dependencies": {
+    "vue": "^3.5.13"
+  }
+}

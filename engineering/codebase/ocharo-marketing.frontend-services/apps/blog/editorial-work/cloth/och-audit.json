@@ -1,0 +1,127 @@
+{
+  "postCount": 10,
+  "bodyWords": 5179,
+  "minimumBodyWords": 463,
+  "maximumBodyWords": 554,
+  "posts": [
+    {
+      "slug": "pattern-placement-and-the-whole-piece",
+      "bodyWords": 463
+    },
+    {
+      "slug": "when-does-pattern-enter-cloth",
+      "bodyWords": 540
+    },
+    {
+      "slug": "a-cloth-name-is-not-an-ingredients-list",
+      "bodyWords": 515
+    },
+    {
+      "slug": "two-patterns-sharing-one-cloth",
+      "bodyWords": 485
+    },
+    {
+      "slug": "what-a-seam-does-to-a-repeat",
+      "bodyWords": 539
+    },
+    {
+      "slug": "the-museum-label-has-a-missing-person",
+      "bodyWords": 542
+    },
+    {
+      "slug": "one-robe-is-not-a-whole-region",
+      "bodyWords": 520
+    },
+    {
+      "slug": "read-the-care-label-as-a-sequence",
+      "bodyWords": 491
+    },
+    {
+      "slug": "five-minutes-with-one-piece-of-cloth",
+      "bodyWords": 554
+    },
+    {
+      "slug": "what-does-handmade-actually-tell-you",
+      "bodyWords": 530
+    }
+  ],
+  "sources": {
+    "https://www.metmuseum.org/exhibitions/listings/2006/ikat-textiles": {
+      "words": 134,
+      "uses": [
+        "pattern-placement-and-the-whole-piece / The pattern arrives before the cloth",
+        "one-robe-is-not-a-whole-region / A shared technique does not mean a shared meaning"
+      ]
+    },
+    "https://www.seattleartmuseum.org/whats-on/exhibitions/ikat": {
+      "words": 86,
+      "uses": [
+        "pattern-placement-and-the-whole-piece / Look along the edge, not only at the motif"
+      ]
+    },
+    "https://www.vam.ac.uk/articles/a-z-opus-anglicanum": {
+      "words": 70,
+      "uses": [
+        "when-does-pattern-enter-cloth / First, give the threads directions"
+      ]
+    },
+    "https://www.vam.ac.uk/event/K3M0rdMJkA7/p25119-an-introduction-to-textile-techniques": {
+      "words": 92,
+      "uses": [
+        "when-does-pattern-enter-cloth / Three moments, three possible stories"
+      ]
+    },
+    "https://www.unesco.org/en/articles/crafts-development-center-margilan": {
+      "words": 137,
+      "uses": [
+        "a-cloth-name-is-not-an-ingredients-list / Let the name keep its context",
+        "what-does-handmade-actually-tell-you / Begin with work that can be named"
+      ]
+    },
+    "https://www.metmuseum.org/art/collection/search/85503": {
+      "words": 131,
+      "uses": [
+        "a-cloth-name-is-not-an-ingredients-list / One line for material, another for method",
+        "one-robe-is-not-a-whole-region / Start at the scale of one object"
+      ]
+    },
+    "https://www.metmuseum.org/art/collection/search/315915": {
+      "words": 73,
+      "uses": [
+        "two-patterns-sharing-one-cloth / A specific example, in a specific place"
+      ]
+    },
+    "https://www.vam.ac.uk/articles/embroidery-styles-an-illustrated-guide": {
+      "words": 75,
+      "uses": [
+        "two-patterns-sharing-one-cloth / Where does each pattern depend on the ground?"
+      ]
+    },
+    "https://collections.lacma.org/object/246745": {
+      "words": 136,
+      "uses": [
+        "what-a-seam-does-to-a-repeat / A garment may contain several cloth stories",
+        "the-museum-label-has-a-missing-person / Begin with an actual gap"
+      ]
+    },
+    "https://www.ginetex.net/GB/labelling/care-symbols.asp": {
+      "words": 83,
+      "uses": [
+        "read-the-care-label-as-a-sequence / Give each sign its job"
+      ]
+    },
+    "https://www.ginetex.net/labelling/": {
+      "words": 73,
+      "uses": [
+        "read-the-care-label-as-a-sequence / The fibre label answers another question"
+      ]
+    },
+    "https://www.vam.ac.uk/articles/indian-embroidery": {
+      "words": 129,
+      "uses": [
+        "five-minutes-with-one-piece-of-cloth / Minute one: stay with the whole",
+        "five-minutes-with-one-piece-of-cloth / Minute four: let the record enter"
+      ]
+    }
+  }
+}

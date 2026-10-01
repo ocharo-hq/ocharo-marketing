@@ -12,7 +12,7 @@ import {
   SelectPickerValue,
 } from '@wow-two-beta/ui-vue/presentation/forms';
 import SelectPickerTrigger from './compatibility/PickerTrigger.vue';
-import Button from './compatibility/ActionButton.vue';
+import { Button } from '@wow-two-beta/ui-vue/presentation/actions';
 import StatusIndicator from './StatusIndicator.vue';
 import { useMarketingWorkspace } from '../../application/marketing';
 import { MarketingExtensions, type SourceAnalysisModel } from '../../domain/marketing';

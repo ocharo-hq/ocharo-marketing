@@ -5,7 +5,7 @@ import { ArrowRight, BookOpen, Download } from 'lucide-vue-next';
 
 import { downloadBlob } from '@wow-two-beta/ui-vue/foundation/files';
 import { Icon } from '@wow-two-beta/ui-vue/foundation/icons';
-import Button from './compatibility/ActionButton.vue';
+import { Button } from '@wow-two-beta/ui-vue/presentation/actions';
 import {
   SelectPicker,
   SelectPickerContent,

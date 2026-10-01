@@ -1,0 +1,39 @@
+<Project Sdk="Microsoft.NET.Sdk.Web">
+
+  <ItemGroup>
+    <!-- Kit: mediator (ISender), Result/DomainError, web/problem-details. -->
+    <PackageReference Include="WoW2.Sdk.Backend.Beta" />
+    <PackageReference Include="Microsoft.AspNetCore.OpenApi" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <!-- Journal seed (topics + stories); images are read from Blog:SeedAssetRoot at first boot. -->
+    <Content Update="SeedData/**" CopyToOutputDirectory="PreserveNewest" CopyToPublishDirectory="PreserveNewest" />
+    <Content Include="SeedData/EditorialAssets/*" CopyToOutputDirectory="PreserveNewest" CopyToPublishDirectory="PreserveNewest" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\OcharoBlog.Application\OcharoBlog.Application.csproj" />
+    <ProjectReference Include="..\OcharoBlog.Infrastructure\OcharoBlog.Infrastructure.csproj" />
+    <ProjectReference Include="..\OcharoBlog.Persistence\OcharoBlog.Persistence.csproj" />
+    <ProjectReference Include="..\OcharoBlog.Domain\OcharoBlog.Domain.csproj" />
+  </ItemGroup>
+
+  <PropertyGroup>
+    <SpaRoot>$(MSBuildProjectDirectory)/../../ocharo-marketing.frontend-services/</SpaRoot>
+  </PropertyGroup>
+  <Target Name="BuildSpa" BeforeTargets="PrepareForBuild;ResolveProjectStaticWebAssets"
+          Condition="'$(BuildSpa)' != 'false' and '$(DesignTimeBuild)' != 'true' and '$(NoBuild)' != 'true'">
+    <ItemGroup>
+      <_SpaPreviousContent Include="@(Content)" Condition="$([System.String]::Copy('%(Content.Identity)').Replace('\', '/').StartsWith('wwwroot/studio/'))" />
+      <Content Remove="@(_SpaPreviousContent)" />
+      <_SpaPreviousContent Remove="@(_SpaPreviousContent)" />
+    </ItemGroup>
+    <Exec Command="pnpm install --frozen-lockfile" WorkingDirectory="$(SpaRoot)" />
+    <Exec Command="pnpm build:editorial" WorkingDirectory="$(SpaRoot)" EnvironmentVariables="APP_VERSION=$(FrontendAppVersion)" />
+    <Exec Command="node scripts/deploy-editorial.mjs" WorkingDirectory="$(SpaRoot)" />
+    <ItemGroup>
+      <Content Include="wwwroot/studio/**/*" CopyToOutputDirectory="PreserveNewest" CopyToPublishDirectory="PreserveNewest" />
+    </ItemGroup>
+  </Target>
+</Project>

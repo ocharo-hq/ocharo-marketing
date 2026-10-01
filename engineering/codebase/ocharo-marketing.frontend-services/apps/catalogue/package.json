@@ -1,0 +1,10 @@
+{
+  "name": "@ocharomarketing/catalogue",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "build": "python3 ../../scripts/build-public.py catalogue",
+    "preview": "python3 -u -m http.server 8775 --bind 127.0.0.1 --directory dist"
+  }
+}

@@ -7,9 +7,9 @@ public sealed class LocalPilotBoundaryMiddleware(RequestDelegate next)
 {
     private static readonly HashSet<string> TrustedDevelopmentOrigins = new(StringComparer.OrdinalIgnoreCase)
     {
-        "http://localhost:8242", "https://localhost:8242",
-        "http://127.0.0.1:8242", "https://127.0.0.1:8242",
-        "http://[::1]:8242", "https://[::1]:8242"
+        "http://localhost:8358", "https://localhost:8358",
+        "http://127.0.0.1:8358", "https://127.0.0.1:8358",
+        "http://[::1]:8358", "https://[::1]:8358"
     };
 
     /// <summary>Rejects non-local requests and cross-origin state changes before application work.</summary>

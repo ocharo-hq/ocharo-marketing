@@ -32,8 +32,12 @@ public static class DependencyInjection
         services.AddScoped<IAssetService, LocalAssetService>();
         services.AddSingleton(TimeProvider.System);
         services.AddScoped<MarketingService>();
+        services.AddScoped<OcharoMarketing.Application.Inquiries.InquiryService>();
+        services.AddHttpClient<OcharoMarketing.Application.Inquiries.IPublishedProductVerifier, OcharoMarketing.Infrastructure.Inquiries.PublishedProductVerifier>(client => client.Timeout = TimeSpan.FromSeconds(5));
         services.AddScoped<Automation.AutomationService>();
         services.AddScoped<Automation.AutomationRunner>();
+        services.AddScoped<OperationsService>();
+        services.AddSingleton<WorkerHealthService>();
         services.AddHttpClient<Automation.CatalogueSyncService>(client => client.Timeout = TimeSpan.FromSeconds(60));
         services.AddHttpClient<Automation.BlogStoryService>(client => client.Timeout = TimeSpan.FromSeconds(15));
         services.AddScoped<DeliveryPolicy>();

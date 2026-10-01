@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import Button from './compatibility/ActionButton.vue';
+import { Button } from '@wow-two-beta/ui-vue/presentation/actions';
 import { useMarketingWorkspace } from '../../application/marketing';
 /** Gives an explicit destination for unknown routes. */
 defineOptions({ name: 'NotFoundPage' });

@@ -1,0 +1,25 @@
+# Build output
+**/bin/
+**/obj/
+**/dist/
+**/.vite/
+node_modules/
+
+# Local runtime data (SQLite, blobs, backups) + secrets
+**/App_Data/
+*.db
+*.db-shm
+*.db-wal
+**/appsettings.Local.json
+.env
+
+# SPA build copied into the .NET host by `pnpm run deploy` (regenerable)
+**/wwwroot/*
+!**/wwwroot/.gitkeep
+
+# IDE / OS
+.idea/
+.vs/
+.vscode/*
+.DS_Store
+*.tsbuildinfo

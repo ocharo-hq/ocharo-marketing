@@ -14,25 +14,22 @@
 
 # ---- Stage 1: build the Vue workspace ----
 FROM node:24.11.0-alpine AS spa
+ARG APP_VERSION=0.0.0
+ENV APP_VERSION=$APP_VERSION
 WORKDIR /spa
 RUN corepack enable && corepack prepare pnpm@10.33.2 --activate
-COPY ocharo-marketing.frontend-services/package.json ocharo-marketing.frontend-services/pnpm-workspace.yaml ocharo-marketing.frontend-services/pnpm-lock.yaml ./
-COPY ocharo-marketing.frontend-services/apps/web/package.json ./apps/web/
+COPY ocharo-marketing.frontend-services/ ./
 RUN pnpm install --frozen-lockfile
-# Copy authored inputs explicitly; host node_modules and generated output stay out.
-COPY ocharo-marketing.frontend-services/apps/web/index.html ocharo-marketing.frontend-services/apps/web/vite.config.ts ocharo-marketing.frontend-services/apps/web/vitest.config.ts ocharo-marketing.frontend-services/apps/web/tsconfig*.json ./apps/web/
-COPY ocharo-marketing.frontend-services/apps/web/src/ ./apps/web/src/
-COPY ocharo-marketing.frontend-services/apps/web/scripts/ ./apps/web/scripts/
-COPY ocharo-marketing.frontend-services/apps/web/tests/ ./apps/web/tests/
-RUN pnpm build
+RUN pnpm --filter @ocharomarketing/web build
 
 # ---- Stage 2: publish the .NET API (no Node here; the SPA arrives from stage 1) ----
 FROM mcr.microsoft.com/dotnet/sdk:10.0 AS build
+ARG APP_VERSION=0.0.0
 WORKDIR /src
 COPY ocharo-marketing.backend-services/ ./
 # the built SPA lands in wwwroot so `dotnet publish` bundles it into the output.
 COPY --from=spa /spa/apps/web/dist ./OcharoMarketing.Api/wwwroot
-RUN dotnet publish OcharoMarketing.Api/OcharoMarketing.Api.csproj -c Release -o /app -p:BuildSpa=false
+RUN dotnet publish OcharoMarketing.Api/OcharoMarketing.Api.csproj -c Release -o /app -p:BuildSpa=false -p:Version=${APP_VERSION}
 
 # ---- Stage 3: runtime ----
 FROM mcr.microsoft.com/dotnet/aspnet:10.0 AS final

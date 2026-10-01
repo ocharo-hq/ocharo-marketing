@@ -11,7 +11,7 @@ import {
   ModalDescription,
   ModalFooter,
 } from '@wow-two-beta/ui-vue/presentation/overlays';
-import Button from './compatibility/ActionButton.vue';
+import { Button } from '@wow-two-beta/ui-vue/presentation/actions';
 import StatusIndicator from './StatusIndicator.vue';
 import { useMarketingWorkspace, useSnapshotConfirmation } from '../../application/marketing';
 import {

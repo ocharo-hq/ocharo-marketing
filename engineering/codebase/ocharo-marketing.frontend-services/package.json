@@ -1,7 +1,7 @@
 {
   "name": "ocharomarketing-frontend",
   "private": true,
-  "version": "0.1.0",
+  "version": "0.0.0",
   "type": "module",
   "description": "Private frontend workspace for OcharoMarketing.",
   "packageManager": "pnpm@10.33.2",
@@ -18,6 +18,18 @@
     "format": "pnpm --filter @ocharomarketing/web format",
     "format:check": "pnpm --filter @ocharomarketing/web format:check",
     "lint": "pnpm --filter @ocharomarketing/web lint",
-    "deploy": "pnpm build && node scripts/deploy.mjs"
+    "deploy": "pnpm build && node scripts/deploy.mjs",
+    "build:blog": "pnpm --filter @ocharomarketing/blog build",
+    "preview:blog": "pnpm --filter @ocharomarketing/blog preview",
+    "dev:editorial": "pnpm --filter @ocharomarketing/editorial dev",
+    "build:editorial": "pnpm --filter @ocharomarketing/editorial build",
+    "test:editorial": "pnpm --filter @ocharomarketing/editorial test",
+    "deploy:editorial": "pnpm build:editorial && node scripts/deploy-editorial.mjs",
+    "build:atlas": "pnpm --filter @ocharomarketing/atlas build",
+    "preview:atlas": "pnpm --filter @ocharomarketing/atlas preview",
+    "build:wear": "pnpm --filter @ocharomarketing/wear build",
+    "preview:wear": "pnpm --filter @ocharomarketing/wear preview",
+    "build:catalogue": "pnpm --filter @ocharomarketing/catalogue build",
+    "preview:catalogue": "pnpm --filter @ocharomarketing/catalogue preview"
   }
 }

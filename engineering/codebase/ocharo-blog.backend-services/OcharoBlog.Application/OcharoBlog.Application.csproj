@@ -1,0 +1,24 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <ItemGroup>
+    <!-- Kit: mediator (IRequest/IRequestHandler), Result/DomainError. -->
+    <PackageReference Include="WoW2.Sdk.Backend.Beta" />
+    <PackageReference Include="Microsoft.Extensions.DependencyInjection.Abstractions" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\OcharoBlog.Domain\OcharoBlog.Domain.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <EmbeddedResource Include="Blog/Site/Theme/site.css" LogicalName="OcharoBlog.Site.css" />
+    <EmbeddedResource Include="Blog/Site/Theme/publications.css" LogicalName="OcharoPublications.Site.css" />
+    <EmbeddedResource Include="Blog/Site/Theme/publications.js" LogicalName="OcharoPublications.Site.js" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <!-- Let the test project reach internal handlers for direct unit tests. -->
+    <InternalsVisibleTo Include="OcharoBlog.Tests" />
+  </ItemGroup>
+
+</Project>

@@ -5,7 +5,7 @@ import { computed, ref } from 'vue';
 import { ArrowUpRight, FileSearch, ImagePlus, Search, Upload } from 'lucide-vue-next';
 
 import { Icon } from '@wow-two-beta/ui-vue/foundation/icons';
-import Button from './compatibility/ActionButton.vue';
+import { Button } from '@wow-two-beta/ui-vue/presentation/actions';
 import {
   SelectPicker,
   SelectPickerContent,

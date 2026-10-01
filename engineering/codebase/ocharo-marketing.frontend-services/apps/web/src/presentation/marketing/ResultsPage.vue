@@ -2,11 +2,12 @@
 import { computed } from 'vue';
 import { ArrowUpRight, BarChart3, Link2 } from 'lucide-vue-next';
 import { Icon } from '@wow-two-beta/ui-vue/foundation/icons';
-import Button from './compatibility/ActionButton.vue';
+import { Button } from '@wow-two-beta/ui-vue/presentation/actions';
 import { useMarketingWorkspace } from '../../application/marketing';
 import { MarketingExtensions } from '../../domain/marketing';
 import StatusIndicator from './StatusIndicator.vue';
 import ObservedMetricsPanel from './ObservedMetricsPanel.vue';
+import ManualEngagementPanel from './ManualEngagementPanel.vue';
 
 /** Presents observations only when actual channel evidence exists. */
 defineOptions({ name: 'ResultsPage' });
@@ -48,6 +49,7 @@ function metricName(name: string) {
         ><Icon :icon="Link2" :size="16" class="mr-2" />Kanallar</Button
       >
     </div>
+    <ManualEngagementPanel />
     <div v-if="workspace?.metrics.length && !published.length" class="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
       <article
         v-for="metric in workspace.metrics"

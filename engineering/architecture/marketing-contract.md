@@ -1,6 +1,6 @@
 # Marketing implementation contract
 
-*Last updated: 2026-09-27*
+*Last updated: 2026-09-29*
 
 ## Scope
 
@@ -61,6 +61,7 @@ interface Draft {
 interface CardRecipe {
   title: string; subtitle: string; fabricAssetId: string | null;
   scale: number; offsetX: number; offsetY: number;
+  boundMediaIds?: string[]; // Only generated outputs explicitly tied to this recipe.
 }
 interface Schedule {
   id: string; draftId: string; draftRevision: number;
@@ -124,7 +125,7 @@ Card request: `{ productId, presetId, title, subtitle?, locale, fabricAssetId?, 
 
 ## Runtime and extraction
 
-First pilot is explicitly loopback-only. Validate origin for mutations; remote hosting requires authentication, secret persistence, secure callback routing, and deployment review. Ports: API HTTPS 8276, HTTP 8277, Vue HTTPS 8242. Use Node 24.11.0 on this host and pnpm 10.33.2.
+First pilot is explicitly loopback-only. Validate origin for mutations; remote hosting requires authentication, secret persistence, secure callback routing, and deployment review. Ports: API HTTPS 8276, HTTP 8277, Vue HTTPS 8358. Use Node 24.11.0 on this host and pnpm 10.33.2.
 
 Provider and card contracts contain neutral data, not canonical business entities. Persist job state in SQLite, with a single host worker and atomic claims/completion. Backend uses published SDK surfaces where available; local namespaces retain extractable boundaries. Never publish packages, create remote repositories, send messages/posts, or invoke paid providers during verification.
 
@@ -215,3 +216,31 @@ Source-analysis readiness refresh uses a local GET. The analysis POST always rep
 | POST | `/api/marketing/blog/stories/draft` | `{ link, productId, channels, locale, presetId }` → draft announcing the story; remembered in setting `blog-announced`. |
 
 Slots and rules create drafts and plans only. Queueing for external delivery keeps its explicit confirmation, verified destination and frozen snapshot.
+
+## Channel operations and engagement (2026-09-29)
+
+These authenticated local routes reuse the Marketing audience boundary. They never invoke provider APIs.
+
+| Method | Path | Contract |
+|---|---|---|
+| GET | `/api/marketing/operations` | Channel strategy/cadence, worker health, delivery summary/attention, automation history and manual observations. |
+| GET | `/api/marketing/operations/channels` | Persistent eight-channel strategy map; inactive blank defaults. |
+| PUT | `/api/marketing/operations/channels/{channel}` | Expected strategy revision plus audience, purpose, formats, pillars, owner, HTTPS profile URL, weekly target and review interval. Stale writes return 409. |
+| POST | `/api/marketing/operations/observations` | Caller-generated GUID, channel/post URL, title, optional matching schedule, publication/observation dates, nullable counters and evidence note. Immutable manual-source snapshot; identical replay returns original, changed replay returns 409. |
+
+Existing SQLite Metadata stores revisioned channel records and append-only manual snapshots; no schema migration
+is required. Atomic repository comparisons protect concurrent writes. Provider receipts and schedules remain unchanged.
+The newest 200 observations are exposed with their full stored count; cadence uses the complete history.
+Manual snapshots use channel plus exact post URL identity, never sum cumulative samples, and preserve unknown versus zero.
+Reach-based engagement requires known likes, comments, shares and saves with positive reach.
+
+Cadence distinguishes scheduled intentions, manual publication dates and confirmed receipt timestamps.
+`confirmedReceiptsThisWeek` includes receipts reconciled this week and must not be presented as publication dates.
+Manual and provider totals are separate; linked confirmed schedules are excluded from manual weekly counts.
+Background health is process-local evidence from actual worker loops, never fabricated by GET requests.
+
+`CardRecipe.boundMediaIds` is optional for stored-draft compatibility and must be a subset of selected draft media.
+Only explicitly bound rendered output is invalidated by composition edits; library photos and independently selected
+cards survive edits and reopening. The composer never infers binding from the generic asset role.
+
+See [verified workflow and limits](../planning/marketing-operations-build.md).

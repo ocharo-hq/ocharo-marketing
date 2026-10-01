@@ -35,3 +35,12 @@ export type { PublicationOperationModel } from './models/PublicationOperationMod
 export type { MetricCacheModel } from './models/MetricCacheModel';
 export type { SourceAnalysisModel } from './models/SourceAnalysisModel';
 export { DeliveryExtensions } from './DeliveryExtensions';
+
+export type {
+  ChannelStrategyModel,
+  EngagementInput,
+  EngagementObservationModel,
+  WorkerHealthModel,
+  ChannelSummaryModel,
+  OperationsOverviewModel,
+} from './models/OperationsModels';
