@@ -24,10 +24,10 @@ public sealed partial class PublicationSiteService
     private static string LocalizeCatalogueLinks(string html, string locale) => Regex.Replace(html,
         "(?<attribute>href|action)=\"(?<url>/catalogue/[^\"<>]*)\"", match =>
             match.Groups["attribute"].Value + "=\"" + E(CatalogueLocaleUrl(WebUtility.HtmlDecode(match.Groups["url"].Value), locale)) + "\"");
-    private static string CatalogueLanguageNavigation(Model m) => m.IsStaticExport
+    private static string CatalogueLanguageNavigation(Model m, string path = "/catalogue/") => m.IsStaticExport
         ? $"<div class=\"catalogue-languages\"><span>Catalogue language</span><span lang=\"{m.Locale}\">{E(Language(m.Locale))}</span></div>"
         : "<nav class=\"catalogue-languages\" aria-label=\"Catalogue language\"><span>Catalogue language</span>"
-        + Join((m.AvailableLocales ?? (m.Edition is { } edition ? new[] { edition.Locale } : [])).Where(CatalogueLanguages.Supported).Distinct(StringComparer.Ordinal).Select(locale => $"<a href=\"/catalogue/?locale={locale}\" lang=\"{locale}\"{(locale == m.Locale ? " aria-current=\"true\"" : "")}>{E(Language(locale))}</a>")) + "</nav>";
+        + Join((m.AvailableLocales ?? (m.Edition is { } edition ? new[] { edition.Locale } : [])).Where(CatalogueLanguages.Supported).Distinct(StringComparer.Ordinal).Select(locale => $"<a href=\"{E(path)}?locale={locale}\" lang=\"{locale}\"{(locale == m.Locale ? " aria-current=\"true\"" : "")}>{E(Language(locale))}</a>")) + "</nav>";
 
     private static string Catalogue(Model m, IReadOnlyDictionary<string, string> query)
     {

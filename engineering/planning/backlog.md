@@ -9,6 +9,7 @@
 | Editorial and public apps | implemented; owner review open | [Blog adoption](../architecture/blog-adoption.md) |
 | Marketing operations | implemented; live setup open | [Marketing contract](../architecture/marketing-contract.md) |
 | Catalogue publication | implemented; owner review open | [Catalogue build evidence](../research/previous-work/catalogue-edition-build.md) |
+| Named responsive web catalogues | implemented; owner review pending | [Web catalogue verification](version-track/v0.1/catalogue-web-verification.md) |
 | Operator languages | implementation | [Active version](version-track/v0.1/v0.1.md) |
 
 ## Delivery and research

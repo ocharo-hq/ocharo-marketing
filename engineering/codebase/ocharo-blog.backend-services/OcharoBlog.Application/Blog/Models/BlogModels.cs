@@ -79,9 +79,9 @@ public sealed record CatalogueProduct(string Id, string Name, string GarmentName
     IReadOnlyList<string>? Sizes = null, IReadOnlyList<string>? CollectionIds = null,
     decimal? PriceAmount = null, string? Currency = null, string? ImageAlt = null,
     string? ImageKind = null, string? ImageCredit = null, string? ImageRights = null,
-    IReadOnlyList<CatalogueImage>? Images = null);
+    IReadOnlyList<CatalogueImage>? Images = null, CataloguePricing? Pricing = null);
 
-public sealed record CatalogueImage(string Url, string Alt, string? Kind, string? Credit, string? Rights);
+public sealed record CatalogueImage(string Url, string Alt, string? Kind, string? Credit, string? Rights, string? Sha256 = null);
 
 
 /// <summary>Settings plus revision stamp.</summary>
@@ -89,3 +89,7 @@ public sealed record SettingsEnvelope(SiteSettings Settings, int Revision);
 
 /// <summary>Whether the Brand service currently supplies the site's logo and links (Studio notice).</summary>
 public sealed record BrandStatus(bool Connected, int Release, string? LogoSha256, IReadOnlyList<SiteLink> Links);
+
+/// <summary>Confirmed public pricing only; the projection never supplies unreviewed tiers.</summary>
+public sealed record CataloguePricing(string Currency, IReadOnlyList<CataloguePriceTier> Tiers);
+public sealed record CataloguePriceTier(int MinimumQuantity, int? MaximumQuantity, decimal UnitPrice);

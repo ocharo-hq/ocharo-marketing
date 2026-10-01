@@ -14,7 +14,7 @@ namespace OcharoBlog.Application.Blog.Site;
 public sealed partial class PublicationSiteService(IBlogRepository repository, SiteService blog, ICatalogueFeed catalogue, IMediaStore media, PublicationSiteOptions? options = null)
 {
     private sealed record Model(SiteSettings Settings, IReadOnlyList<ArticleDocument> Documents, IReadOnlyList<CatalogueProduct> Products,
-        Func<string, string> Media, bool Preview, CatalogueEdition? Edition, string Locale, bool IsStaticExport = false, string? CatalogueAdminUrl = null, IReadOnlyList<string>? AvailableLocales = null);
+        Func<string, string> Media, bool Preview, CatalogueEdition? Edition, string Locale, bool IsStaticExport = false, string? CatalogueAdminUrl = null, IReadOnlyList<string>? AvailableLocales = null, IReadOnlyList<CatalogueCollection>? Catalogues = null);
     private static string E(string? value) => WebUtility.HtmlEncode(value ?? "");
     public static string Token(string text) => string.Concat(text.Trim().ToLowerInvariant().Select(c => char.IsLetterOrDigit(c) ? c : '-')).Trim('-');
     private static string Join(IEnumerable<string> parts) => string.Concat(parts);
@@ -32,7 +32,7 @@ public sealed partial class PublicationSiteService(IBlogRepository repository, S
             .OrderByDescending(d => d.PublishedAt).ThenBy(d => d.Title, StringComparer.Ordinal).ToList();
         var settings = (await blog.ModelAsync(mediaUrl ?? LiveMedia, ct)).Settings;
         var snapshot = await catalogue.GetCatalogueAsync(ct, locale);
-        return new Model(settings, documents, snapshot.Products, mediaUrl ?? LiveMedia, preview, snapshot.Edition, locale, CatalogueAdminUrl: SafeAdminUrl(options?.CatalogueAdminUrl), AvailableLocales: snapshot.AvailableLocales);
+        return new Model(settings, documents, snapshot.Products, mediaUrl ?? LiveMedia, preview, snapshot.Edition, locale, CatalogueAdminUrl: SafeAdminUrl(options?.CatalogueAdminUrl), AvailableLocales: snapshot.AvailableLocales, Catalogues: VisibleCatalogues(snapshot, locale));
     }
     private static string? SafeAdminUrl(string? value)
     {
@@ -83,10 +83,14 @@ public sealed partial class PublicationSiteService(IBlogRepository repository, S
             ["wear", "guides"] => StoryIndex(m, "wear"),
             ["wear", "guides", var slug] => m.Documents.FirstOrDefault(d => d.Publication == "wear" && d.Slug == slug) is { } d ? Detail(m, d) : null,
             ["wear", "occasions", var occasion] => WearHome(m, new Dictionary<string, string> { ["occasions"] = occasion }),
-            ["catalogue"] => Catalogue(m, q),
-            ["catalogue", "editions", var editionId] when m.Edition?.Id == editionId => Edition(m, m.Edition),
-            ["catalogue", "editions", var editionId, "pages", var pageId] when m.Edition?.Id == editionId =>
-                m.Edition.Pages.FirstOrDefault(p => p.Id == pageId) is { } page ? EditionPage(m, m.Edition, page) : null,
+            ["catalogue"] => m.Catalogues is { Count: > 0 } ? CatalogueGallery(m, q) : Catalogue(m, q),
+            ["catalogue", "collections", var slug] => m.Catalogues?.FirstOrDefault(c => c.Slug == slug) is { } collection ? WebCatalogue(m, collection) : null,
+            ["catalogue", "collections", var slug, "pages", var pageId] =>
+                m.Catalogues?.FirstOrDefault(c => c.Slug == slug) is { Web: not null } collection
+                    && collection.Web.Pages.FirstOrDefault(page => page.Id == pageId) is { } webPage ? WebCatalogue(m, collection, webPage) : null,
+            ["catalogue", "editions", var editionId] => FindEdition(m, editionId) is { } edition ? Edition(m, edition) : null,
+            ["catalogue", "editions", var editionId, "pages", var pageId] => FindEdition(m, editionId) is { } edition
+                && edition.Pages.FirstOrDefault(p => p.Id == pageId) is { } page ? EditionPage(m, edition, page) : null,
             ["catalogue", "pieces", var slug] => m.Products.FirstOrDefault(p => (p.Slug ?? p.Id) == Uri.UnescapeDataString(slug)) is { } product ? Product(m, product) : null,
             _ => null,
         };
@@ -102,11 +106,11 @@ public sealed partial class PublicationSiteService(IBlogRepository repository, S
         {
             "atlas" => "<a href=\"/atlas/gallery/\">Textile gallery</a><a href=\"/atlas/stories/\">Stories</a><a href=\"/atlas/about/\">About the atlas</a>",
             "wear" => "<a href=\"/wear/guides/\">All guides</a><a href=\"/wear/#occasions\">Find your occasion</a>",
-            _ => "<a href=\"/catalogue/#pieces\">The pieces</a>" + (m.Edition is {} edition ? $"<a href=\"{EditionPath(edition)}\">The catalogue</a>" : "") + "<a href=\"/wear/\">Ways to wear</a>",
+            _ => "<a href=\"/catalogue/#catalogues\">Catalogues</a><a href=\"/catalogue/#pieces\">The pieces</a>" + (m.Edition is {} edition ? $"<a href=\"{EditionPath(edition)}\">The catalogue</a>" : "") + "<a href=\"/wear/\">Ways to wear</a>",
         };
         return $"<!doctype html><html lang=\"en\" data-content-locale=\"{(app == "catalogue" ? m.Locale : "en")}\"><head><meta charset=\"utf-8\"><meta name=\"viewport\" content=\"width=device-width,initial-scale=1\"><title>{E(title)} — {Title(app)}</title><meta name=\"description\" content=\"{E(description)}\">{robots}{canonical}<meta property=\"og:title\" content=\"{E(title)}\"><meta property=\"og:description\" content=\"{E(description)}\"><link rel=\"stylesheet\" href=\"/{app}/site.css\"><script src=\"/{app}/site.js\" defer></script></head><body class=\"publication {app}\"><a class=\"skip\" href=\"#main\">Skip to content</a>" +
             (m.Preview ? "<div class=\"preview-notice\" role=\"status\">Editorial preview · includes unpublished drafts · not a public edition</div>" : "") +
-            $"<header class=\"mast\"><a class=\"wordmark\" href=\"/{app}/\">{Title(app)}<span>by Ocharo</span>{BuildVersion.Badge}</a><nav aria-label=\"Main navigation\">{nav}</nav><a class=\"parent-link\" href=\"/\">Ocharo Blog ↗</a></header>" + (app == "catalogue" ? CatalogueLanguageNavigation(m) : "");
+            $"<header class=\"mast\"><a class=\"wordmark\" href=\"/{app}/\">{Title(app)}<span>by Ocharo</span>{BuildVersion.Badge}</a><nav aria-label=\"Main navigation\">{nav}</nav><a class=\"parent-link\" href=\"/\">Ocharo Blog ↗</a></header>" + (app == "catalogue" ? CatalogueLanguageNavigation(m, path.StartsWith("/catalogue/collections/", StringComparison.Ordinal) ? path.Split("/pages/", 2)[0].Split('?')[0].TrimEnd('/') + "/" : "/catalogue/") : "");
     }
     private static string End(Model m, string app)
     {
@@ -192,9 +196,10 @@ public sealed partial class PublicationSiteService(IBlogRepository repository, S
         if(publication=="catalogue")
         {
             foreach(var p in model.Products)paths.Add(ProductPath(p));
-            if (model.Edition is {} edition)
+            var copied = new Dictionary<string, CatalogueEdition>(StringComparer.Ordinal);
+            foreach (var edition in Editions(model))
             {
-                // Explicit exports freeze exact released files. Live pages always re-read the active public release.
+                // Freeze each exact released PDF once, including named catalogue versions.
                 async Task<string> Copy(string url, string file)
                 {
                     var name = $"catalogue/files/{edition.Id}/{file}";
@@ -210,10 +215,21 @@ public sealed partial class PublicationSiteService(IBlogRepository repository, S
                     var pagePdf = await Copy(page.PdfUrl, page.Id + ".pdf");
                     pages.Add(page with { ImageUrl = png, PngUrl = png, PdfUrl = pagePdf });
                 }
-                model = model with { Edition = edition with { PdfUrl = pdf, Pages = pages } };
+                copied[edition.Id] = edition with { PdfUrl = pdf, Pages = pages };
                 paths.Add(EditionPath(edition));
                 foreach (var page in edition.Pages) paths.Add(EditionPagePath(edition, page));
             }
+            model = model with
+            {
+                Edition = model.Edition is { } legacy ? copied[legacy.Id] : null,
+                Catalogues = model.Catalogues?.Select(item => item with { Pdf = item.Pdf is { } pdf ? copied[pdf.Id] : null }).ToList()
+            };
+            foreach (var collection in model.Catalogues ?? [])
+            {
+                paths.Add(CollectionPath(collection));
+                foreach (var page in collection.Web?.Pages ?? []) paths.Add(CollectionPagePath(collection, page));
+            }
+
         }
         using var output=new MemoryStream();using(var zip=new ZipArchive(output,ZipArchiveMode.Create,true))
         {
@@ -221,7 +237,7 @@ public sealed partial class PublicationSiteService(IBlogRepository repository, S
             foreach(var path in paths){var html=Render(model,path,new Dictionary<string,string>());if(html is not null)Text(path.TrimStart('/')+"index.html",html);}
             Text("index.html",Render(model,$"/{publication}/",new Dictionary<string,string>())!);Text($"{publication}/site.css",Css);Text($"{publication}/site.js",Script);
             Text("robots.txt",model.Settings.NoIndex?"User-agent: *\nDisallow: /\n":"User-agent: *\nAllow: /\n");
-            Text("publication.json",System.Text.Json.JsonSerializer.Serialize(new{schemaVersion=1,publication,locale=model.Locale,generatedAt=DateTimeOffset.UtcNow,pages=paths.Count,noIndex=model.Settings.NoIndex,catalogueEditionId=publication=="catalogue"?model.Edition?.Id:null}));
+            Text("publication.json",System.Text.Json.JsonSerializer.Serialize(new{schemaVersion=1,publication,locale=model.Locale,generatedAt=DateTimeOffset.UtcNow,pages=paths.Count,noIndex=model.Settings.NoIndex,catalogueEditionId=publication=="catalogue"?model.Edition?.Id:null,catalogueSlugs=publication=="catalogue"?model.Catalogues?.Select(item=>item.Slug).ToArray():null}));
             foreach(var file in editionFiles){await using var entry=zip.CreateEntry(file.Key,CompressionLevel.NoCompression).Open();await entry.WriteAsync(file.Value,ct);}
             foreach(var sha in used){var opened=await media.OpenAsync(sha,true,ct);if(opened is null)continue;await using var input=opened.Value.Content;await using var entry=zip.CreateEntry($"media/{sha}.webp",CompressionLevel.NoCompression).Open();await input.CopyToAsync(entry,ct);}
         }

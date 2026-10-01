@@ -1,5 +1,5 @@
 """Build one standalone app from its authenticated, revisioned published export."""
-import hashlib, html, io, json, os, re, shutil, ssl, sys, urllib.request, zipfile
+import hashlib, html, io, json, os, re, shutil, ssl, sys, urllib.request, urllib.parse, zipfile
 from pathlib import Path
 version=os.environ.get('APP_VERSION','dev')
 if version=='0.0.0': version='dev'
@@ -7,11 +7,13 @@ app=sys.argv[1]
 if app not in ('atlas','wear','blog','catalogue'): raise SystemExit('Unknown publication')
 root=Path(__file__).resolve().parents[1]; target=root/'apps'/app/'dist'
 archive=os.environ.get('OCHARO_EXPORT_ARCHIVE')
+locale=os.environ.get('OCHARO_CATALOGUE_LOCALE') if app=='catalogue' else None
 if archive: data=Path(archive).read_bytes()
 else:
     origin=os.environ.get('OCHARO_EDITORIAL_URL','https://localhost:8280').rstrip('/')
     if not origin.startswith('https://'): raise SystemExit('Use an HTTPS Editorial origin')
     endpoint='/api/blog/export/site.zip' if app=='blog' else '/api/blog/export/'+app+'.zip'
+    if locale: endpoint+='?'+urllib.parse.urlencode({'locale':locale})
     headers={}
     if token:=os.environ.get('OCHARO_EXPORT_TICKET'): headers['X-Ocharo-Integration-Ticket']=token
     context=ssl.create_default_context(cafile=os.environ.get('OCHARO_CA_FILE'))
@@ -20,6 +22,7 @@ else:
     except Exception as e: raise SystemExit('Published export unavailable. Start Editorial and provide a current audience ticket or OCHARO_EXPORT_ARCHIVE. '+str(e))
 with zipfile.ZipFile(io.BytesIO(data)) as bundle:
     if app != 'blog' and ('publication.json' not in bundle.namelist() or json.loads(bundle.read('publication.json')).get('publication') != app): raise SystemExit('Export belongs to another publication')
+    if app=='catalogue' and locale and json.loads(bundle.read('publication.json')).get('locale')!=locale: raise SystemExit('Catalogue export language does not match the requested language')
     if app == 'blog' and ('site.css' not in bundle.namelist() or 'feed.xml' not in bundle.namelist()): raise SystemExit('Choose the Blog published export')
     if 'index.html' not in bundle.namelist(): raise SystemExit('Export has no home page')
     if any(p.startswith('/') or '..' in Path(p).parts for p in bundle.namelist()): raise SystemExit('Unsafe export path')
