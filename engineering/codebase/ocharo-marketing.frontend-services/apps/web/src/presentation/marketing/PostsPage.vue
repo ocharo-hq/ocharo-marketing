@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import { useUiLocale } from '@ocharomarketing/connect/UseUiLocale';
 import { computed, ref } from 'vue';
 import { ArrowUpRight, Plus, Search } from 'lucide-vue-next';
 
@@ -9,6 +10,7 @@ import { TextInput } from '@wow-two-beta/ui-vue/presentation/forms';
 import { useMarketingWorkspace } from '../../application/marketing';
 import { MarketingExtensions } from '../../domain/marketing';
 import StatusIndicator from './StatusIndicator.vue';
+const { t: ui, formatDate } = useUiLocale();
 
 /** Lists saved post revisions with their actual review status. */
 defineOptions({ name: 'PostsPage' });
@@ -32,13 +34,15 @@ const posts = computed(() =>
   <div class="space-y-6">
     <div class="flex items-center justify-between gap-4">
       <div>
-        <p class="text-xs uppercase tracking-widest text-primary">Kontent kutubxonasi</p>
-        <h1 class="mt-2 font-editorial text-3xl">Postlar</h1>
+        <p class="text-xs uppercase tracking-widest text-primary">{{ ui('Content library') }}</p>
+        <h1 class="mt-2 font-editorial text-3xl">{{ ui('Posts') }}</h1>
         <p class="mt-3 text-sm text-muted-foreground">
-          Har bir matn, tanlangan tasvir va tekshirilgan variant bir joyda.
+          {{ ui('Every caption, selected image and reviewed variant in one place.') }}
         </p>
       </div>
-      <Button @click="desk.navigate('/posts/new')"><Icon :icon="Plus" :size="17" class="mr-2" />Yangi post</Button>
+      <Button @click="desk.navigate('/posts/new')"
+        ><Icon :icon="Plus" :size="17" class="mr-2" />{{ ui('New post') }}</Button
+      >
     </div>
     <div class="flex flex-wrap items-center justify-between gap-4">
       <div class="flex gap-1 rounded-lg bg-muted p-1">
@@ -55,14 +59,14 @@ const posts = computed(() =>
           ]"
           @click="filter = item.id"
         >
-          {{ item.label }}
+          {{ ui(item.label) }}
         </button>
       </div>
       <div class="flex w-full max-w-64 items-center gap-2">
         <Icon :icon="Search" :size="17" class="text-muted-foreground" /><TextInput
           v-model="search"
-          placeholder="Postni topish…"
-          aria-label="Postni topish"
+          :placeholder="ui('Find a post…')"
+          :aria-label="ui('Find a post')"
         />
       </div>
     </div>
@@ -70,15 +74,17 @@ const posts = computed(() =>
       v-if="!posts.length"
       class="flex min-h-80 flex-col items-center justify-center rounded-2xl border border-dashed border-border bg-card p-8 text-center"
     >
-      <h2 class="font-editorial text-2xl">{{ search ? 'Mos post topilmadi' : 'Bir mahsulot. Bir yangi post.' }}</h2>
+      <h2 class="font-editorial text-2xl">
+        {{ search ? ui('No matching post found') : ui('One product. One new post.') }}
+      </h2>
       <p class="mt-3 max-w-sm text-sm leading-7 text-muted-foreground">
         {{
           search
-            ? 'Boshqa nomni sinab ko‘ring yoki filtrni o‘zgartiring.'
-            : 'Mavjud mahsulot rasmini tanlang va birinchi postingizni saqlang.'
+            ? ui('Try another name or change the filter.')
+            : ui('Choose an existing product image and save your first post.')
         }}
       </p>
-      <Button v-if="!search" class="mt-6" @click="desk.navigate('/posts/new')">Post yaratish</Button>
+      <Button v-if="!search" class="mt-6" @click="desk.navigate('/posts/new')">{{ ui('Create post') }}</Button>
     </section>
     <div v-else class="grid gap-5 sm:grid-cols-2 xl:grid-cols-3">
       <button
@@ -111,10 +117,10 @@ const posts = computed(() =>
           </div>
           <h2 class="text-base font-semibold">{{ post.title }}</h2>
           <p class="mt-2 line-clamp-2 text-xs leading-6 text-muted-foreground">
-            {{ post.caption || 'Matn kiritilmagan' }}
+            {{ post.caption || ui('No text entered') }}
           </p>
           <p class="mt-4 text-xs text-muted-foreground">
-            {{ MarketingExtensions.formatDate(post.updatedAt) }} · {{ post.revision }}-variant
+            {{ formatDate(post.updatedAt) }} · {{ post.revision }}{{ ui(' variant') }}
           </p>
         </div>
       </button>

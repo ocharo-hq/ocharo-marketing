@@ -1,8 +1,11 @@
 <script setup lang="ts">
+import { useUiLocale } from '@ocharomarketing/connect/UseUiLocale';
 import { computed, onBeforeUnmount, onMounted, ref } from 'vue';
 import { integrationFetch } from '@ocharomarketing/connect';
 import { Button } from '@wow-two-beta/ui-vue/presentation/actions';
 import OperationsUnsavedGuard from './OperationsUnsavedGuard.vue';
+const { t: ui, formatWhen } = useUiLocale();
+
 interface Inquiry {
   id: string;
   name: string;
@@ -69,7 +72,7 @@ function editable(item: Inquiry): EditableInquiry {
 const changed = (item: EditableInquiry) => JSON.stringify(item) !== JSON.stringify(baseline.value[item.id]);
 const dirty = computed(() => items.value.some(changed));
 const locked = computed(() => busy.value || saving.value !== null || activityBusy.value !== null);
-const formatTime = (value: string) => new Date(value).toLocaleString();
+const formatTime = (value: string) => formatWhen(value);
 const due = (item: Inquiry) =>
   item.status !== 'closed' &&
   item.followUpAt !== null &&
@@ -182,73 +185,79 @@ onBeforeUnmount(() => {
 <template>
   <section class="space-y-5">
     <header>
-      <p class="text-xs uppercase tracking-widest text-muted-foreground">Ocharo enquiries</p>
-      <h1 class="font-editorial text-4xl mt-2">Conversations to continue</h1>
+      <p class="text-xs uppercase tracking-widest text-muted-foreground">{{ ui('Ocharo enquiries') }}</p>
+      <h1 class="font-editorial text-4xl mt-2">{{ ui('Conversations to continue') }}</h1>
       <p class="mt-3 text-muted-foreground">
-        Assign the next conversation, record its outcome, and keep a follow-up date.
+        {{ ui('Assign the next conversation, record its outcome, and keep a follow-up date.') }}
       </p>
     </header>
     <form class="flex flex-wrap items-end gap-3 rounded-2xl border border-border bg-card p-4" @submit.prevent="load(0)">
       <fieldset :disabled="locked || dirty" class="contents">
         <label class="block w-full min-w-0 basis-full text-xs font-semibold sm:w-auto sm:flex-1 sm:basis-auto"
-          >Search enquiries
+          >{{ ui('Search enquiries') }}
           <input
             v-model="search"
             type="search"
             maxlength="200"
             class="mt-2 block min-h-11 w-full rounded-xl border border-border bg-background px-3 text-sm"
-            placeholder="Name, contact, piece, owner or note"
+            :placeholder="ui('Name, contact, piece, owner or note')"
           />
         </label>
         <label class="block text-xs font-semibold"
-          >Status
+          >{{ ui('Status') }}
           <select
             v-model="filter"
-            aria-label="Enquiry status"
+            :aria-label="ui('Enquiry status')"
             class="mt-2 block min-h-11 rounded-xl border border-border bg-background px-3 text-sm"
           >
-            <option value="">All statuses</option>
-            <option>new</option>
-            <option>contacted</option>
-            <option>qualified</option>
-            <option>closed</option>
+            <option value="">{{ ui('All statuses') }}</option>
+            <option>{{ ui('new') }}</option>
+            <option>{{ ui('contacted') }}</option>
+            <option>{{ ui('qualified') }}</option>
+            <option>{{ ui('closed') }}</option>
           </select>
         </label>
         <label class="block text-xs font-semibold"
-          >Follow-up
+          >{{ ui('Follow-up') }}
           <select
             v-model="followUp"
-            aria-label="Follow-up filter"
+            :aria-label="ui('Follow-up filter')"
             class="mt-2 block min-h-11 rounded-xl border border-border bg-background px-3 text-sm"
           >
-            <option value="">All follow-ups</option>
-            <option value="due">Due now</option>
-            <option value="scheduled">Scheduled</option>
-            <option value="unassigned">Unassigned</option>
+            <option value="">{{ ui('All follow-ups') }}</option>
+            <option value="due">{{ ui('Due now') }}</option>
+            <option value="scheduled">{{ ui('Scheduled') }}</option>
+            <option value="unassigned">{{ ui('Unassigned') }}</option>
           </select>
         </label>
-        <Button type="submit" :is-disabled="locked || dirty">Apply filters</Button>
-        <Button type="button" variant="outline" :is-disabled="locked || dirty" @click="load(offset)">Refresh</Button>
+        <Button type="submit" :is-disabled="locked || dirty">{{ ui('Apply filters') }}</Button>
+        <Button type="button" variant="outline" :is-disabled="locked || dirty" @click="load(offset)">{{
+          ui('Refresh')
+        }}</Button>
       </fieldset>
     </form>
     <div v-if="dirty" class="rounded-xl border border-border bg-muted p-4 text-sm" role="status">
-      <p>Unsaved changes stay in this view. Save them before searching or changing pages.</p>
-      <Button class="mt-3" variant="outline" :is-disabled="locked" @click="discard">Discard unsaved changes</Button>
+      <p>{{ ui('Unsaved changes stay in this view. Save them before searching or changing pages.') }}</p>
+      <Button class="mt-3" variant="outline" :is-disabled="locked" @click="discard">{{
+        ui('Discard unsaved changes')
+      }}</Button>
     </div>
     <p v-if="error" role="alert" class="rounded-xl bg-destructive-soft p-4 text-sm text-destructive-soft-foreground">
-      {{ error }}
+      {{ ui(error) }}
     </p>
     <p v-if="notice" role="status" class="rounded-xl bg-success-soft p-4 text-sm text-success-soft-foreground">
-      {{ notice }}
+      {{ ui(notice) }}
     </p>
     <div class="flex flex-wrap items-center justify-between gap-3 text-sm">
-      <p aria-live="polite">{{ busy ? 'Loading enquiries…' : `${total} matching enquiries` }}</p>
+      <p aria-live="polite">
+        {{ busy ? ui('Loading enquiries…') : ui('{count} matching enquiries', { count: total }) }}
+      </p>
       <p v-if="observedAt" class="text-xs text-muted-foreground">
-        Due as of {{ formatTime(observedAt) }} · {{ timeZone }}
+        {{ ui('Due as of') }} {{ formatTime(observedAt) }} · {{ timeZone }}
       </p>
     </div>
     <p v-if="!busy && !items.length" class="rounded-2xl border border-border bg-card p-6 text-sm text-muted-foreground">
-      No enquiries in this view.
+      {{ ui('No enquiries in this view.') }}
     </p>
     <article v-for="item in items" :key="item.id" class="min-w-0 rounded-2xl border border-border bg-card p-5 sm:p-6">
       <div class="flex flex-wrap justify-between gap-3">
@@ -258,36 +267,36 @@ onBeforeUnmount(() => {
       <p class="mt-2 break-words font-semibold">{{ item.contactMethod }} · {{ item.contact }}</p>
       <p class="my-4 whitespace-pre-wrap break-words">{{ item.message }}</p>
       <p class="break-words text-xs text-muted-foreground">
-        {{ item.sourcePath }} · {{ item.productId ?? 'General enquiry' }} · Reference {{ item.id }}
+        {{ item.sourcePath }} · {{ item.productId ?? ui('General enquiry') }} {{ ui('· Reference') }} {{ item.id }}
       </p>
       <p v-if="due(item)" class="mt-3 text-sm font-semibold text-primary">
-        Follow-up due · {{ formatTime(item.followUpAt!) }}
+        {{ ui('Follow-up due ·') }} {{ formatTime(item.followUpAt!) }}
       </p>
       <form class="mt-5" @submit.prevent="save(item)">
         <fieldset :disabled="locked" class="grid gap-4 sm:grid-cols-2">
           <label class="block min-w-0 text-xs font-semibold"
-            >Status
+            >{{ ui('Status') }}
             <select
               v-model="item.status"
               class="mt-2 block min-h-11 w-full rounded-xl border border-border bg-background px-3 text-sm"
             >
-              <option>new</option>
-              <option>contacted</option>
-              <option>qualified</option>
-              <option>closed</option>
+              <option>{{ ui('new') }}</option>
+              <option>{{ ui('contacted') }}</option>
+              <option>{{ ui('qualified') }}</option>
+              <option>{{ ui('closed') }}</option>
             </select>
           </label>
           <label class="block min-w-0 text-xs font-semibold"
-            >Follow-up owner (name)
+            >{{ ui('Follow-up owner (name)') }}
             <input
               v-model="item.assignedTo"
               maxlength="100"
               class="mt-2 block min-h-11 w-full rounded-xl border border-border bg-background px-3 text-sm"
-              placeholder="Assign a person"
+              :placeholder="ui('Assign a person')"
             />
           </label>
           <label class="block min-w-0 text-xs font-semibold"
-            >Follow-up date · {{ timeZone }}
+            >{{ ui('Follow-up date ·') }} {{ timeZone }}
             <input
               v-model="item.followUpLocal"
               type="datetime-local"
@@ -295,20 +304,22 @@ onBeforeUnmount(() => {
               max="2100-12-31T23:59"
               class="mt-2 block min-h-11 w-full min-w-0 rounded-xl border border-border bg-background px-3 text-sm"
             />
-            <span class="mt-2 block font-normal text-muted-foreground">Optional. Clear this date before closing.</span>
+            <span class="mt-2 block font-normal text-muted-foreground">{{
+              ui('Optional. Clear this date before closing.')
+            }}</span>
           </label>
           <label class="block min-w-0 text-xs font-semibold"
-            >Next step
+            >{{ ui('Next step') }}
             <textarea
               v-model="item.nextStep"
               maxlength="500"
               rows="2"
               class="mt-2 block w-full rounded-xl border border-border bg-background px-3 py-2.5 text-sm"
-              placeholder="What should this person do?"
+              :placeholder="ui('What should this person do?')"
             />
           </label>
           <label class="block min-w-0 text-xs font-semibold sm:col-span-2"
-            >Internal note
+            >{{ ui('Internal note') }}
             <textarea
               v-model="item.note"
               maxlength="3000"
@@ -317,7 +328,7 @@ onBeforeUnmount(() => {
             />
           </label>
           <Button type="submit" class="justify-self-start" :is-disabled="locked || !changed(item)">{{
-            saving === item.id ? 'Saving…' : 'Save update'
+            saving === item.id ? ui('Saving…') : ui('Save update')
           }}</Button>
         </fieldset>
       </form>
@@ -327,23 +338,26 @@ onBeforeUnmount(() => {
           :is-disabled="locked"
           :aria-expanded="activityOpen[item.id] ?? false"
           @click="activityOpen[item.id] ? (activityOpen[item.id] = false) : loadActivity(item)"
-          >{{ activityOpen[item.id] ? 'Hide activity' : 'View activity' }}</Button
+          >{{ activityOpen[item.id] ? ui('Hide activity') : ui('View activity') }}</Button
         >
         <div v-if="activityOpen[item.id]" class="mt-4 space-y-3">
-          <p v-if="activityBusy === item.id" role="status" class="text-sm">Loading activity…</p>
+          <p v-if="activityBusy === item.id" role="status" class="text-sm">{{ ui('Loading activity…') }}</p>
           <p v-else-if="!activity[item.id]?.items.length" class="text-sm text-muted-foreground">
-            No recorded changes yet. Earlier notes remain on the enquiry.
+            {{ ui('No recorded changes yet. Earlier notes remain on the enquiry.') }}
           </p>
           <ol class="space-y-3">
             <li v-for="entry in activity[item.id]?.items" :key="entry.revision" class="rounded-xl bg-muted p-4 text-sm">
               <p class="break-words font-semibold">
-                Revision {{ entry.revision }} · {{ entry.status }} · {{ formatTime(entry.recordedAt) }}
+                {{ ui('Revision') }} {{ entry.revision }} · {{ ui(entry.status) }} · {{ formatTime(entry.recordedAt) }}
               </p>
               <p class="mt-1 break-words text-xs text-muted-foreground">
-                Recorded by {{ entry.actor }} · Owner: {{ entry.assignedTo || 'Unassigned' }}
+                {{ ui('Recorded by') }} {{ entry.actor }} {{ ui('· Owner:') }}
+                {{ entry.assignedTo || ui('Unassigned') }}
               </p>
-              <p v-if="entry.followUpAt" class="mt-2">Follow-up: {{ formatTime(entry.followUpAt) }}</p>
-              <p v-if="entry.nextStep" class="mt-2 whitespace-pre-wrap break-words">Next: {{ entry.nextStep }}</p>
+              <p v-if="entry.followUpAt" class="mt-2">{{ ui('Follow-up:') }} {{ formatTime(entry.followUpAt) }}</p>
+              <p v-if="entry.nextStep" class="mt-2 whitespace-pre-wrap break-words">
+                {{ ui('Next:') }} {{ entry.nextStep }}
+              </p>
               <p v-if="entry.note" class="mt-2 whitespace-pre-wrap break-words">{{ entry.note }}</p>
             </li>
           </ol>
@@ -352,30 +366,30 @@ onBeforeUnmount(() => {
             variant="outline"
             :is-disabled="locked"
             @click="loadActivity(item, true)"
-            >Earlier activity</Button
+            >{{ ui('Earlier activity') }}</Button
           >
         </div>
       </div>
     </article>
     <nav
       v-if="total > pageSize || offset > 0"
-      aria-label="Enquiry pages"
+      :aria-label="ui('Enquiry pages')"
       class="flex flex-wrap items-center justify-between gap-3"
     >
       <Button
         variant="outline"
         :is-disabled="locked || dirty || offset === 0"
         @click="load(Math.max(0, offset - pageSize))"
-        >Previous</Button
+        >{{ ui('Previous') }}</Button
       >
       <p class="text-sm">
-        {{ Math.min(offset + 1, total) }}–{{ Math.min(offset + items.length, total) }} of {{ total }}
+        {{ Math.min(offset + 1, total) }}–{{ Math.min(offset + items.length, total) }} {{ ui('of') }} {{ total }}
       </p>
       <Button
         variant="outline"
         :is-disabled="locked || dirty || offset + items.length >= total"
         @click="load(offset + pageSize)"
-        >Next</Button
+        >{{ ui('Next') }}</Button
       >
     </nav>
     <OperationsUnsavedGuard :dirty="dirty || saving !== null" />

@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import { useUiLocale } from '@ocharomarketing/connect/UseUiLocale';
 import SelectPickerTrigger from './compatibility/PickerTrigger.vue';
 import { computed, ref } from 'vue';
 import { ArrowRight, BookOpen, Download } from 'lucide-vue-next';
@@ -16,6 +17,7 @@ import {
 import { useMarketingWorkspace } from '../../application/marketing';
 import { MarketingExtensions, type AssetModel } from '../../domain/marketing';
 import CardPreview from './CardPreview.vue';
+const { t: ui } = useUiLocale();
 
 /** Compares the exact card presets and exports selected completed artwork as a journal. */
 defineOptions({ name: 'AtlasPage' });
@@ -61,17 +63,17 @@ async function exportAtlas() {
   <div class="space-y-7">
     <div class="flex flex-wrap items-start justify-between gap-5">
       <div>
-        <p class="text-xs uppercase tracking-widest text-primary">Ko‘rinishlar atlasi</p>
-        <h1 class="mt-2 font-editorial text-3xl">Bir mahsulot, turli ifoda.</h1>
+        <p class="text-xs uppercase tracking-widest text-primary">{{ ui('Visual atlas') }}</p>
+        <h1 class="mt-2 font-editorial text-3xl">{{ ui('One product, different expressions.') }}</h1>
         <p class="mt-3 max-w-xl text-sm leading-7 text-muted-foreground">
-          Shablonni shu yerda taqqoslang. Kundalik post uchun tanlangan variantni qo‘llang.
+          {{ ui('Compare templates here. Apply the chosen variant to an everyday post.') }}
         </p>
       </div>
       <div class="w-full max-w-56">
         <SelectPicker
           v-model="productId"
           :options="workspace?.products.map((item) => ({ itemKey: item.id, value: item.id, label: item.name }))"
-          ><SelectPickerTrigger aria-label="Atlas mahsuloti"><SelectPickerValue /></SelectPickerTrigger
+          ><SelectPickerTrigger :aria-label="ui('Atlas product')"><SelectPickerValue /></SelectPickerTrigger
           ><SelectPickerContent
             ><SelectPickerItem
               v-for="item in workspace?.products"
@@ -90,7 +92,7 @@ async function exportAtlas() {
         <div class="mb-4 flex items-center justify-between">
           <span class="text-xs font-semibold tracking-wider text-primary">{{ preset.family }}</span
           ><span class="rounded-full bg-muted px-2 py-1 text-xs text-muted-foreground">{{
-            preset.requiresFabric ? 'Mato fotosi kerak' : 'Old ko‘rinish'
+            preset.requiresFabric ? ui('Fabric photo required') : ui('Front view')
           }}</span>
         </div>
         <CardPreview
@@ -100,38 +102,38 @@ async function exportAtlas() {
         />
         <div v-else class="flex aspect-[4/5] flex-col items-center justify-center rounded-xl bg-muted p-6 text-center">
           <Icon :icon="BookOpen" :size="30" class="mb-5 text-primary" />
-          <p class="font-editorial text-2xl">Yarim mato + mahsulot</p>
+          <p class="font-editorial text-2xl">{{ ui('Half fabric + product') }}</p>
           <p class="mt-4 text-xs leading-6 text-muted-foreground">
-            Mos mato fotosini yuklab, mahsulotni ustiga joylashtiring.
+            {{ ui('Upload a matching fabric photo and place the product over it.') }}
           </p>
           <div class="mt-6 h-1 w-28 rounded-full bg-primary-soft"><div class="h-1 w-14 rounded-full bg-primary" /></div>
         </div>
-        <h2 class="mt-5 font-editorial text-xl">{{ MarketingExtensions.presetName(preset.id, preset.name) }}</h2>
+        <h2 class="mt-5 font-editorial text-xl">{{ ui(MarketingExtensions.presetName(preset.id, preset.name)) }}</h2>
         <p class="mt-2 min-h-12 text-xs leading-6 text-muted-foreground">
-          {{ MarketingExtensions.presetDescription(preset.id, preset.description) }}
+          {{ ui(MarketingExtensions.presetDescription(preset.id, preset.description)) }}
         </p>
         <Button
           variant="outline"
           :is-full-width="true"
           class="mt-4"
           @click="desk.navigate(`/posts/new?product=${productId}&preset=${preset.id}`)"
-          >Postda qo‘llash <Icon :icon="ArrowRight" :size="15" class="ml-2"
+          >{{ ui('Apply to post') }} <Icon :icon="ArrowRight" :size="15" class="ml-2"
         /></Button>
       </article>
     </div>
     <section class="rounded-2xl border border-border bg-card p-6">
       <div class="flex flex-wrap items-center justify-between gap-4">
         <div>
-          <h2 class="font-editorial text-2xl">Tayyor kartalardan jurnal</h2>
+          <h2 class="font-editorial text-2xl">{{ ui('Journal from prepared cards') }}</h2>
           <p class="mt-2 text-xs leading-6 text-muted-foreground">
-            PDF postlarning aynan tanlangan PNG tasvirlarini ishlatadi. Izohlar kartadan tashqarida qoladi.
+            {{ ui('The PDF uses the exact selected PNG images. Captions stay outside the cards.') }}
           </p>
         </div>
         <Button
           :is-disabled="!selected.length || desk.busy.value !== null"
           :is-loading="desk.busy.value === 'atlas'"
           @click="exportAtlas"
-          ><Icon :icon="Download" :size="16" class="mr-2" />Atlas PDF</Button
+          ><Icon :icon="Download" :size="16" class="mr-2" />{{ ui('Atlas PDF') }}</Button
         >
       </div>
       <div v-if="outputs.length" class="mt-6 grid grid-cols-2 gap-4 md:grid-cols-4">
@@ -146,13 +148,17 @@ async function exportAtlas() {
           @click="toggle(asset.id)"
         >
           <img :src="asset.url" :alt="outputLabel(asset)" class="aspect-[4/5] w-full rounded-lg object-contain" />
-          <p class="mt-2 truncate text-xs">{{ outputLabel(asset) }}</p>
+          <p class="mt-2 truncate text-xs">{{ ui(outputLabel(asset)) }}</p>
         </button>
       </div>
       <div v-else class="mt-6 rounded-xl border border-dashed border-border p-8 text-center">
-        <p class="text-sm font-semibold">Avval karta tasvirini tayyorlang</p>
-        <p class="mt-2 text-xs text-muted-foreground">Post yaratishda tayyorlangan kartalar shu yerda paydo bo‘ladi.</p>
-        <Button class="mt-4" variant="ghost" size="sm" @click="desk.navigate('/posts/new')">Karta tayyorlash</Button>
+        <p class="text-sm font-semibold">{{ ui('Prepare the card image first') }}</p>
+        <p class="mt-2 text-xs text-muted-foreground">
+          {{ ui('Cards prepared in the post composer will appear here.') }}
+        </p>
+        <Button class="mt-4" variant="ghost" size="sm" @click="desk.navigate('/posts/new')">{{
+          ui('Prepare card')
+        }}</Button>
       </div>
     </section>
     <section class="grid gap-4 md:grid-cols-4">
@@ -166,9 +172,9 @@ async function exportAtlas() {
         :key="family.id"
         class="rounded-xl border border-dashed border-border p-5"
       >
-        <span class="text-xs font-semibold text-muted-foreground">{{ family.id }} · Izlanish</span>
-        <h3 class="mt-3 text-sm font-semibold">{{ family.name }}</h3>
-        <p class="mt-2 text-xs leading-6 text-muted-foreground">{{ family.note }}</p>
+        <span class="text-xs font-semibold text-muted-foreground">{{ family.id }} {{ ui('· Research') }}</span>
+        <h3 class="mt-3 text-sm font-semibold">{{ ui(family.name) }}</h3>
+        <p class="mt-2 text-xs leading-6 text-muted-foreground">{{ ui(family.note) }}</p>
       </div>
     </section>
   </div>

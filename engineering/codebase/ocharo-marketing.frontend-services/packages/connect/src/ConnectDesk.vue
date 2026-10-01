@@ -1,10 +1,13 @@
 <script setup lang="ts">
+import { useUiLocale } from "./UseUiLocale";
 import { onMounted, onUnmounted } from "vue";
 import {
   integrationSession as session,
   integrationError as error,
   refreshIntegration,
 } from "./session";
+const { t: ui } = useUiLocale();
+
 const props = defineProps<{ platformUrl: string }>();
 let timer: ReturnType<typeof setInterval> | undefined;
 onMounted(() => {
@@ -18,7 +21,7 @@ onUnmounted(() => {
 </script>
 <template>
   <section
-    aria-label="Platform connection"
+    :aria-label="ui('Platform connection')"
     class="connect-desk"
     :class="{ disconnected: !session?.active }"
   >
@@ -26,32 +29,39 @@ onUnmounted(() => {
       <strong>{{
         session?.active
           ? session.mode === "local"
-            ? "Local workspace"
-            : "Platform connected"
-          : "Connect this desk"
+            ? ui("Local workspace")
+            : ui("Platform connected")
+          : ui("Connect this desk")
       }}</strong>
-      <p v-if="error" role="alert">{{ error }}</p>
+      <p v-if="error" role="alert">{{ ui(error) }}</p>
       <p v-else-if="session && !session.configured">
-        This instance needs its Platform URL and organization binding.
+        {{
+          ui("This instance needs its Platform URL and organization binding.")
+        }}
       </p>
       <p v-else-if="!session?.active">
-        Open Connected apps in Platform, choose this desk, then return here.
-        Unsaved edits stay open.
+        {{
+          ui(
+            "Open Connected apps in Platform, choose this desk, then return here. Unsaved edits stay open.",
+          )
+        }}
       </p>
       <p v-else>
         {{
           session.canApprove
-            ? "Editing and approval access"
+            ? ui("Editing and approval access")
             : session.canEdit
-              ? "Editing access"
-              : "Read access"
+              ? ui("Editing access")
+              : ui("Read access")
         }}
       </p>
     </div>
-    <a :href="props.platformUrl" target="_blank" rel="noopener noreferrer"
-      >Open Platform ↗</a
-    >
-    <button type="button" @click="refreshIntegration">Check connection</button>
+    <a :href="props.platformUrl" target="_blank" rel="noopener noreferrer">{{
+      ui("Open Platform ↗")
+    }}</a>
+    <button type="button" @click="refreshIntegration">
+      {{ ui("Check connection") }}
+    </button>
   </section>
 </template>
 <style scoped>

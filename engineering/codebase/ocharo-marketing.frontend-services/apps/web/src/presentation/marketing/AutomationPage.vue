@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import { useUiLocale } from '@ocharomarketing/connect/UseUiLocale';
 import { computed, onMounted, ref, watch } from 'vue';
 import { BookOpen, CalendarClock, Plus, RefreshCw, Sparkles, Trash2, Zap } from 'lucide-vue-next';
 import { Icon } from '@wow-two-beta/ui-vue/foundation/icons';
@@ -11,7 +12,7 @@ import type {
   CatalogueSyncReportModel,
   SlotFillReportModel,
 } from '../../domain/marketing';
-import { MarketingExtensions } from '../../domain/marketing';
+const { t: ui, formatDate } = useUiLocale();
 
 /** Catalogue sync, bulk post creation, posting rhythm and blog-story posts in one place. */
 defineOptions({ name: 'AutomationPage' });
@@ -75,7 +76,7 @@ function localTime(value: string) {
   const weekday = new Intl.DateTimeFormat('en-GB', { timeZone: 'Asia/Tashkent', weekday: 'short' }).format(
     new Date(value),
   );
-  return `${shortWeekdays[weekday] ?? ''} ${MarketingExtensions.formatDate(value, { hour: '2-digit', minute: '2-digit' })}`.trim();
+  return `${ui(shortWeekdays[weekday] ?? '')} ${formatDate(value, { hour: '2-digit', minute: '2-digit' })}`.trim();
 }
 function price(value: number | null | undefined) {
   return value === null || value === undefined
@@ -177,26 +178,31 @@ onMounted(async () => {
 <template>
   <div class="space-y-6">
     <div>
-      <p class="text-xs uppercase tracking-widest text-primary">Avtomatika</p>
-      <h1 class="mt-2 font-editorial text-3xl">Postlar oqimi</h1>
+      <p class="text-xs uppercase tracking-widest text-primary">{{ ui('Automation') }}</p>
+      <h1 class="mt-2 font-editorial text-3xl">{{ ui('Post flow') }}</h1>
       <p class="mt-3 max-w-3xl text-sm text-muted-foreground">
-        Katalogdan mahsulotlarni oling, bir bosishda post qoralamalarini yarating va tasdiqlanganlarini haftalik
-        jadvalga joylang. Jadval faqat reja tuzadi: tarmoqqa yuborish uchun tasdiqlangan hisob va alohida navbat
-        tasdig‘i kerak.
+        {{
+          ui(
+            'Import catalogue products, create post drafts in one click and place approved posts into weekly slots. Scheduling creates a plan only; delivery needs a verified account and separate queue authorization.',
+          )
+        }}
       </p>
     </div>
 
     <section v-if="settings" class="rounded-2xl border border-border bg-card p-6" aria-labelledby="unattended-heading">
       <h2 id="unattended-heading" class="flex items-center gap-2 font-editorial text-2xl">
-        <Icon :icon="Zap" :size="18" />Avtomatik rejim
+        <Icon :icon="Zap" :size="18" />{{ ui('Automatic mode') }}
       </h2>
       <p class="mt-1 text-sm text-muted-foreground">
-        Server har 5 daqiqada tekshiradi. Katalogni yangilaydi va tasdiqlangan postlarni bo‘sh vaqtlarga rejalashtiradi
-        — hech narsani o‘zi yubormaydi.
+        {{
+          ui(
+            'The server checks every 5 minutes. It refreshes the catalogue and schedules approved posts into available slots; it does not send anything automatically.',
+          )
+        }}
       </p>
       <div class="mt-4 flex flex-wrap items-end gap-4 text-sm">
         <label class="block text-xs font-semibold"
-          >Katalogni har necha soatda yangilash (0 — o‘chiq)
+          >{{ ui('Catalogue refresh interval in hours (0 — off)') }}
           <input
             v-model.number="settings.autoSyncHours"
             type="number"
@@ -206,7 +212,7 @@ onMounted(async () => {
           />
         </label>
         <label class="block text-xs font-semibold"
-          >Necha kun oldinga rejalashtirish (0 — o‘chiq)
+          >{{ ui('Days to schedule ahead (0 — off)') }}
           <input
             v-model.number="settings.autoFillDays"
             type="number"
@@ -215,13 +221,15 @@ onMounted(async () => {
             class="mt-1 block w-28 rounded-lg border border-border bg-background px-3 py-2 text-sm"
           />
         </label>
-        <Button size="sm" :is-disabled="desk.busy.value !== null" @click="saveSettings">Saqlash</Button>
+        <Button size="sm" :is-disabled="desk.busy.value !== null" @click="saveSettings">{{ ui('Save') }}</Button>
       </div>
       <p v-if="run" class="mt-3 text-xs text-muted-foreground">
-        Oxirgi katalog yangilanishi: {{ run.lastSyncAt ? localTime(run.lastSyncAt) : '—' }} · oxirgi rejalashtirish:
-        {{ run.lastFillAt ? `${localTime(run.lastFillAt)} (${run.lastFillPlanned} ta)` : '—' }}
+        {{ ui('Last catalogue refresh:') }} {{ run.lastSyncAt ? localTime(run.lastSyncAt) : '—' }}
+        {{ ui('· Last scheduling:') }}
+        {{ run.lastFillAt ? `${localTime(run.lastFillAt)} (${run.lastFillPlanned})` : '—' }}
         <span v-if="run.lastError" class="block text-warning"
-          >Oxirgi xato ({{ run.lastErrorAt ? localTime(run.lastErrorAt) : '' }}): {{ run.lastError }}</span
+          >{{ ui('Last error (') }}{{ run.lastErrorAt ? localTime(run.lastErrorAt) : '' }}):
+          {{ ui(run.lastError) }}</span
         >
       </p>
     </section>
@@ -230,25 +238,29 @@ onMounted(async () => {
       <div class="flex flex-wrap items-center justify-between gap-4">
         <div>
           <h2 id="catalogue-heading" class="flex items-center gap-2 font-editorial text-2xl">
-            <Icon :icon="RefreshCw" :size="18" />Ocharo Katalog
+            <Icon :icon="RefreshCw" :size="18" />{{ ui('Ocharo Catalogue') }}
           </h2>
           <p class="mt-1 text-sm text-muted-foreground">
-            {{ products.length }} ta mahsulot ish stolida. Katalogdagi faol mahsulotlar, narxlar va uch tildagi matn shu
-            yerga keladi.
+            {{ products.length }}
+            {{
+              ui(
+                'products in the workspace. Active catalogue products, prices and text in three languages appear here.',
+              )
+            }}
           </p>
         </div>
         <Button :is-disabled="desk.busy.value !== null" @click="sync"
-          ><Icon :icon="RefreshCw" :size="15" class="mr-2" />Katalogdan yangilash</Button
+          ><Icon :icon="RefreshCw" :size="15" class="mr-2" />{{ ui('Refresh from catalogue') }}</Button
         >
       </div>
       <label v-if="settings" class="mt-4 flex items-center gap-2 text-sm">
         <input v-model="settings.draftNewCatalogueProducts" type="checkbox" @change="saveSettings" />
-        Katalogda yangi mahsulot paydo bo‘lsa, avtomatik post qoralamasi yaratilsin
+        {{ ui('Automatically create a post draft when a new product appears in the catalogue') }}
       </label>
       <div v-if="syncReport" class="mt-4 rounded-xl bg-muted p-4 text-sm">
-        {{ syncReport.received }} olindi · {{ syncReport.created }} yangi · {{ syncReport.updated }} yangilandi ·
-        {{ syncReport.imagesStored }} rasm saqlandi
-        <span v-if="syncReport.draftIds.length"> · {{ syncReport.draftIds.length }} qoralama yaratildi</span>
+        {{ syncReport.received }} {{ ui('received ·') }} {{ syncReport.created }} {{ ui('new ·') }}
+        {{ syncReport.updated }} {{ ui('updated ·') }} {{ syncReport.imagesStored }} {{ ui('images saved') }}
+        <span v-if="syncReport.draftIds.length"> · {{ syncReport.draftIds.length }} {{ ui('drafts created') }}</span>
         <ul v-if="syncReport.warnings.length" class="mt-2 list-disc pl-5 text-xs text-muted-foreground">
           <li v-for="w in syncReport.warnings" :key="w">{{ w }}</li>
         </ul>
@@ -257,10 +269,10 @@ onMounted(async () => {
 
     <section class="rounded-2xl border border-border bg-card p-6" aria-labelledby="bulk-heading">
       <h2 id="bulk-heading" class="flex items-center gap-2 font-editorial text-2xl">
-        <Icon :icon="Sparkles" :size="18" />Post yaratish
+        <Icon :icon="Sparkles" :size="18" />{{ ui('Create post') }}
       </h2>
       <p class="mt-1 text-sm text-muted-foreground">
-        Mahsulotlarni tanlang — har biri uchun shablon asosida qoralama yaratiladi (tasdiqlash sizda).
+        {{ ui('Select products to create template-based drafts for each one. You approve them.') }}
       </p>
       <ul class="mt-4 grid grid-cols-[repeat(auto-fill,minmax(130px,1fr))] gap-3">
         <li v-for="p in products" :key="p.id">
@@ -286,18 +298,18 @@ onMounted(async () => {
       <div class="mt-5 grid gap-4 lg:grid-cols-[1fr_1fr_1.4fr]">
         <div class="space-y-3">
           <label class="block text-xs font-semibold"
-            >Til
+            >{{ ui('Language') }}
             <select
               v-model="bulkLocale"
               class="mt-1 w-full rounded-lg border border-border bg-background px-3 py-2 text-sm"
             >
               <option value="uz">O‘zbekcha</option>
-              <option value="ru">Ruscha</option>
-              <option value="en">Inglizcha</option>
+              <option value="ru">{{ ui('Russian') }}</option>
+              <option value="en">{{ ui('English') }}</option>
             </select>
           </label>
           <label class="block text-xs font-semibold"
-            >Kartochka
+            >{{ ui('Card') }}
             <select
               v-model="bulkPreset"
               class="mt-1 w-full rounded-lg border border-border bg-background px-3 py-2 text-sm"
@@ -307,7 +319,7 @@ onMounted(async () => {
           </label>
         </div>
         <fieldset class="space-y-2 text-sm">
-          <legend class="text-xs font-semibold">Kanallar</legend>
+          <legend class="text-xs font-semibold">{{ ui('Channels') }}</legend>
           <label v-for="c in ['instagram', 'telegram', 'x', 'whatsapp']" :key="c" class="flex items-center gap-2">
             <input
               type="checkbox"
@@ -317,16 +329,17 @@ onMounted(async () => {
           </label>
         </fieldset>
         <label class="block text-xs font-semibold"
-          >Matn shabloni
+          >{{ ui('Caption template') }}
           <textarea
             v-model="bulkTemplate"
             rows="7"
             class="mt-1 w-full rounded-lg border border-border bg-background px-3 py-2 font-mono text-xs"
           ></textarea>
-          <span class="mt-1 block font-normal text-muted-foreground"
-            >{name} {fabric} {decoration} {sizes} {price} {wholesale} {brand} — bo‘sh qiymatli qator tushib
-            qoladi.</span
-          >
+          <span class="mt-1 block font-normal text-muted-foreground">{{
+            ui(
+              '{name} {fabric} {decoration} {sizes} {price} {wholesale} {brand} — lines with empty values are omitted.',
+            )
+          }}</span>
         </label>
       </div>
       <div class="mt-4 flex justify-end">
@@ -334,7 +347,7 @@ onMounted(async () => {
           :is-disabled="selected.size === 0 || bulkChannels.length === 0 || desk.busy.value !== null"
           @click="createDrafts"
         >
-          {{ selected.size }} ta qoralama yaratish
+          {{ selected.size }} {{ ui('drafts to create') }}
         </Button>
       </div>
     </section>
@@ -343,15 +356,15 @@ onMounted(async () => {
       <div class="flex flex-wrap items-center justify-between gap-4">
         <div>
           <h2 id="slots-heading" class="flex items-center gap-2 font-editorial text-2xl">
-            <Icon :icon="CalendarClock" :size="18" />Joylash jadvali
+            <Icon :icon="CalendarClock" :size="18" />{{ ui('Publishing schedule') }}
           </h2>
           <p class="mt-1 text-sm text-muted-foreground">
-            Toshkent vaqti. {{ approvedWaiting }} ta tasdiqlangan post rejasiz turibdi.
+            {{ ui('Tashkent time.') }} {{ approvedWaiting }} {{ ui('approved posts have no plan.') }}
           </p>
         </div>
         <div class="flex items-center gap-2">
           <label class="text-xs"
-            >Kun
+            >{{ ui('Day') }}
             <input
               v-model.number="days"
               type="number"
@@ -361,17 +374,17 @@ onMounted(async () => {
             />
           </label>
           <Button :is-disabled="desk.busy.value !== null" @click="fill"
-            ><Icon :icon="Zap" :size="15" class="mr-2" />Bo‘sh vaqtlarga joylash</Button
+            ><Icon :icon="Zap" :size="15" class="mr-2" />{{ ui('Fill available slots') }}</Button
           >
         </div>
       </div>
       <table class="mt-4 w-full text-sm">
         <thead class="text-left text-[11px] uppercase tracking-wider text-muted-foreground">
           <tr>
-            <th class="py-2">Kanal</th>
-            <th>Kunlar</th>
-            <th>Vaqt</th>
-            <th>Faol</th>
+            <th class="py-2">{{ ui('Channel') }}</th>
+            <th>{{ ui('Days') }}</th>
+            <th>{{ ui('Time') }}</th>
+            <th>{{ ui('Active') }}</th>
             <th></th>
           </tr>
         </thead>
@@ -381,7 +394,7 @@ onMounted(async () => {
               <select
                 v-model="slot.channel"
                 class="rounded-lg border border-border bg-background px-2 py-1.5"
-                aria-label="Kanal"
+                :aria-label="ui('Channel')"
               >
                 <option value="telegram">Telegram</option>
                 <option value="instagram">Instagram</option>
@@ -406,7 +419,7 @@ onMounted(async () => {
                       : [...slot.days, d.value]
                   "
                 >
-                  {{ d.label }}
+                  {{ ui(d.label) }}
                 </button>
               </div>
             </td>
@@ -415,14 +428,14 @@ onMounted(async () => {
                 v-model="slot.time"
                 type="time"
                 class="rounded-lg border border-border bg-background px-2 py-1.5"
-                aria-label="Vaqt"
+                :aria-label="ui('Time')"
               />
             </td>
-            <td><input v-model="slot.enabled" type="checkbox" aria-label="Faol" /></td>
+            <td><input v-model="slot.enabled" type="checkbox" :aria-label="ui('Active')" /></td>
             <td class="text-right">
               <button
                 class="rounded p-1 text-muted-foreground hover:text-destructive"
-                aria-label="Slotni o‘chirish"
+                :aria-label="ui('Delete slot')"
                 @click="settings.slots.splice(index, 1)"
               >
                 <Icon :icon="Trash2" :size="14" />
@@ -437,12 +450,14 @@ onMounted(async () => {
           size="sm"
           @click="settings.slots.push({ id: '', channel: 'telegram', days: [1, 3, 5], time: '19:00', enabled: true })"
         >
-          <Icon :icon="Plus" :size="14" class="mr-1" />Slot
+          <Icon :icon="Plus" :size="14" class="mr-1" />{{ ui('Slot') }}
         </Button>
-        <Button size="sm" :is-disabled="desk.busy.value !== null" @click="saveSettings">Jadvalni saqlash</Button>
+        <Button size="sm" :is-disabled="desk.busy.value !== null" @click="saveSettings">{{
+          ui('Save schedule')
+        }}</Button>
       </div>
       <div v-if="fillReport" class="mt-4 rounded-xl bg-muted p-4 text-sm">
-        <p class="font-semibold">{{ fillReport.planned.length }} ta yangi reja</p>
+        <p class="font-semibold">{{ fillReport.planned.length }} {{ ui('new plans') }}</p>
         <ul class="mt-2 space-y-1 text-xs">
           <li v-for="p in fillReport.planned" :key="p.id">
             {{ localTime(p.scheduledAt) }} · {{ channelLabels[p.channel] ?? p.channel }} · {{ p.draftTitle }}
@@ -453,12 +468,12 @@ onMounted(async () => {
         </ul>
       </div>
       <div v-if="upcoming.length" class="mt-4">
-        <p class="text-xs font-semibold uppercase tracking-wider text-muted-foreground">Yaqin rejalar</p>
+        <p class="text-xs font-semibold uppercase tracking-wider text-muted-foreground">{{ ui('Upcoming plans') }}</p>
         <ul class="mt-2 grid gap-2 sm:grid-cols-2 xl:grid-cols-3">
           <li v-for="s in upcoming" :key="s.id" class="rounded-lg border border-border px-3 py-2 text-xs">
             <span class="font-semibold">{{ localTime(s.scheduledAt) }}</span> ·
             {{ channelLabels[s.channel] ?? s.channel }}<br />
-            <span class="text-muted-foreground">{{ s.draftTitle ?? s.draftId }} · {{ s.status }}</span>
+            <span class="text-muted-foreground">{{ s.draftTitle ?? s.draftId }} · {{ ui(s.status) }}</span>
           </li>
         </ul>
       </div>
@@ -468,20 +483,22 @@ onMounted(async () => {
       <div class="flex flex-wrap items-center justify-between gap-4">
         <div>
           <h2 id="blog-heading" class="flex items-center gap-2 font-editorial text-2xl">
-            <Icon :icon="BookOpen" :size="18" />Blog hikoyalari
+            <Icon :icon="BookOpen" :size="18" />{{ ui('Blog stories') }}
           </h2>
           <p class="mt-1 text-sm text-muted-foreground">
-            Ocharo Blogdagi nashr qilingan hikoyani e’lon qiluvchi post qoralamasi.
+            {{ ui('A post draft announcing a published Ocharo Blog story.') }}
           </p>
         </div>
         <div class="flex flex-wrap items-center gap-2 text-sm">
           <select
             v-model="storyProduct"
             class="rounded-lg border border-border bg-background px-2 py-1.5"
-            aria-label="Rasm uchun mahsulot"
+            :aria-label="ui('Product for image')"
           >
-            <option value="">Rasm: birinchi mahsulot</option>
-            <option v-for="p in products" :key="p.id" :value="p.id">Rasm: {{ p.name }} · {{ p.id }}</option>
+            <option value="">{{ ui('Image: first product') }}</option>
+            <option v-for="p in products" :key="p.id" :value="p.id">
+              {{ ui('Image:') }} {{ p.name }} · {{ p.id }}
+            </option>
           </select>
           <label v-for="c in ['telegram', 'instagram', 'x']" :key="c" class="flex items-center gap-1">
             <input
@@ -494,7 +511,7 @@ onMounted(async () => {
         </div>
       </div>
       <p v-if="storiesError" class="mt-4 rounded-xl bg-warning-soft p-4 text-sm text-warning-soft-foreground">
-        {{ storiesError }}
+        {{ ui(storiesError) }}
       </p>
       <ul v-else-if="stories" class="mt-4 divide-y divide-border">
         <li
@@ -508,15 +525,17 @@ onMounted(async () => {
             }}</a>
             <p class="truncate text-xs text-muted-foreground">{{ story.topic }} · {{ story.excerpt }}</p>
           </div>
-          <span v-if="story.draftId" class="rounded-full bg-success-soft px-3 py-1 text-xs text-success-soft-foreground"
-            >Qoralama bor</span
+          <span
+            v-if="story.draftId"
+            class="rounded-full bg-success-soft px-3 py-1 text-xs text-success-soft-foreground"
+            >{{ ui('Draft exists') }}</span
           >
           <Button
             v-else
             size="sm"
             :is-disabled="storyChannels.length === 0 || desk.busy.value !== null || !products.length"
             @click="draftStory(story)"
-            >Post qoralamasi</Button
+            >{{ ui('Post draft') }}</Button
           >
         </li>
       </ul>

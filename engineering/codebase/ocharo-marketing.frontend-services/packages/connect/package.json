@@ -6,7 +6,10 @@
   "exports": {
     ".": "./src/session.ts",
     "./ConnectDesk.vue": "./src/ConnectDesk.vue",
-    "./BuildVersion.vue": "./src/BuildVersion.vue"
+    "./BuildVersion.vue": "./src/BuildVersion.vue",
+    "./UseUiLocale": "./src/UseUiLocale.ts",
+    "./UiMessages": "./src/UiMessages.ts",
+    "./LanguagePicker.vue": "./src/LanguagePicker.vue"
   },
   "dependencies": {
     "vue": "^3.5.13"

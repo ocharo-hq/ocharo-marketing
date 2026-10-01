@@ -1,3 +1,4 @@
+import { useUiLocale } from '@ocharomarketing/connect/UseUiLocale';
 import { flushPromises, mount } from '@vue/test-utils';
 import { shallowRef, ref } from 'vue';
 import { afterEach, describe, expect, it, vi } from 'vitest';
@@ -68,6 +69,7 @@ function fixture(): WorkspaceModel {
 
 /** Mounts the real composer with explicit application ports. */
 async function render(original?: DraftModel, assetRole = 'front') {
+  useUiLocale().setUiLocale('uz');
   const source = fixture();
   source.assets[0]!.role = assetRole;
   if (original) source.drafts = [original];
@@ -324,5 +326,33 @@ describe('post composer output ownership', () => {
     await wrapper.get('input[aria-label="Qo‘shimcha satr"]').setValue('New line');
     expect(wrapper.find('img[alt="Postga qo‘shilgan tayyor tasvir"]').exists()).toBe(false);
     expect(wrapper.text()).toContain('Saqlanmagan');
+  });
+});
+
+describe('post language independence', () => {
+  it('keeps the authored caption and selected post language when the interface switches', async () => {
+    const original: DraftModel = {
+      id: 'saved',
+      title: 'Title',
+      productId: 'product',
+      presetId: 't02-bone',
+      locale: 'en',
+      caption: 'Save',
+      channels: ['instagram'],
+      mediaIds: ['front'],
+      revision: 1,
+      approvedRevision: null,
+      status: 'draft',
+      createdAt: '2026-09-27T00:00:00Z',
+      updatedAt: '2026-09-27T00:00:00Z',
+    };
+    const { wrapper } = await render(original);
+    useUiLocale().setUiLocale('ru');
+    await flushPromises();
+    expect((wrapper.get('textarea[aria-label="Текст поста"]').element as HTMLTextAreaElement).value).toBe('Save');
+    expect((wrapper.get('input[aria-label="Заголовок поста"]').element as HTMLInputElement).value).toBe('Title');
+    const english = wrapper.findAll('button').find((button) => button.text() === 'EN');
+    expect(english?.classes()).toContain('border-primary');
+    expect(wrapper.text()).toContain('Язык поста');
   });
 });

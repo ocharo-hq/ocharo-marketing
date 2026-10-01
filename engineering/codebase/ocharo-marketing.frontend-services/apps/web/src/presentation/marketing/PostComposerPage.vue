@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import { useUiLocale } from '@ocharomarketing/connect/UseUiLocale';
 import SelectPickerTrigger from './compatibility/PickerTrigger.vue';
 import { computed, reactive, ref, watch } from 'vue';
 import { ArrowLeft, CalendarPlus, Check, Download, RotateCcw, Sparkles } from 'lucide-vue-next';
@@ -32,6 +33,7 @@ import { MarketingExtensions, type DraftModel, type GenerationJobModel } from '.
 import CardPreview from './CardPreview.vue';
 import PostMediaPicker from './PostMediaPicker.vue';
 import StatusIndicator from './StatusIndicator.vue';
+const { t: ui } = useUiLocale();
 
 /** Prepares one bounded card and its separately reviewed caption. */
 defineOptions({ name: 'PostComposerPage' });
@@ -315,16 +317,16 @@ function toggleChannel(channel: string) {
       class="flex flex-wrap items-center justify-between gap-4 rounded-xl border border-primary/20 bg-primary-soft p-4"
     >
       <div>
-        <p class="text-sm font-semibold">Tekshirilgan tasvir tahlili matni</p>
+        <p class="text-sm font-semibold">{{ ui('Reviewed image analysis text') }}</p>
         <p class="mt-2 whitespace-pre-wrap break-words text-xs leading-6">{{ desk.reviewedCopy.value.text }}</p>
         <p class="mt-2 text-[11px] text-muted-foreground">
-          Manba tahlili · {{ desk.reviewedCopy.value.revision }}-talqin. Qo‘shilgach postni alohida saqlang va
-          tekshiring.
+          {{ ui('Source analysis ·') }} {{ desk.reviewedCopy.value.revision
+          }}{{ ui(' revision. Save and review the post separately after adding it.') }}
         </p>
       </div>
       <div class="flex flex-wrap gap-2">
-        <Button size="sm" @click="useReviewedCopy">Post matniga qo‘shish</Button
-        ><Button size="sm" variant="ghost" @click="desk.reviewedCopy.value = null">Yopish</Button>
+        <Button size="sm" @click="useReviewedCopy">{{ ui('Add to post caption') }}</Button
+        ><Button size="sm" variant="ghost" @click="desk.reviewedCopy.value = null">{{ ui('Close') }}</Button>
       </div>
     </div>
 
@@ -334,29 +336,29 @@ function toggleChannel(channel: string) {
           class="mb-3 inline-flex items-center gap-2 text-xs text-muted-foreground"
           @click="desk.navigate('/posts')"
         >
-          <Icon :icon="ArrowLeft" :size="14" />Postlarga qaytish
+          <Icon :icon="ArrowLeft" :size="14" />{{ ui('Back to posts') }}
         </button>
-        <h1 class="font-editorial text-3xl">{{ currentId ? 'Postni tahrirlash' : 'Yangi post' }}</h1>
+        <h1 class="font-editorial text-3xl">{{ currentId ? ui('Edit post') : ui('New post') }}</h1>
       </div>
       <div class="flex items-center gap-3">
         <StatusIndicator v-if="currentId" :status="approved ? 'approved' : 'draft'" /><span
           v-if="dirty"
           class="text-xs text-warning"
-          >Saqlanmagan</span
-        ><Button :is-loading="desk.busy.value === 'save'" :is-disabled="desk.busy.value !== null" @click="save"
-          >Saqlash</Button
-        >
+          >{{ ui('Unsaved') }}</span
+        ><Button :is-loading="desk.busy.value === 'save'" :is-disabled="desk.busy.value !== null" @click="save">{{
+          ui('Save')
+        }}</Button>
       </div>
     </div>
     <div v-if="props.draftId && !original" class="rounded-xl border border-destructive bg-destructive-soft p-6">
-      <h2 class="text-base font-semibold">Post topilmadi</h2>
-      <p class="mt-2 text-sm">Postlar ro‘yxatidan mavjud variantni oching.</p>
+      <h2 class="text-base font-semibold">{{ ui('Post not found') }}</h2>
+      <p class="mt-2 text-sm">{{ ui('Open an existing variant from the post list.') }}</p>
     </div>
     <div v-else class="grid items-start gap-5 xl:grid-cols-[250px_minmax(280px,1fr)_330px]">
       <aside class="space-y-5 rounded-2xl border border-border bg-card p-5">
         <div>
-          <h2 class="text-sm font-semibold">1. Mahsulot</h2>
-          <p class="mt-2 text-xs leading-5 text-muted-foreground">Old ko‘rinishdan boshlang.</p>
+          <h2 class="text-sm font-semibold">{{ ui('1. Product') }}</h2>
+          <p class="mt-2 text-xs leading-5 text-muted-foreground">{{ ui('Start with the front view.') }}</p>
         </div>
         <div class="space-y-2">
           <button
@@ -380,7 +382,7 @@ function toggleChannel(channel: string) {
           </button>
         </div>
         <div class="border-t border-border pt-5">
-          <h2 class="mb-3 text-sm font-semibold">2. Shablon</h2>
+          <h2 class="mb-3 text-sm font-semibold">{{ ui('2. Template') }}</h2>
           <SelectPicker
             v-model="form.presetId"
             :options="
@@ -390,29 +392,29 @@ function toggleChannel(channel: string) {
                 label: MarketingExtensions.presetName(item.id, item.name),
               }))
             "
-            ><SelectPickerTrigger aria-label="Shablon tanlash"
-              ><SelectPickerValue placeholder="Shablon tanlang" /></SelectPickerTrigger
+            ><SelectPickerTrigger :aria-label="ui('Select template')"
+              ><SelectPickerValue :placeholder="ui('Choose a template')" /></SelectPickerTrigger
             ><SelectPickerContent
               ><SelectPickerItem
                 v-for="item in workspace?.presets"
                 :key="item.id"
                 :item-key="item.id"
-                :label="MarketingExtensions.presetName(item.id, item.name)" /></SelectPickerContent
+                :label="ui(MarketingExtensions.presetName(item.id, item.name))" /></SelectPickerContent
           ></SelectPicker>
           <p class="mt-3 text-xs leading-5 text-muted-foreground">
             {{ preset ? MarketingExtensions.presetDescription(preset.id, preset.description) : '' }}
           </p>
           <button class="mt-3 text-xs font-semibold text-primary" @click="desk.navigate('/atlas')">
-            Atlasda taqqoslash →
+            {{ ui('Compare in Atlas →') }}
           </button>
         </div>
         <div v-if="preset?.requiresFabric" class="border-t border-border pt-4">
-          <label class="mb-2 block text-xs font-semibold">Mato fotosi</label
+          <label class="mb-2 block text-xs font-semibold">{{ ui('Fabric photo') }}</label
           ><SelectPicker
             v-model="fabricAssetId"
             :options="fabricAssets.map((asset) => ({ itemKey: asset.id, value: asset.id, label: asset.fileName }))"
-            ><SelectPickerTrigger aria-label="Mos mato fotosi"
-              ><SelectPickerValue placeholder="Mato tanlang" /></SelectPickerTrigger
+            ><SelectPickerTrigger :aria-label="ui('Matching fabric photo')"
+              ><SelectPickerValue :placeholder="ui('Choose fabric')" /></SelectPickerTrigger
             ><SelectPickerContent
               ><SelectPickerItem
                 v-for="asset in fabricAssets"
@@ -421,38 +423,41 @@ function toggleChannel(channel: string) {
                 :label="asset.fileName" /></SelectPickerContent
           ></SelectPicker>
           <p v-if="!fabricAssets.length" class="mt-2 text-xs leading-5 text-warning">
-            Mos mato fotosini Mahsulotlar bo‘limiga yuklang.
+            {{ ui('Upload a matching fabric photo in Products.') }}
           </p>
         </div>
         <details class="border-t border-border pt-4">
-          <summary class="cursor-pointer text-xs font-semibold">Tasvir joylashuvi</summary>
+          <summary class="cursor-pointer text-xs font-semibold">{{ ui('Image placement') }}</summary>
           <p class="mt-3 text-xs leading-5 text-muted-foreground">
-            Masshtab: 75–105%. Siljish karta enining ±12% yoki balandligining ±6% chegarasida; 0.01 = 1%.
+            {{ ui('Scale: 75–105%. Offset: ±12% of card width or ±6% of height; 0.01 = 1%.') }}
           </p>
           <div class="mt-4 space-y-3">
             <label class="block text-xs"
-              >Masshtab<NumberInput
+              >{{ ui('Scale')
+              }}<NumberInput
                 v-model="scale"
                 :min="0.75"
                 :max="1.05"
                 :step="0.01"
-                aria-label="Masshtab"
+                :aria-label="ui('Scale')"
                 class="mt-2" /></label
             ><label class="block text-xs"
-              >Gorizontal siljish<NumberInput
+              >{{ ui('Horizontal offset')
+              }}<NumberInput
                 v-model="offsetX"
                 :min="-0.12"
                 :max="0.12"
                 :step="0.01"
-                aria-label="Gorizontal siljish"
+                :aria-label="ui('Horizontal offset')"
                 class="mt-2" /></label
             ><label class="block text-xs"
-              >Vertikal siljish<NumberInput
+              >{{ ui('Vertical offset')
+              }}<NumberInput
                 v-model="offsetY"
                 :min="-0.06"
                 :max="0.06"
                 :step="0.01"
-                aria-label="Vertikal siljish"
+                :aria-label="ui('Vertical offset')"
                 class="mt-2" /></label
             ><Button
               variant="ghost"
@@ -462,14 +467,14 @@ function toggleChannel(channel: string) {
                 offsetX = 0;
                 offsetY = 0;
               "
-              >Joylashuvni tiklash</Button
+              >{{ ui('Reset placement') }}</Button
             >
           </div>
         </details>
       </aside>
       <section class="rounded-2xl border border-border bg-muted p-5">
         <div class="mb-4 flex items-center justify-between">
-          <h2 class="text-xs font-semibold">Post ko‘rinishi</h2>
+          <h2 class="text-xs font-semibold">{{ ui('Post preview') }}</h2>
           <span class="text-xs text-muted-foreground">1080 × 1350</span>
         </div>
         <div class="mx-auto max-w-90"><CardPreview :composition="composition" /></div>
@@ -478,7 +483,7 @@ function toggleChannel(channel: string) {
             :is-loading="desk.busy.value === 'render'"
             :is-disabled="desk.busy.value !== null || !form.title || (preset?.requiresFabric && !fabricAssetId)"
             @click="render"
-            ><Icon :icon="Sparkles" :size="16" class="mr-2" />Tasvirni tayyorlash</Button
+            ><Icon :icon="Sparkles" :size="16" class="mr-2" />{{ ui('Prepare image') }}</Button
           >
         </div>
         <div v-if="renderJob" class="mt-4 rounded-xl bg-card p-4">
@@ -488,19 +493,21 @@ function toggleChannel(channel: string) {
               size="sm"
               variant="outline"
               @click="useOutput(renderJob)"
-              >Postga qo‘shish</Button
+              >{{ ui('Add to post') }}</Button
             >
           </div>
-          <p v-if="renderJob.message" class="mt-2 text-xs leading-5 text-muted-foreground">{{ renderJob.message }}</p>
+          <p v-if="renderJob.message" class="mt-2 text-xs leading-5 text-muted-foreground">
+            {{ ui(renderJob.message) }}
+          </p>
           <p v-if="renderJob.status === 'completed' && !canUseOutput" class="mt-2 text-xs text-warning">
-            Ko‘rinish o‘zgargan bo‘lsa, tasvirni qayta tayyorlang.
+            {{ ui('Regenerate the image if the appearance changed.') }}
           </p>
         </div>
       </section>
       <aside class="space-y-5 rounded-2xl border border-border bg-card p-5">
-        <h2 class="text-sm font-semibold">3. Matn va tekshirish</h2>
+        <h2 class="text-sm font-semibold">{{ ui('3. Text and review') }}</h2>
         <label class="block text-xs font-semibold"
-          >Post tili
+          >{{ ui('Post language') }}
           <div class="mt-2 flex gap-2">
             <button
               v-for="locale in ['uz', 'ru', 'en']"
@@ -515,50 +522,53 @@ function toggleChannel(channel: string) {
             </button>
           </div></label
         ><label class="block text-xs font-semibold"
-          >Sarlavha<TextInput v-model="form.title" class="mt-2" :maxlength="80" aria-label="Post sarlavhasi" /></label
+          >{{ ui('Title')
+          }}<TextInput v-model="form.title" class="mt-2" :maxlength="80" :aria-label="ui('Post title')" /></label
         ><label class="block text-xs font-semibold"
-          >Qo‘shimcha satr<TextInput
+          >{{ ui('Additional line')
+          }}<TextInput
             v-model="subtitle"
             class="mt-2"
             :maxlength="90"
-            placeholder="Ixtiyoriy"
-            aria-label="Qo‘shimcha satr" /></label
+            :placeholder="ui('Optional')"
+            :aria-label="ui('Additional line')" /></label
         ><label class="block text-xs font-semibold"
-          >Post matni<TextAreaInput
+          >{{ ui('Post caption')
+          }}<TextAreaInput
             v-model="form.caption"
             class="mt-2"
             :rows="7"
-            aria-label="Post matni"
-            placeholder="Mahsulot haqida qisqa va aniq yozing…"
+            :aria-label="ui('Post caption')"
+            :placeholder="ui('Write a concise, accurate product caption…')"
         /></label>
         <div class="flex flex-wrap gap-2">
-          <Button variant="outline" size="sm" @click="useFacts">Faktlardan matn</Button
+          <Button variant="outline" size="sm" @click="useFacts">{{ ui('Text from facts') }}</Button
           ><Button
             variant="ghost"
             size="sm"
             :is-loading="desk.busy.value === 'assist'"
             :is-disabled="desk.busy.value !== null"
             @click="suggestText"
-            >AI taklifi</Button
+            >{{ ui('AI suggestion') }}</Button
           ><Button
             v-if="previousCaption !== null"
             variant="ghost"
             size="sm"
-            aria-label="Oldingi matnni tiklash"
+            :aria-label="ui('Restore previous text')"
             @click="undoCaption"
             ><Icon :icon="RotateCcw" :size="15"
           /></Button>
         </div>
         <div v-if="suggestion" class="rounded-xl border border-primary bg-primary-soft p-4">
-          <p class="mb-2 text-xs font-semibold">Matn taklifi</p>
+          <p class="mb-2 text-xs font-semibold">{{ ui('Text suggestion') }}</p>
           <p class="whitespace-pre-wrap text-xs leading-6">{{ suggestion }}</p>
           <div class="mt-3 flex gap-2">
-            <Button size="sm" @click="applySuggestion">Qo‘llash</Button
-            ><Button size="sm" variant="ghost" @click="suggestion = null">Bekor qilish</Button>
+            <Button size="sm" @click="applySuggestion">{{ ui('Apply') }}</Button
+            ><Button size="sm" variant="ghost" @click="suggestion = null">{{ ui('Cancel') }}</Button>
           </div>
         </div>
         <div>
-          <p class="mb-2 text-xs font-semibold">Kanallar</p>
+          <p class="mb-2 text-xs font-semibold">{{ ui('Channels') }}</p>
           <div class="flex flex-wrap gap-2">
             <button
               v-for="channel in ['instagram', 'telegram', 'whatsapp', 'x']"
@@ -575,16 +585,18 @@ function toggleChannel(channel: string) {
               {{ channel === 'x' ? 'X' : channel }}
             </button>
           </div>
-          <p class="mt-2 text-xs leading-5 text-muted-foreground">Tanlash kanalga ulanganlikni anglatmaydi.</p>
+          <p class="mt-2 text-xs leading-5 text-muted-foreground">
+            {{ ui('Selecting a channel does not connect it.') }}
+          </p>
         </div>
         <div class="border-t border-border pt-4">
-          <p class="text-xs font-semibold">Mahsulot ma’lumotlari</p>
+          <p class="text-xs font-semibold">{{ ui('Product information') }}</p>
           <p class="mt-2 text-xs leading-5 text-muted-foreground">
             {{ product?.material }} · {{ product?.sizes.join(', ') }}
           </p>
           <StatusIndicator class="mt-2" :status="product?.reviewStatus ?? 'pending'" />
           <ul v-if="product?.issues.length" class="mt-3 space-y-1 text-xs leading-5 text-warning">
-            <li v-for="issue in product.issues.slice(0, 3)" :key="issue">{{ issue }}</li>
+            <li v-for="issue in product.issues.slice(0, 3)" :key="issue">{{ ui(issue) }}</li>
           </ul>
         </div>
         <PostMediaPicker
@@ -593,16 +605,16 @@ function toggleChannel(channel: string) {
           :product-asset-ids="product?.assetIds ?? []"
         />
         <div v-if="selectedOutput" class="rounded-xl border border-border p-3">
-          <p class="mb-2 text-xs font-semibold">Postga qo‘shilgan tasvir</p>
+          <p class="mb-2 text-xs font-semibold">{{ ui('Image added to post') }}</p>
           <img
             :src="selectedOutput.url"
             alt="Postga qo‘shilgan tayyor tasvir"
             class="max-h-56 w-full rounded-lg object-contain"
           />
-          <p class="mt-2 text-xs text-muted-foreground">Tekshirish va eksport aynan shu tasvirni ishlatadi.</p>
+          <p class="mt-2 text-xs text-muted-foreground">{{ ui('Review and export use this exact image.') }}</p>
         </div>
         <p v-else class="rounded-lg bg-warning-soft p-3 text-xs leading-5 text-warning">
-          Kutubxonadan tasvir tanlang yoki yangi kartani tayyorlang.
+          {{ ui('Choose a library image or prepare a new card.') }}
         </p>
         <div class="space-y-2 border-t border-border pt-4">
           <Button
@@ -611,14 +623,14 @@ function toggleChannel(channel: string) {
             :is-loading="desk.busy.value === 'approve'"
             @click="approve"
             ><Icon :icon="Check" :size="16" class="mr-2" />{{
-              approved ? 'Shu variant tekshirildi' : 'Tekshirildi deb belgilash'
+              approved ? ui('This variant was reviewed') : ui('Mark as reviewed')
             }}</Button
           >
           <div class="grid grid-cols-2 gap-2">
             <Button variant="outline" :is-disabled="!approved || desk.busy.value !== null" @click="exportPost"
-              ><Icon :icon="Download" :size="15" class="mr-2" />Eksport</Button
+              ><Icon :icon="Download" :size="15" class="mr-2" />{{ ui('Export') }}</Button
             ><Button variant="outline" :is-disabled="!approved || desk.busy.value !== null" @click="scheduleOpen = true"
-              ><Icon :icon="CalendarPlus" :size="15" class="mr-2" />Rejaga</Button
+              ><Icon :icon="CalendarPlus" :size="15" class="mr-2" />{{ ui('To plan') }}</Button
             >
           </div>
         </div>
@@ -633,48 +645,48 @@ function toggleChannel(channel: string) {
       "
       ><ModalContent class="max-w-md"
         ><ModalHeader
-          ><ModalTitle>Saqlanmagan o‘zgarishlar</ModalTitle
-          ><ModalDescription
-            >Matn va tanlangan variantni saqlab qoling yoki sahifadan chiqing.</ModalDescription
-          ></ModalHeader
+          ><ModalTitle>{{ ui('Unsaved changes') }}</ModalTitle
+          ><ModalDescription>{{
+            ui('Save the text and chosen variant, or leave the page.')
+          }}</ModalDescription></ModalHeader
         ><ModalFooter
-          ><Button variant="outline" @click="blocker.reset">Tahrirlashni davom ettirish</Button
-          ><Button @click="blocker.proceed">Saqlamasdan chiqish</Button></ModalFooter
+          ><Button variant="outline" @click="blocker.reset">{{ ui('Continue editing') }}</Button
+          ><Button @click="blocker.proceed">{{ ui('Leave without saving') }}</Button></ModalFooter
         ></ModalContent
       ></Modal
     >
     <Modal v-model:open="scheduleOpen"
       ><ModalContent class="max-w-md"
         ><ModalHeader
-          ><ModalTitle>Postni rejalashtirish</ModalTitle
-          ><ModalDescription
-            >Vaqt Toshkent bo‘yicha. Ulanmagan kanalda post reja sifatida saqlanadi.</ModalDescription
-          ></ModalHeader
+          ><ModalTitle>{{ ui('Schedule post') }}</ModalTitle
+          ><ModalDescription>{{
+            ui('Times use Tashkent. On disconnected channels the post remains a plan.')
+          }}</ModalDescription></ModalHeader
         >
         <div class="my-5 space-y-4">
           <DateTimeInput
             v-model="scheduleTime"
-            placeholder="Sana va vaqtni tanlang"
-            aria-label="Sana va vaqt"
+            :placeholder="ui('Choose a date and time')"
+            :aria-label="ui('Date and time')"
           /><SelectPicker
             v-model="scheduleChannel"
             :options="['instagram', 'telegram', 'whatsapp', 'x'].map((id) => ({ itemKey: id, value: id, label: id }))"
-            ><SelectPickerTrigger aria-label="Rejalashtirish kanali"><SelectPickerValue /></SelectPickerTrigger
+            ><SelectPickerTrigger :aria-label="ui('Scheduling channel')"><SelectPickerValue /></SelectPickerTrigger
             ><SelectPickerContent
               ><SelectPickerItem
                 v-for="channel in ['instagram', 'telegram', 'whatsapp', 'x']"
                 :key="channel"
                 :item-key="channel"
-                :label="channel" /></SelectPickerContent
+                :label="ui(channel)" /></SelectPickerContent
           ></SelectPicker>
         </div>
         <ModalFooter
-          ><Button variant="outline" @click="scheduleOpen = false">Bekor qilish</Button
+          ><Button variant="outline" @click="scheduleOpen = false">{{ ui('Cancel') }}</Button
           ><Button
             :is-loading="desk.busy.value === 'schedule'"
             :is-disabled="!scheduleTime || desk.busy.value !== null"
             @click="schedule"
-            >Rejaga qo‘shish</Button
+            >{{ ui('Add to plan') }}</Button
           ></ModalFooter
         ></ModalContent
       ></Modal

@@ -1,9 +1,11 @@
 <script setup lang="ts">
+import { useUiLocale } from '@ocharomarketing/connect/UseUiLocale';
 import { computed, onScopeDispose, ref, watch } from 'vue';
 import { ImageEditor, type ImageEditRecipe } from '@wow-two-beta/ui-vue/presentation/forms';
 import { ImageEditRecipeExtensions } from '@wow-two-beta/ui-vue/domain/imageEditing';
 import { useMediaEditing } from '../../../application/blog/UseMediaEditing';
 import type { MediaView } from '../../../domain/blog/BlogModels';
+const { t: ui } = useUiLocale();
 
 defineOptions({ name: 'CoverImageEditor' });
 const props = defineProps<{ media: MediaView; alt: string; canEdit: boolean; disabled?: boolean }>();
@@ -70,15 +72,18 @@ async function apply(recipe: ImageEditRecipe): Promise<void> {
 </script>
 
 <template>
-  <section class="image-workbench my-4 rounded-xl border border-border bg-card p-4" aria-label="Cover image editing">
+  <section
+    class="image-workbench my-4 rounded-xl border border-border bg-card p-4"
+    :aria-label="ui('Cover image editing')"
+  >
     <div class="mb-3 flex flex-wrap items-center justify-between gap-2">
-      <h3 class="font-semibold">Edit cover image</h3>
-      <button type="button" class="btn-ghost" @click="emit('close')">Cancel image edits</button>
+      <h3 class="font-semibold">{{ ui('Edit cover image') }}</h3>
+      <button type="button" class="btn-ghost" @click="emit('close')">{{ ui('Cancel image edits') }}</button>
     </div>
     <p class="mb-3 text-sm text-muted-foreground">
-      Apply creates a new image. Captions and credits stay with this draft. Save the story when ready.
+      {{ ui('Apply creates a new image. Captions and credits stay with this draft. Save the story when ready.') }}
     </p>
-    <p v-if="editing.loading.value" role="status">Loading image tools…</p>
+    <p v-if="editing.loading.value" role="status">{{ ui('Loading image tools…') }}</p>
     <img
       v-if="originalUrl"
       :key="originalUrl"
@@ -90,9 +95,9 @@ async function apply(recipe: ImageEditRecipe): Promise<void> {
       @error="failed"
     />
     <p v-if="sourceError || !originalUrl" role="alert">
-      {{ sourceError || 'This image is unavailable. Choose a saved image from the media library.' }}
+      {{ sourceError || ui('This image is unavailable. Choose a saved image from the media library.') }}
     </p>
-    <p v-else-if="!natural" role="status">Loading original image dimensions…</p>
+    <p v-else-if="!natural" role="status">{{ ui('Loading original image dimensions…') }}</p>
     <template v-if="editing.capabilities.value && editing.sourceReady.value">
       <ImageEditor
         :src="source.url"
@@ -102,7 +107,7 @@ async function apply(recipe: ImageEditRecipe): Promise<void> {
         :model-value="editing.recipe.value"
         :preview-src="editing.previewUrl.value || undefined"
         :is-busy="editing.busy.value"
-        :error="editing.error.value || undefined"
+        :error="ui(editing.error.value || undefined)"
         :is-disabled="!canEdit || disabled"
         :can-remove-background="editing.capabilities.value.backgroundRemoval.available"
         :max-dimension="editing.capabilities.value.maximumDimension"
@@ -112,16 +117,16 @@ async function apply(recipe: ImageEditRecipe): Promise<void> {
         @apply="apply"
       />
       <p v-if="editing.recipe.value.output.format === 'jpeg'" class="mt-2 text-xs text-muted-foreground">
-        JPEG fills transparent areas with white. Choose PNG or WebP to keep transparency.
+        {{ ui('JPEG fills transparent areas with white. Choose PNG or WebP to keep transparency.') }}
       </p>
       <p v-if="!editing.capabilities.value.backgroundRemoval.available" class="mt-2 text-xs text-muted-foreground">
-        Automatic background removal is unavailable on this host. Crop, rotation and resizing are available.
+        {{ ui('Automatic background removal is unavailable on this host. Crop, rotation and resizing are available.') }}
       </p>
     </template>
     <template v-else-if="editing.error.value"
-      ><p role="alert" class="text-sm text-destructive">{{ editing.error.value }}</p>
+      ><p role="alert" class="text-sm text-destructive">{{ ui(editing.error.value) }}</p>
       <button type="button" class="btn-outline mt-2" :disabled="editing.loading.value" @click="editing.load">
-        Retry image tools
+        {{ ui('Retry image tools') }}
       </button></template
     >
   </section>

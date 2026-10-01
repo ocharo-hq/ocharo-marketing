@@ -1,6 +1,9 @@
 <script setup lang="ts">
+import { useUiLocale } from "./UseUiLocale";
 import { onScopeDispose, ref } from "vue";
 import { integrationFetch } from "./session";
+const { t: ui } = useUiLocale();
+
 defineOptions({ name: "BuildVersion" });
 defineProps<{ appVersion: string; serviceLabel: string }>();
 const serviceVersion = ref(""),
@@ -44,22 +47,22 @@ onScopeDispose(() => controller?.abort());
   <details class="relative text-xs text-muted-foreground" @toggle="inspect">
     <summary
       class="cursor-pointer list-none rounded px-1 py-0.5 focus-visible:outline"
-      aria-label="About app versions"
-      title="About app versions"
+      :aria-label="ui('About app versions')"
+      :title="ui('About app versions')"
     >
       {{ appVersion }}
     </summary>
     <div
       class="absolute left-0 top-full z-50 mt-2 w-64 rounded-lg border border-border bg-card p-3 text-foreground shadow-lg"
     >
-      <p class="font-semibold">{{ serviceLabel }} versions</p>
-      <p class="mt-2 break-all">App: {{ appVersion }}</p>
-      <p v-if="loading" role="status">Reading service version…</p>
+      <p class="font-semibold">{{ serviceLabel }} {{ ui("versions") }}</p>
+      <p class="mt-2 break-all">{{ ui("App:") }} {{ appVersion }}</p>
+      <p v-if="loading" role="status">{{ ui("Reading service version…") }}</p>
       <p v-else-if="failed">
-        Service version unavailable. Check your connection.
+        {{ ui("Service version unavailable. Check your connection.") }}
       </p>
       <p v-else class="mt-1 break-all">
-        Service: {{ serviceVersion || "Unavailable" }}
+        {{ ui("Service:") }} {{ serviceVersion || ui("Unavailable") }}
       </p>
     </div>
   </details>

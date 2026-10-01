@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import { useUiLocale } from '@ocharomarketing/connect/UseUiLocale';
 import { computed, ref } from 'vue';
 import { Send, ShieldCheck, RefreshCw } from 'lucide-vue-next';
 import { Icon } from '@wow-two-beta/ui-vue/foundation/icons';
@@ -16,12 +17,13 @@ import StatusIndicator from './StatusIndicator.vue';
 import { useMarketingWorkspace, useSnapshotConfirmation } from '../../application/marketing';
 import {
   DeliveryExtensions,
-  MarketingExtensions,
   type ScheduleModel,
   type DraftModel,
   type ConnectionModel,
   type AssetModel,
 } from '../../domain/marketing';
+const { t: ui, formatDate } = useUiLocale();
+
 /** Reviews a future plan, then displays the authoritative frozen delivery record. */
 defineOptions({ name: 'DeliveryPanel' });
 const props = defineProps<{ plan: ScheduleModel }>();
@@ -101,27 +103,31 @@ async function cancel() {
   <div class="mt-4 rounded-xl border border-border bg-muted/30 p-4">
     <template v-if="operation">
       <div class="flex flex-wrap items-center gap-3">
-        <Icon :icon="ShieldCheck" :size="16" class="text-primary" /><span class="text-xs font-semibold"
-          >Saqlangan yuborish talqini</span
+        <Icon :icon="ShieldCheck" :size="16" class="text-primary" /><span class="text-xs font-semibold">{{
+          ui('Saved delivery revision')
+        }}</span
         ><StatusIndicator :status="operation.status" />
       </div>
       <p class="mt-3 text-sm font-semibold">
-        {{ operation.snapshot.draft.title }} · {{ operation.snapshot.draft.revision }}-talqin
+        {{ operation.snapshot.draft.title }} · {{ operation.snapshot.draft.revision }}{{ ui(' revision') }}
       </p>
       <p class="mt-2 break-words text-xs leading-6">
         {{ operation.snapshot.identity.displayName }} · {{ operation.snapshot.identity.provider }}
       </p>
       <p class="break-all text-[11px] text-muted-foreground">
-        Akkaunt: {{ operation.snapshot.identity.accountId }} · Manzil: {{ operation.snapshot.identity.destinationId }} ·
-        {{ operation.snapshot.identity.revision }}-ulanish
+        {{ ui('Account:') }} {{ operation.snapshot.identity.accountId }} {{ ui('· Destination:') }}
+        {{ operation.snapshot.identity.destinationId }} · {{ operation.snapshot.identity.revision
+        }}{{ ui(' connection') }}
       </p>
       <p class="mt-2 text-xs text-muted-foreground">
-        {{ MarketingExtensions.formatDate(operation.dueAt, { hour: '2-digit', minute: '2-digit' }) }} · Toshkent
+        {{ formatDate(operation.dueAt, { hour: '2-digit', minute: '2-digit' }) }} {{ ui('· Tashkent') }}
       </p>
       <details class="mt-3 text-xs">
-        <summary class="cursor-pointer font-semibold text-primary">Aynan yuboriladigan matn va tasvirlar</summary>
+        <summary class="cursor-pointer font-semibold text-primary">
+          {{ ui('The exact text and images to send') }}
+        </summary>
         <p class="mt-3 whitespace-pre-wrap break-words leading-6">
-          {{ operation.snapshot.draft.caption || 'Matn kiritilmagan.' }}
+          {{ operation.snapshot.draft.caption || ui('No text entered.') }}
         </p>
         <div class="mt-3 flex flex-wrap gap-3">
           <div v-for="media in operation.snapshot.media" :key="media.assetId" class="max-w-36">
@@ -132,24 +138,24 @@ async function cancel() {
             />
             <p class="mt-1 break-all text-[10px]">{{ media.fileName }}</p>
             <details class="text-[10px] text-muted-foreground">
-              <summary>Manba izi</summary>
+              <summary>{{ ui('Source provenance') }}</summary>
               <p class="break-all">SHA-256: {{ media.sha256 }}</p>
             </details>
           </div>
         </div>
       </details>
-      <p v-if="operation.message" class="mt-3 text-xs leading-6 text-muted-foreground">{{ operation.message }}</p>
+      <p v-if="operation.message" class="mt-3 text-xs leading-6 text-muted-foreground">{{ ui(operation.message) }}</p>
       <p v-if="operation.receipt" class="mt-3 break-all text-xs">
-        Kanal tasdig‘i: {{ operation.receipt.externalId }} · {{ operation.receipt.stage }}
+        {{ ui('Channel confirmation:') }} {{ operation.receipt.externalId }} · {{ ui(operation.receipt.stage) }}
       </p>
       <p v-if="['unknown', 'held', 'revoked'].includes(operation.status)" class="mt-3 text-xs leading-6 text-warning">
         {{
           operation.status === 'unknown'
-            ? 'Natija noma’lum. Kanal tarixini qo‘lda tekshiring; shu amal qayta yuborilmaydi.'
-            : 'Ushbu niyat qayta yoqilmaydi. Ulanishni tekshirib, yangi reja yarating.'
+            ? ui('Unknown outcome. Check the channel history manually; this operation will not be sent again.')
+            : ui('This request cannot be re-enabled. Check the connection and create a new plan.')
         }}
       </p>
-      <p class="mt-2 text-[11px] leading-6 text-muted-foreground">{{ operation.reconciliationMessage }}</p>
+      <p class="mt-2 text-[11px] leading-6 text-muted-foreground">{{ ui(operation.reconciliationMessage) }}</p>
       <div v-if="operation.canReconcile" class="mt-3">
         <Button
           size="sm"
@@ -157,10 +163,10 @@ async function cancel() {
           :is-disabled="!canReconcile || desk.busy.value !== null"
           :is-loading="desk.busy.value === 'reconcile'"
           @click="reconcile"
-          >Kanal tasdig‘ini tekshirish</Button
+          >{{ ui('Check channel confirmation') }}</Button
         >
         <p class="mt-2 text-[11px] leading-6 text-muted-foreground">
-          Bu X o‘qish so‘rovi kredit sarflashi mumkin. Yangi post yuborilmaydi.
+          {{ ui('This X read request may use credits. No new post will be sent.') }}
         </p>
       </div>
       <Button
@@ -170,24 +176,25 @@ async function cancel() {
         class="mt-3"
         :is-disabled="desk.busy.value !== null"
         @click="cancel"
-        >Navbatni bekor qilish</Button
+        >{{ ui('Cancel queue item') }}</Button
       >
     </template>
     <template v-else>
       <div class="flex items-center gap-2 text-xs font-semibold">
-        <Icon :icon="Send" :size="15" />Avtomatik yuborish
+        <Icon :icon="Send" :size="15" />{{ ui('Automatic delivery') }}
       </div>
       <ul v-if="reasons.length" class="mt-3 space-y-1 text-xs leading-6 text-muted-foreground">
-        <li v-for="reason in reasons" :key="reason">{{ reason }}</li>
+        <li v-for="reason in reasons" :key="reason">{{ ui(reason) }}</li>
       </ul>
       <p v-else class="mt-3 text-xs leading-6 text-muted-foreground">
-        Tekshirilgan post, tasvir va kanal manzilini ko‘rib, alohida tasdiqlang.
+        {{ ui('Review the approved post, image and channel destination, then confirm separately.') }}
       </p>
       <div class="mt-3 flex flex-wrap gap-2">
-        <Button size="sm" :is-disabled="reasons.length > 0 || desk.busy.value !== null" @click="beginReview"
-          >Yuborishni ko‘rib chiqish</Button
+        <Button size="sm" :is-disabled="reasons.length > 0 || desk.busy.value !== null" @click="beginReview">{{
+          ui('Review delivery')
+        }}</Button
         ><Button variant="ghost" size="sm" :is-disabled="desk.busy.value !== null" @click="desk.refresh()"
-          ><Icon :icon="RefreshCw" :size="13" class="mr-1" />Holatni tekshirish</Button
+          ><Icon :icon="RefreshCw" :size="13" class="mr-1" />{{ ui('Check status') }}</Button
         >
       </div>
     </template>
@@ -200,24 +207,25 @@ async function cancel() {
       "
       ><ModalContent class="max-h-[90vh] max-w-xl overflow-y-auto"
         ><ModalHeader
-          ><ModalTitle>Yuborishga ruxsat berish</ModalTitle
-          ><ModalDescription
-            >Bu tasdiq belgilangan vaqtda aynan shu postni shu kanalga yuborishga ruxsat beradi.</ModalDescription
-          ></ModalHeader
+          ><ModalTitle>{{ ui('Authorize delivery') }}</ModalTitle
+          ><ModalDescription>{{
+            ui('This confirmation authorizes this exact post to this channel at the scheduled time.')
+          }}</ModalDescription></ModalHeader
         >
         <div v-if="review" class="my-5 space-y-4">
           <div class="rounded-xl bg-muted p-4">
-            <p class="font-semibold">{{ review.draft.title }} · {{ review.draft.revision }}-talqin</p>
+            <p class="font-semibold">{{ review.draft.title }} · {{ review.draft.revision }}{{ ui(' revision') }}</p>
             <p class="mt-2 text-sm">{{ review.connection.displayName }} · {{ review.connection.name }}</p>
             <p class="mt-1 break-all text-xs text-muted-foreground">
-              Akkaunt: {{ review.connection.accountId }} · Manzil: {{ review.connection.destinationId }}
+              {{ ui('Account:') }} {{ review.connection.accountId }} {{ ui('· Destination:') }}
+              {{ review.connection.destinationId }}
             </p>
             <p class="mt-2 text-xs">
-              {{ MarketingExtensions.formatDate(review.dueAt, { hour: '2-digit', minute: '2-digit' }) }} · Toshkent
+              {{ formatDate(review.dueAt, { hour: '2-digit', minute: '2-digit' }) }} {{ ui('· Tashkent') }}
             </p>
           </div>
           <p class="whitespace-pre-wrap break-words text-sm leading-7">
-            {{ review.draft.caption || 'Matn kiritilmagan.' }}
+            {{ review.draft.caption || ui('No text entered.') }}
           </p>
           <div class="flex flex-wrap gap-3">
             <img
@@ -228,37 +236,41 @@ async function cancel() {
               class="h-44 max-w-40 rounded-lg bg-muted object-contain"
             />
           </div>
-          <p v-if="!review.assets.length" class="text-xs text-muted-foreground">Faqat matn yuboriladi.</p>
+          <p v-if="!review.assets.length" class="text-xs text-muted-foreground">{{ ui('Only text will be sent.') }}</p>
           <p
             v-if="confirmation.invalidated.value"
             class="rounded-lg bg-warning-soft p-3 text-xs leading-6 text-warning"
           >
-            Post, manzil yoki reja o‘zgardi. Yangilangan holatni qayta ko‘rib chiqing.
+            {{ ui('The post, destination or plan changed. Review the updated state.') }}
           </p>
           <label class="flex items-start gap-3 rounded-lg border border-border p-4 text-sm leading-6"
             ><CheckboxInput
               v-model="confirmation.acknowledged.value"
               :disabled="confirmation.invalidated.value || desk.busy.value !== null"
-            /><span
-              >Shu post va tasvirlarni ko‘rsatilgan akkauntga belgilangan vaqtda yuborishga ruxsat beraman.</span
-            ></label
+            /><span>{{
+              ui('I authorize sending this post and its images to the shown account at the scheduled time.')
+            }}</span></label
           >
-          <Button variant="ghost" size="sm" :is-disabled="desk.busy.value !== null" @click="desk.refresh()"
-            >Saqlangan holatni yangilash</Button
-          >
-          <p v-if="desk.error.value" role="alert" class="text-xs leading-6 text-destructive">{{ desk.error.value }}</p>
+          <Button variant="ghost" size="sm" :is-disabled="desk.busy.value !== null" @click="desk.refresh()">{{
+            ui('Refresh saved state')
+          }}</Button>
+          <p v-if="desk.error.value" role="alert" class="text-xs leading-6 text-destructive">
+            {{ ui(desk.error.value) }}
+          </p>
         </div>
         <ModalFooter
-          ><Button variant="outline" :is-disabled="desk.busy.value !== null" @click="confirmation.dismiss"
-            >Hozircha saqlash</Button
-          ><Button v-if="confirmation.invalidated.value" :is-disabled="reasons.length > 0" @click="beginReview"
-            >Qayta ko‘rib chiqish</Button
+          ><Button variant="outline" :is-disabled="desk.busy.value !== null" @click="confirmation.dismiss">{{
+            ui('Save for now')
+          }}</Button
+          ><Button v-if="confirmation.invalidated.value" :is-disabled="reasons.length > 0" @click="beginReview">{{
+            ui('Review again')
+          }}</Button
           ><Button
             v-else
             :is-loading="desk.busy.value === 'queue'"
             :is-disabled="!confirmation.canConfirm.value || desk.busy.value !== null"
             @click="queue"
-            >Yuborish navbatiga qo‘shish</Button
+            >{{ ui('Add to delivery queue') }}</Button
           ></ModalFooter
         >
       </ModalContent></Modal

@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import { useUiLocale } from '@ocharomarketing/connect/UseUiLocale';
 import { computed } from 'vue';
 import { useNavigationBlocker } from '@wow-two-beta/ui-vue/router';
 import {
@@ -10,6 +11,8 @@ import {
   ModalFooter,
 } from '@wow-two-beta/ui-vue/presentation/overlays';
 import { Button } from '@wow-two-beta/ui-vue/presentation/actions';
+const { t: ui } = useUiLocale();
+
 const props = defineProps<{ dirty: boolean }>();
 const blocker = useNavigationBlocker(computed(() => props.dirty));
 </script>
@@ -24,12 +27,14 @@ const blocker = useNavigationBlocker(computed(() => props.dirty));
   >
     <ModalContent class="max-w-md"
       ><ModalHeader
-        ><ModalTitle>Saqlanmagan o‘zgarishlar</ModalTitle>
-        <ModalDescription>Tahrir saqlanmagan. Sahifada qoling yoki saqlamasdan chiqing.</ModalDescription></ModalHeader
+        ><ModalTitle>{{ ui('Unsaved changes') }}</ModalTitle>
+        <ModalDescription>{{
+          ui('Changes are unsaved. Stay on this page or leave without saving.')
+        }}</ModalDescription></ModalHeader
       >
       <ModalFooter
-        ><Button variant="outline" @click="blocker.reset">Tahrirlashni davom ettirish</Button>
-        <Button @click="blocker.proceed">Saqlamasdan chiqish</Button></ModalFooter
+        ><Button variant="outline" @click="blocker.reset">{{ ui('Continue editing') }}</Button>
+        <Button @click="blocker.proceed">{{ ui('Leave without saving') }}</Button></ModalFooter
       >
     </ModalContent>
   </Modal>

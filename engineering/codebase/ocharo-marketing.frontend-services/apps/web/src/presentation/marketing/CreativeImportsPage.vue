@@ -1,9 +1,12 @@
 <script setup lang="ts">
+import { useUiLocale } from '@ocharomarketing/connect/UseUiLocale';
 import { ref } from 'vue';
 import { RouterLink } from 'vue-router';
 import { useMarketingWorkspace } from '../../application/marketing';
 import { integrationFetch } from '@ocharomarketing/connect';
 import { Button } from '@wow-two-beta/ui-vue/presentation/actions';
+const { t: ui } = useUiLocale();
+
 const desk = useMarketingWorkspace(),
   manifest = ref<File | null>(null),
   image = ref<File | null>(null),
@@ -40,48 +43,54 @@ async function submit() {
 <template>
   <section class="max-w-3xl">
     <p class="text-xs uppercase tracking-widest text-muted-foreground">Studio → Marketing</p>
-    <h1 class="font-editorial text-4xl mt-3">Bring a concept into review</h1>
+    <h1 class="font-editorial text-4xl mt-3">{{ ui('Bring a concept into review') }}</h1>
     <p class="my-5 text-muted-foreground">
-      Import the PNG and review manifest explicitly exported from Studio. The result is a draft labelled creative
-      visualization. Product facts, rights and publication need their own review.
+      {{
+        ui(
+          'Import the PNG and review manifest explicitly exported from Studio. The result is a draft labelled creative visualization. Product facts, rights and publication need their own review.',
+        )
+      }}
     </p>
     <form class="grid gap-5 rounded-2xl border border-border bg-card p-5 sm:p-7" @submit.prevent="submit">
       <label class="block min-w-0 text-xs font-semibold"
-        >Studio review JSON<input
+        >{{ ui('Studio review JSON')
+        }}<input
           class="mt-2 block min-h-11 w-full min-w-0 rounded-xl border border-border bg-background px-3 py-2.5 text-sm text-foreground outline-none focus:ring-2 focus:ring-ring file:mr-3 file:rounded-lg file:border-0 file:bg-secondary file:px-3 file:py-2 file:text-xs file:font-semibold"
           type="file"
           accept=".json"
           required
           @change="choose($event, 'manifest')" /></label
       ><label class="block min-w-0 text-xs font-semibold"
-        >Matching PNG<input
+        >{{ ui('Matching PNG')
+        }}<input
           class="mt-2 block min-h-11 w-full min-w-0 rounded-xl border border-border bg-background px-3 py-2.5 text-sm text-foreground outline-none focus:ring-2 focus:ring-ring file:mr-3 file:rounded-lg file:border-0 file:bg-secondary file:px-3 file:py-2 file:text-xs file:font-semibold"
           type="file"
           accept="image/png"
           required
           @change="choose($event, 'image')" /></label
       ><label class="block min-w-0 text-xs font-semibold"
-        >Product context<select
+        >{{ ui('Product context')
+        }}<select
           v-model="productId"
           class="mt-2 block min-h-11 w-full min-w-0 rounded-xl border border-border bg-background px-3 py-2.5 text-sm text-foreground outline-none focus:ring-2 focus:ring-ring"
           required
         >
-          <option value="">Choose an existing piece</option>
+          <option value="">{{ ui('Choose an existing piece') }}</option>
           <option v-for="product in desk.workspace.value?.products ?? []" :key="product.id" :value="product.id">
             {{ product.name }}
           </option>
         </select></label
-      ><Button type="submit" :is-disabled="busy">{{ busy ? 'Checking package…' : 'Import as a draft' }}</Button>
+      ><Button type="submit" :is-disabled="busy">{{ busy ? ui('Checking package…') : ui('Import as a draft') }}</Button>
       <p
         v-if="error"
         role="alert"
         class="my-4 rounded-xl bg-destructive-soft p-4 text-sm text-destructive-soft-foreground"
       >
-        {{ error }}
+        {{ ui(error) }}
       </p>
-      <RouterLink v-if="draftId" :to="'/posts/' + draftId" class="text-primary underline"
-        >Open imported draft →</RouterLink
-      >
+      <RouterLink v-if="draftId" :to="'/posts/' + draftId" class="text-primary underline">{{
+        ui('Open imported draft →')
+      }}</RouterLink>
     </form>
   </section>
 </template>

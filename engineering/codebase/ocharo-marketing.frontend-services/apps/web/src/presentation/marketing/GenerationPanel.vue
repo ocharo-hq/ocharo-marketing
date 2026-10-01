@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import { useUiLocale } from '@ocharomarketing/connect/UseUiLocale';
 import SelectPickerTrigger from './compatibility/PickerTrigger.vue';
 import { computed, ref } from 'vue';
 import { Sparkles } from 'lucide-vue-next';
@@ -15,8 +16,8 @@ import {
 } from '@wow-two-beta/ui-vue/presentation/forms';
 
 import { useMarketingWorkspace } from '../../application/marketing';
-import { MarketingExtensions } from '../../domain/marketing';
 import StatusIndicator from './StatusIndicator.vue';
+const { t: ui, formatDate } = useUiLocale();
 
 /** Requests actual provider image jobs with explicitly selected product references. */
 defineOptions({ name: 'GenerationPanel' });
@@ -78,20 +79,23 @@ async function generate() {
       <div class="flex items-center gap-3">
         <span class="rounded-xl bg-primary-soft p-3 text-primary"><Icon :icon="Sparkles" :size="21" /></span>
         <div>
-          <h2 class="font-editorial text-2xl">Yangi tasvir</h2>
-          <p class="mt-1 text-xs text-muted-foreground">Mavjud mahsulotdan yangi ko‘rinish yoki fon taklifi.</p>
+          <h2 class="font-editorial text-2xl">{{ ui('New image') }}</h2>
+          <p class="mt-1 text-xs text-muted-foreground">
+            {{ ui('A new look or background suggestion for an existing product.') }}
+          </p>
         </div>
       </div>
       <div class="grid gap-4 sm:grid-cols-2">
         <div>
-          <label class="mb-2 block text-xs font-semibold">Xizmat</label
+          <label class="mb-2 block text-xs font-semibold">{{ ui('Service') }}</label
           ><SelectPicker
             v-model="provider"
             :options="[
               { itemKey: 'openai', value: 'openai', label: 'OpenAI' },
               { itemKey: 'gemini', value: 'gemini', label: 'Gemini' },
             ]"
-            ><SelectPickerTrigger aria-label="Tasvir yaratish xizmati"><SelectPickerValue /></SelectPickerTrigger
+            ><SelectPickerTrigger :aria-label="ui('Image generation service')"
+              ><SelectPickerValue /></SelectPickerTrigger
             ><SelectPickerContent
               ><SelectPickerItem item-key="openai" label="OpenAI" /><SelectPickerItem
                 item-key="gemini"
@@ -99,11 +103,12 @@ async function generate() {
           ></SelectPicker>
         </div>
         <div>
-          <label class="mb-2 block text-xs font-semibold">Mahsulot</label
+          <label class="mb-2 block text-xs font-semibold">{{ ui('Product') }}</label
           ><SelectPicker
             v-model="productId"
             :options="workspace?.products.map((item) => ({ itemKey: item.id, value: item.id, label: item.name }))"
-            ><SelectPickerTrigger aria-label="Tasvir yaratish mahsuloti"><SelectPickerValue /></SelectPickerTrigger
+            ><SelectPickerTrigger :aria-label="ui('Product for image generation')"
+              ><SelectPickerValue /></SelectPickerTrigger
             ><SelectPickerContent
               ><SelectPickerItem
                 v-for="item in workspace?.products"
@@ -119,12 +124,12 @@ async function generate() {
             connection.name
           }}</span>
         </div>
-        <p class="mt-2 text-xs leading-6 text-muted-foreground">{{ connection.setupHint }}</p>
+        <p class="mt-2 text-xs leading-6 text-muted-foreground">{{ ui(connection.setupHint) }}</p>
       </div>
       <div>
         <div class="mb-3 flex items-center justify-between">
-          <label class="text-xs font-semibold">Manba tasviri</label
-          ><button class="text-xs font-semibold text-primary" @click="useFront">Old ko‘rinishni tanlash</button>
+          <label class="text-xs font-semibold">{{ ui('Source image') }}</label
+          ><button class="text-xs font-semibold text-primary" @click="useFront">{{ ui('Choose front view') }}</button>
         </div>
         <div class="grid grid-cols-3 gap-3">
           <button
@@ -143,45 +148,50 @@ async function generate() {
             />
           </button>
         </div>
-        <p class="mt-2 text-xs text-muted-foreground">Tanlangan tasvirlar so‘rov bilan xizmatga yuboriladi.</p>
+        <p class="mt-2 text-xs text-muted-foreground">
+          {{ ui('Selected images will be sent to the service with the request.') }}
+        </p>
       </div>
       <label class="block text-xs font-semibold"
-        >Topshiriq<TextAreaInput
+        >{{ ui('Prompt')
+        }}<TextAreaInput
           v-model="prompt"
           class="mt-2"
           :rows="5"
-          aria-label="Tasvir uchun topshiriq"
-          placeholder="Masalan: mahsulotni o‘zgartirmasdan, sokin studiya fonida ko‘rsating…"
+          :aria-label="ui('Image prompt')"
+          :placeholder="ui('For example: show the unchanged product against a quiet studio background…')"
       /></label>
       <details>
-        <summary class="cursor-pointer text-xs text-muted-foreground">Model sozlamasi</summary>
+        <summary class="cursor-pointer text-xs text-muted-foreground">{{ ui('Model setting') }}</summary>
         <TextInput
           v-model="model"
           class="mt-3"
-          aria-label="Tasvir yaratish modeli"
-          placeholder="Xizmatdagi model nomi · ixtiyoriy"
+          :aria-label="ui('Image generation model')"
+          :placeholder="ui('Service model name · optional')"
         />
       </details>
       <Button
         :is-loading="desk.busy.value === 'generate'"
         :is-disabled="!prompt.trim() || desk.busy.value !== null"
         @click="generate"
-        ><Icon :icon="Sparkles" :size="16" class="mr-2" />Tasvir yaratish</Button
+        ><Icon :icon="Sparkles" :size="16" class="mr-2" />{{ ui('Generate image') }}</Button
       >
       <p class="text-xs leading-6 text-muted-foreground">
-        Yangi tasvir mahsulot shakli va matosiga mosligi bo‘yicha tekshiriladi. Tayyor post matni alohida qoladi.
+        {{
+          ui('Review the generated image against the product’s shape and fabric. The prepared caption stays separate.')
+        }}
       </p>
     </div>
     <div class="space-y-4">
-      <h2 class="font-editorial text-xl">Natijalar tarixi</h2>
+      <h2 class="font-editorial text-xl">{{ ui('Results history') }}</h2>
       <div
         v-if="!history.length"
         class="flex min-h-64 flex-col items-center justify-center rounded-2xl border border-dashed border-border bg-card p-6 text-center"
       >
         <Icon :icon="Sparkles" :size="28" class="mb-4 text-muted-foreground" />
-        <h3 class="text-sm font-semibold">Yaratilgan tasvirlar hali yo‘q</h3>
+        <h3 class="text-sm font-semibold">{{ ui('No generated images yet') }}</h3>
         <p class="mt-2 max-w-xs text-xs leading-6 text-muted-foreground">
-          Xizmatni sozlang va aniq manba bilan topshiriq yuboring.
+          {{ ui('Configure the service and submit a prompt with a clear source.') }}
         </p>
       </div>
       <article v-for="job in history" :key="job.id" class="rounded-2xl border border-border bg-card p-5">
@@ -190,7 +200,7 @@ async function generate() {
           ><StatusIndicator :status="job.status" />
         </div>
         <p class="mt-3 line-clamp-3 text-xs leading-6 text-muted-foreground">{{ job.prompt }}</p>
-        <p v-if="job.message" class="mt-2 text-xs text-warning">{{ job.message }}</p>
+        <p v-if="job.message" class="mt-2 text-xs text-warning">{{ ui(job.message) }}</p>
         <div v-if="job.outputAssetIds.length" class="mt-4 grid grid-cols-2 gap-2">
           <a
             v-for="id in job.outputAssetIds"
@@ -205,7 +215,7 @@ async function generate() {
               class="aspect-square w-full object-contain"
           /></a>
         </div>
-        <p class="mt-3 text-xs text-muted-foreground">{{ MarketingExtensions.formatDate(job.createdAt) }}</p>
+        <p class="mt-3 text-xs text-muted-foreground">{{ formatDate(job.createdAt) }}</p>
       </article>
     </div>
   </section>

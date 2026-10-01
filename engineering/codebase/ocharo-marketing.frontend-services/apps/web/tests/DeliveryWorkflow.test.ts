@@ -1,3 +1,6 @@
+import { useUiLocale } from '@ocharomarketing/connect/UseUiLocale';
+import { beforeEach as beforeLocaleTest } from 'vitest';
+beforeLocaleTest(() => useUiLocale().setUiLocale('uz'));
 import { mount, flushPromises } from '@vue/test-utils';
 import { ref, shallowRef } from 'vue';
 import { describe, it, expect, vi, afterEach } from 'vitest';

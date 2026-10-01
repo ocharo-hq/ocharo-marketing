@@ -1,6 +1,9 @@
 <script setup lang="ts">
+import { useUiLocale } from '@ocharomarketing/connect/UseUiLocale';
 import { computed, ref } from 'vue';
 import type { AssetModel } from '../../domain/marketing';
+const { t: ui } = useUiLocale();
+
 const props = defineProps<{ assets: AssetModel[]; modelValue: string[]; productAssetIds: string[] }>();
 const emit = defineEmits<{ 'update:modelValue': [string[]] }>();
 const all = ref(false);
@@ -21,12 +24,12 @@ function toggle(id: string) {
 <template>
   <details class="rounded-xl border border-border p-4">
     <summary class="cursor-pointer text-xs font-semibold">
-      Kutubxonadan tasvir tanlash · {{ modelValue.length }}/10
+      {{ ui('Choose library image ·') }} {{ modelValue.length }}/10
     </summary>
     <p class="mt-3 text-xs leading-5 text-muted-foreground">
-      Mahsulot fotosi, yuklangan tasvir yoki tayyor kartani tanlang. Tartib tanlangan ketma-ketlikda saqlanadi.
+      {{ ui('Choose a product photo, uploaded image or prepared card. Your selection order is preserved.') }}
     </p>
-    <label class="mt-3 flex gap-2 text-xs"><input v-model="all" type="checkbox" />Barcha tasvirlar</label>
+    <label class="mt-3 flex gap-2 text-xs"><input v-model="all" type="checkbox" />{{ ui('All images') }}</label>
     <div class="mt-3 grid max-h-80 grid-cols-2 gap-2 overflow-y-auto">
       <button
         v-for="asset in visible"
@@ -43,7 +46,7 @@ function toggle(id: string) {
         <p class="mt-1 truncate text-[10px]">
           {{ modelValue.includes(asset.id) ? `${modelValue.indexOf(asset.id) + 1}. ` : '' }}{{ asset.fileName }}
         </p>
-        <p class="text-[10px] text-muted-foreground">{{ asset.role }}</p>
+        <p class="text-[10px] text-muted-foreground">{{ ui(asset.role) }}</p>
       </button>
     </div>
   </details>

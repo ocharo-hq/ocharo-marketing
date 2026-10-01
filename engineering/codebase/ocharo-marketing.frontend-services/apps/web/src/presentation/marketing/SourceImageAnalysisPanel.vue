@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import { useUiLocale } from '@ocharomarketing/connect/UseUiLocale';
 import { computed, onBeforeUnmount, ref, watch } from 'vue';
 import { FileSearch, ArrowUpRight, RefreshCw } from 'lucide-vue-next';
 import { Icon } from '@wow-two-beta/ui-vue/foundation/icons';
@@ -16,6 +17,8 @@ import { Button } from '@wow-two-beta/ui-vue/presentation/actions';
 import StatusIndicator from './StatusIndicator.vue';
 import { useMarketingWorkspace } from '../../application/marketing';
 import { MarketingExtensions, type SourceAnalysisModel } from '../../domain/marketing';
+const { t: ui } = useUiLocale();
+
 /** Keeps AI image wording source-linked until an operator reviews and reuses it. */
 defineOptions({ name: 'SourceImageAnalysisPanel' });
 const desk = useMarketingWorkspace();
@@ -167,14 +170,17 @@ function reuse() {
     <section class="rounded-2xl border border-border bg-card p-5 sm:p-6">
       <div class="flex items-center gap-3">
         <Icon :icon="FileSearch" :size="20" class="text-primary" />
-        <h2 class="font-editorial text-2xl">Tasvirdan post g‘oyasi</h2>
+        <h2 class="font-editorial text-2xl">{{ ui('Post idea from an image') }}</h2>
       </div>
       <p class="mt-3 text-sm leading-7 text-muted-foreground">
-        1–3 manba tasvirni tanlang. Ko‘rinadigan belgilar va matn g‘oyasi taklif qilinadi. Mato tarkibi, o‘lcham va narx
-        rasm bilan tasdiqlanmaydi.
+        {{
+          ui(
+            'Choose 1–3 source images. Visible details and caption ideas are suggested. Images do not verify fabric composition, sizes or prices.',
+          )
+        }}
       </p>
       <fieldset :disabled="analysisBusy" class="mt-5 space-y-5">
-        <legend class="sr-only">Tasvir tahlili so‘rovi</legend>
+        <legend class="sr-only">{{ ui('Image analysis request') }}</legend>
         <div class="grid max-h-80 grid-cols-2 gap-3 overflow-y-auto sm:grid-cols-3">
           <label
             v-for="asset in images"
@@ -190,9 +196,11 @@ function reuse() {
             ></label
           >
         </div>
-        <p v-if="!images.length" class="text-xs text-muted-foreground">Avval manba tasvirini kutubxonaga qo‘shing.</p>
+        <p v-if="!images.length" class="text-xs text-muted-foreground">
+          {{ ui('Add the source image to the library first.') }}
+        </p>
         <div>
-          <label class="mb-2 block text-xs font-semibold">Til</label
+          <label class="mb-2 block text-xs font-semibold">{{ ui('Language') }}</label
           ><SelectPicker
             v-model="locale"
             :options="[
@@ -200,28 +208,28 @@ function reuse() {
               { itemKey: 'ru', value: 'ru', label: 'Русский' },
               { itemKey: 'en', value: 'en', label: 'English' },
             ]"
-            ><SelectPickerTrigger aria-label="Tahlil tili"><SelectPickerValue /></SelectPickerTrigger
+            ><SelectPickerTrigger :aria-label="ui('Analysis language')"><SelectPickerValue /></SelectPickerTrigger
             ><SelectPickerContent
               ><SelectPickerItem item-key="uz" label="O‘zbekcha" /><SelectPickerItem
                 item-key="ru"
-                label="Русский" /><SelectPickerItem item-key="en" label="English" /></SelectPickerContent
+                label="Русский" /><SelectPickerItem item-key="en" :label="ui('English')" /></SelectPickerContent
           ></SelectPicker>
         </div>
         <div>
-          <label for="analysis-prompt" class="mb-2 block text-xs font-semibold">Nimani e’tiborga olish kerak?</label
+          <label for="analysis-prompt" class="mb-2 block text-xs font-semibold">{{ ui('What needs attention?') }}</label
           ><TextAreaInput
             id="analysis-prompt"
             v-model="prompt"
             :rows="3"
-            placeholder="Masalan: rang va bichimni qisqa post matniga aylantirish."
+            :placeholder="ui('For example: turn colour and cut into a short post caption.')"
           />
         </div>
       </fieldset>
       <p class="mt-4 rounded-lg bg-muted p-3 text-xs leading-6 text-muted-foreground">
         {{
           providerReady
-            ? 'OpenAI · Bu tugma pulli tasvir tahlilini boshlashi mumkin. Natija avtomatik qabul qilinmaydi.'
-            : 'OpenAI hozir sozlanmagan. Tahlil mavjud emas. Holatni yangilash faqat saqlangan sozlamalarni o‘qiydi.'
+            ? ui('OpenAI · This button may start paid image analysis. Results are not accepted automatically.')
+            : ui('OpenAI is not configured. Analysis is unavailable. Refreshing status reads saved settings only.')
         }}
       </p>
       <Button
@@ -231,24 +239,32 @@ function reuse() {
         "
         :is-loading="analysisBusy"
         @click="analyze"
-        >Tasvirlarni tahlil qilish</Button
+        >{{ ui('Analyse images') }}</Button
       >
-      <Button variant="ghost" size="sm" class="mt-3" :is-disabled="analysisBusy || reviewBusy" @click="desk.refresh()"
-        >Xizmat holatini yangilash</Button
+      <Button
+        variant="ghost"
+        size="sm"
+        class="mt-3"
+        :is-disabled="analysisBusy || reviewBusy"
+        @click="desk.refresh()"
+        >{{ ui('Refresh service status') }}</Button
       >
       <p class="mt-3 text-[11px] leading-5 text-muted-foreground">
-        O‘zgarmagan so‘rov qayta bosilsa yangi pulli tahlil yaratilmaydi. Manba yoki izohni o‘zgartirish yangi niyatni
-        boshlaydi.
+        {{
+          ui(
+            'Repeating an unchanged request does not create a new paid analysis. Changing the source or prompt starts a new request.',
+          )
+        }}
       </p>
     </section>
     <section class="rounded-2xl border border-border bg-card p-5 sm:p-6">
       <div class="flex flex-wrap items-center justify-between gap-3">
-        <h2 class="font-editorial text-2xl">Taklifni ko‘rib chiqish</h2>
+        <h2 class="font-editorial text-2xl">{{ ui('Review suggestion') }}</h2>
         <Button size="sm" variant="ghost" :is-disabled="loading || analysisBusy || reviewBusy" @click="load"
-          ><Icon :icon="RefreshCw" :size="14" class="mr-1" />Saqlangan tarix</Button
+          ><Icon :icon="RefreshCw" :size="14" class="mr-1" />{{ ui('Saved history') }}</Button
         >
       </div>
-      <p v-if="localError" role="alert" class="mt-4 text-xs leading-6 text-destructive">{{ localError }}</p>
+      <p v-if="localError" role="alert" class="mt-4 text-xs leading-6 text-destructive">{{ ui(localError) }}</p>
       <div v-if="records.length" class="mt-4 flex max-h-40 flex-wrap gap-2 overflow-y-auto">
         <button
           v-for="record in records"
@@ -261,19 +277,20 @@ function reuse() {
           ]"
           @click="choose(record)"
         >
-          {{ record.sources[0]?.fileName ?? 'Tahlil' }} · {{ MarketingExtensions.statusLabel(record.status) }}
+          {{ record.sources[0]?.fileName ?? ui('Analysis') }} · {{ ui(MarketingExtensions.statusLabel(record.status)) }}
         </button>
       </div>
       <div v-if="selected" class="mt-5 space-y-4">
         <div class="flex flex-wrap items-center gap-3">
           <StatusIndicator :status="selected.status" />
           <p class="text-[11px] text-muted-foreground">
-            {{ selected.provider }} · {{ selected.model ?? 'Model mavjud emas' }} · {{ selected.revision }}-talqin
+            {{ selected.provider }} · {{ selected.model ?? ui('Model unavailable') }} · {{ selected.revision
+            }}{{ ui(' revision') }}
           </p>
         </div>
-        <p class="text-xs leading-6 text-muted-foreground">{{ selected.message }}</p>
+        <p class="text-xs leading-6 text-muted-foreground">{{ ui(selected.message) }}</p>
         <details class="rounded-lg bg-muted p-3 text-xs">
-          <summary class="cursor-pointer font-semibold">Manbalar · {{ selected.sources.length }}</summary>
+          <summary class="cursor-pointer font-semibold">{{ ui('Sources ·') }} {{ selected.sources.length }}</summary>
           <div v-for="source in selected.sources" :key="source.assetId" class="mt-3">
             <p class="break-all font-semibold">{{ source.fileName }}</p>
             <p class="mt-1 leading-6 text-muted-foreground">{{ source.provenance }}</p>
@@ -281,37 +298,40 @@ function reuse() {
           </div>
         </details>
         <p v-if="!sourcesCurrent" class="text-xs leading-6 text-warning">
-          Manba izi o‘zgargan yoki tasvir mavjud emas. Bu taklifni hozir qabul qilib bo‘lmaydi.
+          {{ ui('The source has changed or the image is unavailable. This suggestion cannot be accepted now.') }}
         </p>
         <div v-if="selected.suggestedText">
-          <h3 class="text-xs font-semibold">Asl AI taklifi</h3>
+          <h3 class="text-xs font-semibold">{{ ui('Original AI suggestion') }}</h3>
           <p class="mt-2 whitespace-pre-wrap break-words rounded-lg bg-muted p-4 text-sm leading-7">
             {{ selected.suggestedText }}
           </p>
         </div>
         <div v-if="['ready', 'reviewed'].includes(selected.status)">
-          <label for="review-text" class="mb-2 block text-xs font-semibold">Siz tekshirgan matn</label
+          <label for="review-text" class="mb-2 block text-xs font-semibold">{{ ui('Your reviewed text') }}</label
           ><TextAreaInput id="review-text" v-model="reviewText" :rows="7" />
           <p class="mt-2 text-[11px] leading-6 text-muted-foreground">
-            Mahsulotga mosligini tekshiring. Bu matn katalogni o‘zgartirmaydi.
+            {{ ui('Check that it matches the product. This text does not change the catalogue.') }}
           </p>
           <div class="mt-4 flex flex-wrap gap-3">
-            <Button :is-disabled="!canReview || desk.busy.value !== null" :is-loading="reviewBusy" @click="saveReview"
-              >Tekshirilgan matnni saqlash</Button
+            <Button
+              :is-disabled="!canReview || desk.busy.value !== null"
+              :is-loading="reviewBusy"
+              @click="saveReview"
+              >{{ ui('Save reviewed text') }}</Button
             ><Button variant="outline" :is-disabled="!canReuse || reviewBusy" @click="reuse"
-              >Postda ishlatish <Icon :icon="ArrowUpRight" :size="14" class="ml-1"
+              >{{ ui('Use in post') }} <Icon :icon="ArrowUpRight" :size="14" class="ml-1"
             /></Button>
           </div>
           <p v-if="dirty" class="mt-3 text-xs text-warning">
-            Matn o‘zgargan. Postda ishlatishdan oldin tekshirilgan matnni saqlang.
+            {{ ui('The text changed. Save the reviewed text before using it in a post.') }}
           </p>
         </div>
         <p v-if="selected.status === 'pending'" class="text-xs leading-6 text-warning">
-          Bu so‘rov boshlangan. Holati noma’lum bo‘lsa pulli so‘rov avtomatik takrorlanmaydi.
+          {{ ui('This request has started. A paid request with an unknown outcome is not retried automatically.') }}
         </p>
       </div>
       <p v-else class="mt-8 text-sm leading-7 text-muted-foreground">
-        Hali saqlangan tahlil yo‘q. Tanlangan tasvirdan boshlang.
+        {{ ui('No saved analysis yet. Start with the selected image.') }}
       </p>
     </section>
   </div>

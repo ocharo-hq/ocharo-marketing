@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import { useUiLocale } from '@ocharomarketing/connect/UseUiLocale';
 import { computed } from 'vue';
 import { ArrowRight, CalendarDays, Check, ImagePlus, Plus, Sparkles } from 'lucide-vue-next';
 
@@ -9,6 +10,7 @@ import { useMarketingWorkspace } from '../../application/marketing';
 import { MarketingExtensions } from '../../domain/marketing';
 import CardPreview from './CardPreview.vue';
 import StatusIndicator from './StatusIndicator.vue';
+const { t: ui, formatDate } = useUiLocale();
 
 /** Presents actual preparation work and the next useful post action. */
 defineOptions({ name: 'TodayPage' });
@@ -68,12 +70,14 @@ const upcoming = computed(() =>
     <div class="flex flex-wrap items-end justify-between gap-4">
       <div>
         <p class="mb-2 text-xs font-semibold uppercase tracking-widest text-primary">Ocharo · Marketing</p>
-        <h1 class="font-editorial text-3xl tracking-tight md:text-4xl">Postingizga shakl bering.</h1>
+        <h1 class="font-editorial text-3xl tracking-tight md:text-4xl">{{ ui('Give your post its shape.') }}</h1>
         <p class="mt-3 max-w-xl text-sm leading-relaxed text-muted-foreground">
-          Mahsulot rasmlari, tayyor shablonlar va bir joyda saqlangan rejangiz.
+          {{ ui('Product photos, ready templates and your plans in one place.') }}
         </p>
       </div>
-      <Button @click="desk.navigate('/posts/new')"><Icon :icon="Plus" :size="17" class="mr-2" />Post yaratish</Button>
+      <Button @click="desk.navigate('/posts/new')"
+        ><Icon :icon="Plus" :size="17" class="mr-2" />{{ ui('Create post') }}</Button
+      >
     </div>
 
     <section
@@ -82,21 +86,21 @@ const upcoming = computed(() =>
       <div class="flex flex-col justify-between p-6 md:p-9">
         <div>
           <span class="rounded-full bg-primary-soft px-3 py-1 text-xs font-semibold text-primary">{{
-            recent ? 'Davom ettiring' : 'Birinchi post'
+            recent ? ui('Continue') : ui('First post')
           }}</span>
           <h2 class="mt-7 max-w-sm font-editorial text-3xl leading-tight md:text-4xl">
-            {{ recent?.title ?? 'Mahsulot — diqqat markazida.' }}
+            {{ recent?.title ?? ui('The product takes centre stage.') }}
           </h2>
           <p class="mt-4 max-w-sm text-sm leading-7 text-muted-foreground">
             {{
               recent
-                ? 'Saqlangan postingizni ochib, matn va ko‘rinishini tekshiring.'
-                : 'Old ko‘rinishni tanlang, shablonni qo‘llang va postingizni tayyorlang.'
+                ? ui('Open your saved post and review its text and appearance.')
+                : ui('Choose the front view, apply a template and prepare your post.')
             }}
           </p>
           <div class="mt-6 flex flex-wrap gap-2">
-            <span class="rounded-lg bg-muted px-3 py-2 text-xs">Old ko‘rinish</span
-            ><span class="rounded-lg bg-muted px-3 py-2 text-xs">4:5 format</span
+            <span class="rounded-lg bg-muted px-3 py-2 text-xs">{{ ui('Front view') }}</span
+            ><span class="rounded-lg bg-muted px-3 py-2 text-xs">{{ ui('4:5 format') }}</span
             ><span class="rounded-lg bg-muted px-3 py-2 text-xs">O‘zbekcha</span>
           </div>
         </div>
@@ -104,10 +108,12 @@ const upcoming = computed(() =>
           <Button
             variant="outline"
             @click="desk.navigate(recent ? `/posts/${recent.id}` : `/posts/new?product=${product?.id ?? ''}`)"
-            >{{ recent ? 'Postni ochish' : 'Shu mahsulotdan boshlash'
+            >{{ recent ? ui('Open post') : ui('Start with this product')
             }}<Icon :icon="ArrowRight" :size="16" class="ml-2"
           /></Button>
-          <p class="mt-4 text-xs text-muted-foreground">Shablon va matnni tekshirish post yaratishning bir qismidir.</p>
+          <p class="mt-4 text-xs text-muted-foreground">
+            {{ ui('Template and text review are part of post creation.') }}
+          </p>
         </div>
       </div>
       <div class="flex items-center justify-center border-t border-border bg-muted p-6 lg:border-l lg:border-t-0">
@@ -134,7 +140,7 @@ const upcoming = computed(() =>
         /></span>
         <div>
           <p class="text-2xl font-semibold">{{ count.value }}</p>
-          <p class="mt-1 text-xs text-muted-foreground">{{ count.label }}</p>
+          <p class="mt-1 text-xs text-muted-foreground">{{ ui(count.label) }}</p>
         </div>
       </button>
     </div>
@@ -142,9 +148,9 @@ const upcoming = computed(() =>
     <div class="grid gap-6 xl:grid-cols-[1.5fr_1fr]">
       <section class="rounded-2xl border border-border bg-card p-6">
         <div class="mb-5 flex items-center justify-between">
-          <h2 class="font-editorial text-xl">Mahsulotdan postgacha</h2>
+          <h2 class="font-editorial text-xl">{{ ui('From product to post') }}</h2>
           <button class="text-xs font-semibold text-primary" @click="desk.navigate('/products')">
-            Barchasi <span aria-hidden="true">→</span>
+            {{ ui('All') }} <span aria-hidden="true">→</span>
           </button>
         </div>
         <div class="grid grid-cols-3 gap-3">
@@ -169,30 +175,32 @@ const upcoming = computed(() =>
       </section>
       <section class="rounded-2xl border border-border bg-card p-6">
         <div class="mb-5 flex items-center justify-between">
-          <h2 class="font-editorial text-xl">Yaqin reja</h2>
+          <h2 class="font-editorial text-xl">{{ ui('Upcoming plan') }}</h2>
           <Icon :icon="CalendarDays" :size="18" class="text-muted-foreground" />
         </div>
         <div
           v-if="!upcoming.length"
           class="flex min-h-48 flex-col items-center justify-center rounded-xl border border-dashed border-border p-5 text-center"
         >
-          <p class="text-sm font-semibold">Rejangiz hali bo‘sh</p>
+          <p class="text-sm font-semibold">{{ ui('Your plan is still empty') }}</p>
           <p class="mt-2 text-xs leading-6 text-muted-foreground">
-            Tekshirilgan postni rejangizga qo‘shing. Ulanmagan kanalda u reja sifatida saqlanadi.
+            {{ ui('Add a reviewed post to your plan. On disconnected channels it remains a plan.') }}
           </p>
-          <Button variant="ghost" size="sm" class="mt-4" @click="desk.navigate('/calendar')">Rejani ochish</Button>
+          <Button variant="ghost" size="sm" class="mt-4" @click="desk.navigate('/calendar')">{{
+            ui('Open plan')
+          }}</Button>
         </div>
         <div v-else class="space-y-4">
           <div v-for="item in upcoming" :key="item.id" class="border-b border-border pb-4 last:border-b-0">
             <p class="text-xs text-muted-foreground">
-              {{ MarketingExtensions.formatDate(item.scheduledAt, { hour: '2-digit', minute: '2-digit' }) }}
+              {{ formatDate(item.scheduledAt, { hour: '2-digit', minute: '2-digit' }) }}
             </p>
             <p class="my-2 text-sm font-semibold">
               {{
                 item.draftTitle ??
                 workspace?.drafts.find((post) => post.id === item.draftId && post.revision === item.draftRevision)
                   ?.title ??
-                'Saqlangan post'
+                ui('Saved post')
               }}
             </p>
             <StatusIndicator :status="item.status" />
@@ -204,14 +212,14 @@ const upcoming = computed(() =>
       <div class="flex items-center gap-3">
         <Icon :icon="Sparkles" :size="19" class="text-primary" />
         <div>
-          <h2 class="text-sm font-semibold">Shablonlarni birga tanlang</h2>
+          <h2 class="text-sm font-semibold">{{ ui('Choose templates together') }}</h2>
           <p class="mt-1 text-xs text-muted-foreground">
-            Atlasda taqqoslang; kundalik ishda tayyor variantni qo‘llang.
+            {{ ui('Compare in Atlas; apply the chosen variant in everyday work.') }}
           </p>
         </div>
       </div>
       <Button variant="ghost" size="sm" @click="desk.navigate('/atlas')"
-        >Atlasni ko‘rish <Icon :icon="ArrowRight" :size="15" class="ml-2"
+        >{{ ui('View Atlas') }} <Icon :icon="ArrowRight" :size="15" class="ml-2"
       /></Button>
     </section>
   </div>

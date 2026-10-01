@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import { useUiLocale } from '@ocharomarketing/connect/UseUiLocale';
 import { computed, onBeforeUnmount, onMounted, ref } from 'vue';
 import { onBeforeRouteLeave, RouterLink, useRoute, useRouter } from 'vue-router';
 import {
@@ -24,7 +25,7 @@ import StatusBadge from './components/StatusBadge.vue';
 import SectionTextEditor from './components/SectionTextEditor.vue';
 import CoverImageEditor from './components/CoverImageEditor.vue';
 import type { MediaView } from '../../domain/blog/BlogModels';
-import { formatWhen } from '../../domain/blog/UzDates';
+const { t: ui, formatWhen } = useUiLocale();
 
 /** Structured story editor with live server preview and publishing controls. */
 defineOptions({ name: 'StoryEditorPage' });
@@ -85,7 +86,9 @@ function warn(event: BeforeUnloadEvent) {
 }
 window.addEventListener('beforeunload', warn);
 onBeforeUnmount(() => window.removeEventListener('beforeunload', warn));
-onBeforeRouteLeave(() => !unsavedChanges.value || window.confirm('Saqlanmagan o‘zgarishlar bor. Chiqib ketilsinmi?'));
+onBeforeRouteLeave(
+  () => !unsavedChanges.value || window.confirm(ui('Saqlanmagan o‘zgarishlar bor. Chiqib ketilsinmi?')),
+);
 
 async function save() {
   if (imageBusy.value || pendingImageEdits.value || editor.busy.value) return;
@@ -150,21 +153,26 @@ function addProduct() {
 
 <template>
   <section v-if="editor.draft.value" class="pb-28">
-    <RouterLink to="/" class="btn-ghost -ml-3 mb-3"><Icon :icon="ArrowLeft" :size="15" />Hikoyalar</RouterLink>
+    <RouterLink to="/" class="btn-ghost -ml-3 mb-3"
+      ><Icon :icon="ArrowLeft" :size="15" />{{ ui('Stories') }}</RouterLink
+    >
     <div class="flex flex-wrap items-start justify-between gap-4">
       <div class="min-w-0">
-        <h1 class="font-editorial text-4xl tracking-tight">{{ editor.draft.value.title || 'Yangi hikoya' }}</h1>
+        <h1 class="font-editorial text-4xl tracking-tight">{{ editor.draft.value.title || ui('New story') }}</h1>
         <p class="mt-2 flex flex-wrap items-center gap-2 text-sm text-muted-foreground">
           <StatusBadge :status="status" />
-          <span v-if="editor.detail.value">versiya {{ editor.detail.value.revision }}</span>
-          <span>{{ editor.stats.value.words }} so‘z · {{ editor.stats.value.minutes }} daq o‘qish</span>
+          <span v-if="editor.detail.value">{{ ui('version') }} {{ editor.detail.value.revision }}</span>
+          <span
+            >{{ editor.stats.value.words }} {{ ui('words ·') }} {{ editor.stats.value.minutes }}
+            {{ ui('min read') }}</span
+          >
           <a
             v-if="status === 'published'"
             :href="publicationPath(editor.draft.value)"
             target="_blank"
             rel="noopener"
             class="text-primary underline"
-            >saytda ochish</a
+            >{{ ui('open on site') }}</a
           >
         </p>
       </div>
@@ -173,10 +181,11 @@ function addProduct() {
     <div class="mt-6 grid grid-cols-1 gap-6 2xl:grid-cols-[minmax(0,1fr)_minmax(460px,0.9fr)]">
       <div class="space-y-6">
         <section class="panel" aria-labelledby="publication-meta">
-          <h2 id="publication-meta" class="font-editorial text-2xl">Publication &amp; provenance</h2>
+          <h2 id="publication-meta" class="font-editorial text-2xl">{{ ui('Publication & provenance') }}</h2>
           <div class="mt-4 grid gap-4 sm:grid-cols-2">
             <label class="label"
-              >Publication<select
+              >{{ ui('Publication')
+              }}<select
                 v-model="editor.draft.value.publication"
                 class="field"
                 @change="editor.draft.value.kind = editor.draft.value.publication === 'wear' ? 'guide' : 'story'"
@@ -187,18 +196,20 @@ function addProduct() {
               </select></label
             >
             <label class="label"
-              >Content type<select v-model="editor.draft.value.kind" class="field">
-                <option value="story">Story</option>
-                <option value="textile">Textile object</option>
-                <option value="archive">Archive encounter</option>
-                <option value="guide">Guide</option>
+              >{{ ui('Content type')
+              }}<select v-model="editor.draft.value.kind" class="field">
+                <option value="story">{{ ui('Story') }}</option>
+                <option value="textile">{{ ui('Textile object') }}</option>
+                <option value="archive">{{ ui('Archive encounter') }}</option>
+                <option value="guide">{{ ui('Guide') }}</option>
               </select></label
             >
             <label
               v-for="axis in ['places', 'techniques', 'motifs', 'occasions', 'textileSlugs'] as const"
               :key="axis"
               class="label"
-              >{{ axis }} (comma separated)<input
+              >{{ ui(axis) }} {{ ui('(comma separated)')
+              }}<input
                 class="field"
                 :value="editor.draft.value[axis]?.join(', ')"
                 @input="
@@ -226,7 +237,7 @@ function addProduct() {
               }
             "
           >
-            Add object record
+            {{ ui('Add object record') }}
           </button>
           <div v-if="editor.draft.value.textile" class="mt-4 grid gap-3 sm:grid-cols-2">
             <label
@@ -243,7 +254,7 @@ function addProduct() {
               ] as const"
               :key="field"
               class="label"
-              >{{ field }}<input v-model="editor.draft.value.textile[field]" class="field"
+              >{{ ui(field) }}<input v-model="editor.draft.value.textile[field]" class="field"
             /></label>
           </div>
           <button
@@ -251,22 +262,22 @@ function addProduct() {
             class="btn-ghost mt-3"
             @click="editor.draft.value.imageProvenance = { kind: 'photograph', credit: '', rights: '', sourceUrl: '' }"
           >
-            Add image provenance
+            {{ ui('Add image provenance') }}
           </button>
           <div v-if="editor.draft.value.imageProvenance" class="mt-4 grid gap-3 sm:grid-cols-2">
             <label v-for="field in ['kind', 'credit', 'rights', 'sourceUrl'] as const" :key="field" class="label"
-              >{{ field }}<input v-model="editor.draft.value.imageProvenance[field]" class="field"
+              >{{ ui(field) }}<input v-model="editor.draft.value.imageProvenance[field]" class="field"
             /></label>
           </div>
           <p class="mt-3 text-xs text-muted-foreground">
-            Record uncertainty in the attribution note. Every save retains this metadata in its revision.
+            {{ ui('Record uncertainty in the attribution note. Every save retains this metadata in its revision.') }}
           </p>
         </section>
         <section class="panel" aria-labelledby="basics">
-          <h2 id="basics" class="font-editorial text-2xl">Asosiy</h2>
+          <h2 id="basics" class="font-editorial text-2xl">{{ ui('Main') }}</h2>
           <div class="mt-4 grid gap-4">
             <div>
-              <label class="label" for="title">Sarlavha</label>
+              <label class="label" for="title">{{ ui('Title') }}</label>
               <input
                 id="title"
                 v-model="editor.draft.value.title"
@@ -276,7 +287,7 @@ function addProduct() {
             </div>
             <div class="grid gap-4 sm:grid-cols-3">
               <div class="sm:col-span-2">
-                <label class="label" for="slug">Manzil (/journal/…/)</label>
+                <label class="label" for="slug">{{ ui('URL (/journal/…/)') }}</label>
                 <input
                   id="slug"
                   v-model="editor.draft.value.slug"
@@ -285,7 +296,7 @@ function addProduct() {
                 />
               </div>
               <div>
-                <label class="label" for="topic">Bo‘lim</label>
+                <label class="label" for="topic">{{ ui('Topic') }}</label>
                 <select id="topic" v-model="editor.draft.value.topic" class="field">
                   <option v-for="t in store.topics.value" :key="t.key" :value="t.key">{{ t.short }}</option>
                 </select>
@@ -293,37 +304,42 @@ function addProduct() {
             </div>
             <div class="grid gap-4 sm:grid-cols-3">
               <div>
-                <label class="label" for="format">Format</label
-                ><input id="format" v-model="editor.draft.value.format" class="field" placeholder="Wardrobe puzzle" />
+                <label class="label" for="format">{{ ui('Format') }}</label
+                ><input
+                  id="format"
+                  v-model="editor.draft.value.format"
+                  class="field"
+                  :placeholder="ui('Wardrobe puzzle')"
+                />
               </div>
               <div>
-                <label class="label" for="prompt">Kartochka iborasi</label
+                <label class="label" for="prompt">{{ ui('Card phrase') }}</label
                 ><input
                   id="prompt"
                   v-model="editor.draft.value.cardPrompt"
                   class="field"
-                  placeholder="Borrow the idea."
+                  :placeholder="ui('Borrow the idea.')"
                 />
               </div>
               <div>
-                <label class="label" for="lang">Til</label>
+                <label class="label" for="lang">{{ ui('Language') }}</label>
                 <select id="lang" v-model="editor.draft.value.language" class="field">
-                  <option value="en">English</option>
+                  <option value="en">{{ ui('English') }}</option>
                   <option value="uz">O‘zbekcha</option>
                   <option value="ru">Русский</option>
                 </select>
               </div>
             </div>
             <div>
-              <label class="label" for="excerpt">Qisqa tavsif (kartochka va feed)</label
+              <label class="label" for="excerpt">{{ ui('Short description (card and feed)') }}</label
               ><textarea id="excerpt" v-model="editor.draft.value.excerpt" rows="2" class="field"></textarea>
             </div>
             <div>
-              <label class="label" for="intro">Kirish</label
+              <label class="label" for="intro">{{ ui('Introduction') }}</label
               ><textarea id="intro" v-model="editor.draft.value.intro" rows="4" class="field"></textarea>
             </div>
             <div>
-              <label class="label" for="promise">O‘quvchiga va’da (ichki, chop etilmaydi)</label
+              <label class="label" for="promise">{{ ui('Reader promise (internal, not published)') }}</label
               ><input id="promise" v-model="editor.draft.value.readerPromise" class="field" />
             </div>
           </div>
@@ -331,14 +347,14 @@ function addProduct() {
 
         <section class="panel" aria-labelledby="sections">
           <div class="flex items-center justify-between">
-            <h2 id="sections" class="font-editorial text-2xl">Bo‘limlar</h2>
+            <h2 id="sections" class="font-editorial text-2xl">{{ ui('Topics') }}</h2>
             <button
               class="btn-outline"
               @click="
                 editor.draft.value.sections.push({ heading: '', paragraphs: [], list: null, sourceIndexes: null })
               "
             >
-              <Icon :icon="Plus" :size="14" />Bo‘lim
+              <Icon :icon="Plus" :size="14" />{{ ui('Topic') }}
             </button>
           </div>
           <ol class="mt-4 space-y-4">
@@ -352,18 +368,18 @@ function addProduct() {
                 <input
                   v-model="section.heading"
                   class="field font-semibold"
-                  placeholder="Bo‘lim sarlavhasi"
-                  aria-label="Bo‘lim sarlavhasi"
+                  :placeholder="ui('Topic heading')"
+                  :aria-label="ui('Topic heading')"
                 />
-                <button class="btn-ghost px-1.5" aria-label="Yuqoriga" @click="moveSection(index, -1)">
+                <button class="btn-ghost px-1.5" :aria-label="ui('Move up')" @click="moveSection(index, -1)">
                   <Icon :icon="ArrowUp" :size="13" />
                 </button>
-                <button class="btn-ghost px-1.5" aria-label="Pastga" @click="moveSection(index, 1)">
+                <button class="btn-ghost px-1.5" :aria-label="ui('Move down')" @click="moveSection(index, 1)">
                   <Icon :icon="ArrowDown" :size="13" />
                 </button>
                 <button
                   class="btn-ghost px-1.5 text-destructive"
-                  aria-label="Bo‘limni o‘chirish"
+                  :aria-label="ui('Delete topic')"
                   @click="editor.draft.value.sections.splice(index, 1)"
                 >
                   <Icon :icon="Trash2" :size="13" />
@@ -376,7 +392,7 @@ function addProduct() {
                 @change="editor.draft.value.sections[index] = $event"
               />
               <div v-if="editor.draft.value.sources.length" class="mt-3 flex flex-wrap items-center gap-2 text-xs">
-                <span class="text-muted-foreground">Manbalar:</span>
+                <span class="text-muted-foreground">{{ ui('Sources:') }}</span>
                 <button
                   v-for="(source, s) in editor.draft.value.sources"
                   :key="s"
@@ -396,14 +412,14 @@ function addProduct() {
         </section>
 
         <section class="panel" aria-labelledby="closing">
-          <h2 id="closing" class="font-editorial text-2xl">Yakun</h2>
+          <h2 id="closing" class="font-editorial text-2xl">{{ ui('Conclusion') }}</h2>
           <div class="mt-4 grid gap-4">
             <div>
-              <label class="label" for="takeaway">“Take this with you”</label
+              <label class="label" for="takeaway">{{ ui('“Take this with you”') }}</label
               ><textarea id="takeaway" v-model="editor.draft.value.takeaway" rows="2" class="field"></textarea>
             </div>
             <div>
-              <label class="label" for="question">Yakuniy savol</label
+              <label class="label" for="question">{{ ui('Closing question') }}</label
               ><input id="question" v-model="editor.draft.value.closingQuestion" class="field" />
             </div>
           </div>
@@ -411,12 +427,12 @@ function addProduct() {
 
         <section class="panel" aria-labelledby="sources">
           <div class="flex items-center justify-between">
-            <h2 id="sources" class="font-editorial text-2xl">Manbalar</h2>
+            <h2 id="sources" class="font-editorial text-2xl">{{ ui('Sources') }}</h2>
             <button
               class="btn-outline"
               @click="editor.draft.value.sources.push({ label: '', url: 'https://', supports: null })"
             >
-              <Icon :icon="Plus" :size="14" />Manba
+              <Icon :icon="Plus" :size="14" />{{ ui('Source') }}
             </button>
           </div>
           <ul class="mt-4 space-y-3">
@@ -425,31 +441,31 @@ function addProduct() {
               :key="index"
               class="grid gap-2 rounded-xl border border-border p-3 sm:grid-cols-[1fr_1fr_auto]"
             >
-              <input v-model="source.label" class="field" placeholder="Nomi" aria-label="Manba nomi" />
+              <input v-model="source.label" class="field" :placeholder="ui('Name')" :aria-label="ui('Source name')" />
               <input
                 v-model="source.url"
                 class="field font-mono text-xs"
                 placeholder="https://"
-                aria-label="Manba manzili"
+                :aria-label="ui('Source URL')"
               />
-              <button class="btn-ghost text-destructive" aria-label="Manbani o‘chirish" @click="removeSource(index)">
+              <button class="btn-ghost text-destructive" :aria-label="ui('Remove source')" @click="removeSource(index)">
                 <Icon :icon="Trash2" :size="14" />
               </button>
               <input
                 v-model="source.supports"
                 class="field sm:col-span-3"
-                placeholder="Qaysi fikrni tasdiqlaydi (ixtiyoriy)"
-                aria-label="Izoh"
+                :placeholder="ui('Supporting which claim (optional)')"
+                :aria-label="ui('Note')"
               />
             </li>
           </ul>
         </section>
 
         <section class="panel" aria-labelledby="links">
-          <h2 id="links" class="font-editorial text-2xl">Muqova, mahsulotlar va bog‘liq hikoyalar</h2>
+          <h2 id="links" class="font-editorial text-2xl">{{ ui('Cover, products and related stories') }}</h2>
           <div class="mt-4 grid gap-5" :class="imageEditing ? 'lg:grid-cols-1' : 'lg:grid-cols-2'">
             <div>
-              <p class="label">Muqova</p>
+              <p class="label">{{ ui('Cover') }}</p>
               <div v-if="editor.draft.value.cover" class="rounded-xl border border-border p-3">
                 <img
                   :src="store.links.media(editor.draft.value.cover.mediaSha256)"
@@ -459,14 +475,14 @@ function addProduct() {
                 <input
                   v-model="editor.draft.value.cover.alt"
                   class="field mt-2"
-                  placeholder="Rasm tavsifi (alt)"
-                  aria-label="Muqova tavsifi"
+                  :placeholder="ui('Image description (alt)')"
+                  :aria-label="ui('Cover description')"
                 />
                 <input
                   v-model="editor.draft.value.cover.caption"
                   class="field mt-2"
-                  placeholder="Izoh (figcaption)"
-                  aria-label="Muqova izohi"
+                  :placeholder="ui('Caption (figcaption)')"
+                  :aria-label="ui('Cover caption')"
                 />
                 <button
                   type="button"
@@ -477,14 +493,14 @@ function addProduct() {
                     editor.draft.value.cover = null;
                   "
                 >
-                  Muqovani olib tashlash
+                  {{ ui('Remove cover') }}
                 </button>
               </div>
               <div v-else class="rounded-xl border border-dashed border-border p-4 text-sm text-muted-foreground">
-                Tipografik muqova ishlatiladi.
+                {{ ui('A typographic cover will be used.') }}
                 <select
                   class="field mt-2"
-                  aria-label="Kutubxonadan tanlash"
+                  :aria-label="ui('Choose from library')"
                   @change="
                     editor.draft.value.cover = {
                       mediaSha256: ($event.target as HTMLSelectElement).value,
@@ -494,7 +510,7 @@ function addProduct() {
                     }
                   "
                 >
-                  <option value="">Kutubxonadan tanlash…</option>
+                  <option value="">{{ ui('Choose from library…') }}</option>
                   <option v-for="m in editor.media.value" :key="m.sha256" :value="m.sha256">{{ m.fileName }}</option>
                 </select>
               </div>
@@ -505,7 +521,7 @@ function addProduct() {
                 :disabled="imageBusy || editor.busy.value || !editor.canEdit.value"
                 @click="imageEditing = true"
               >
-                Edit image
+                {{ ui('Edit image') }}
               </button>
               <button
                 type="button"
@@ -513,7 +529,7 @@ function addProduct() {
                 :disabled="imageBusy || editor.busy.value || !editor.canEdit.value"
                 @click="coverInput?.click()"
               >
-                <Icon :icon="ImagePlus" :size="14" />Rasm yuklash
+                <Icon :icon="ImagePlus" :size="14" />{{ ui('Upload image') }}
               </button>
               <CoverImageEditor
                 v-if="imageEditing && coverMedia && editor.draft.value.cover"
@@ -537,17 +553,17 @@ function addProduct() {
             </div>
             <div class="space-y-5">
               <div>
-                <p class="label">Katalogdagi mahsulotlar (hikoya ostida)</p>
+                <p class="label">{{ ui('Catalogue products (below the story)') }}</p>
                 <div class="flex gap-2">
-                  <select v-model="productPick" class="field" aria-label="Mahsulot tanlash">
+                  <select v-model="productPick" class="field" :aria-label="ui('Select product')">
                     <option value="">
-                      {{ editor.products.value.length ? 'Mahsulot tanlang…' : 'Katalog ulanmagan' }}
+                      {{ editor.products.value.length ? ui('Choose a product…') : ui('Catalogue disconnected') }}
                     </option>
                     <option v-for="p in editor.products.value" :key="p.id" :value="p.id">
                       {{ p.name }} — {{ p.id }}
                     </option>
                   </select>
-                  <button class="btn-outline" :disabled="!productPick" @click="addProduct">Qo‘shish</button>
+                  <button class="btn-outline" :disabled="!productPick" @click="addProduct">{{ ui('Add') }}</button>
                 </div>
                 <ul class="mt-2 flex flex-wrap gap-2">
                   <li
@@ -557,7 +573,7 @@ function addProduct() {
                   >
                     {{ editor.products.value.find((p) => p.id === pid)?.name ?? pid }}
                     <button
-                      :aria-label="`${pid} ni olib tashlash`"
+                      :aria-label="ui('Remove {product}', { product: pid })"
                       @click="editor.draft.value.productIds.splice(index, 1)"
                     >
                       ×
@@ -566,13 +582,13 @@ function addProduct() {
                 </ul>
               </div>
               <div>
-                <p class="label">“Keep reading” (bo‘sh — avtomatik)</p>
+                <p class="label">{{ ui('Keep reading (blank — automatic)') }}</p>
                 <select
                   v-for="slot in [0, 1]"
                   :key="slot"
                   class="field mb-2"
                   :value="editor.draft.value.relatedSlugs[slot] ?? ''"
-                  :aria-label="`Bog‘liq hikoya ${slot + 1}`"
+                  :aria-label="ui('Related story {number}', { number: slot + 1 })"
                   @change="
                     (() => {
                       const value = ($event.target as HTMLSelectElement).value;
@@ -597,15 +613,15 @@ function addProduct() {
                 <input
                   v-model="editor.draft.value.seoTitle"
                   class="field mb-2"
-                  placeholder="SEO sarlavha (ixtiyoriy)"
-                  aria-label="SEO sarlavha"
+                  :placeholder="ui('SEO title (optional)')"
+                  :aria-label="ui('SEO title')"
                 />
                 <textarea
                   v-model="editor.draft.value.seoDescription"
                   rows="2"
                   class="field"
-                  placeholder="SEO tavsif (ixtiyoriy)"
-                  aria-label="SEO tavsif"
+                  :placeholder="ui('SEO description (optional)')"
+                  :aria-label="ui('SEO description')"
                 ></textarea>
               </div>
             </div>
@@ -615,16 +631,18 @@ function addProduct() {
 
       <aside class="space-y-6 2xl:sticky 2xl:top-24 2xl:self-start">
         <section class="panel" aria-labelledby="publishing">
-          <h2 id="publishing" class="font-editorial text-2xl">Nashr</h2>
+          <h2 id="publishing" class="font-editorial text-2xl">{{ ui('Publication') }}</h2>
           <p
             v-if="editor.blockers.value.length"
             class="mt-3 rounded-lg bg-warning-soft px-3 py-2 text-sm text-warning-soft-foreground"
           >
-            Nashrdan oldin qo‘shing: {{ editor.blockers.value.join(', ') }}.
+            {{ ui('Add before publishing:') }} {{ editor.blockers.value.map((blocker) => ui(blocker)).join(', ') }}.
           </p>
-          <p v-if="!editor.detail.value" class="mt-3 text-sm text-muted-foreground">Avval qoralama sifatida saqlang.</p>
+          <p v-if="!editor.detail.value" class="mt-3 text-sm text-muted-foreground">
+            {{ ui('Save as a draft first.') }}
+          </p>
           <p v-else-if="unsavedChanges" class="mt-3 text-sm text-warning">
-            Nashr amallari oldidan o‘zgarishlarni saqlang.
+            {{ ui('Save changes before publishing actions.') }}
           </p>
           <div class="mt-4 flex flex-wrap gap-2">
             <button
@@ -639,10 +657,10 @@ function addProduct() {
               "
               @click="editor.publish()"
             >
-              <Icon :icon="Send" :size="14" />Hozir nashr qilish
+              <Icon :icon="Send" :size="14" />{{ ui('Publish now') }}
             </button>
             <a v-if="previewUrl" :href="previewUrl" target="_blank" rel="noopener" class="btn-outline"
-              ><Icon :icon="Eye" :size="14" />Ko‘rish</a
+              ><Icon :icon="Eye" :size="14" />{{ ui('View') }}</a
             >
             <button
               v-if="status === 'published' || status === 'scheduled'"
@@ -650,7 +668,7 @@ function addProduct() {
               :disabled="unsavedChanges || editor.busy.value"
               @click="editor.unpublish()"
             >
-              <Icon :icon="Undo2" :size="14" />Qoralamaga
+              <Icon :icon="Undo2" :size="14" />{{ ui('Move to draft') }}
             </button>
             <button
               v-if="status !== 'archived' && editor.detail.value"
@@ -658,12 +676,12 @@ function addProduct() {
               :disabled="unsavedChanges || editor.busy.value"
               @click="editor.archive()"
             >
-              <Icon :icon="Archive" :size="14" />Arxiv
+              <Icon :icon="Archive" :size="14" />{{ ui('Archive') }}
             </button>
           </div>
           <div class="mt-4 flex flex-wrap items-end gap-2">
             <div>
-              <label class="label" for="when">Rejalashtirish (mahalliy vaqt)</label>
+              <label class="label" for="when">{{ ui('Schedule (local time)') }}</label>
               <input id="when" v-model="scheduleAt" type="datetime-local" class="field" />
             </div>
             <button
@@ -678,26 +696,26 @@ function addProduct() {
               "
               @click="editor.schedule(scheduleAt)"
             >
-              <Icon :icon="CalendarClock" :size="14" />Rejalashtirish
+              <Icon :icon="CalendarClock" :size="14" />{{ ui('Scheduling') }}
             </button>
           </div>
           <p v-if="editor.detail.value?.document.publishAt" class="mt-2 text-xs text-muted-foreground">
-            Rejada: {{ formatWhen(editor.detail.value.document.publishAt) }}
+            {{ ui('Planned:') }} {{ formatWhen(editor.detail.value.document.publishAt) }}
           </p>
         </section>
 
         <section v-if="editor.detail.value" class="panel" aria-labelledby="editions">
-          <h2 id="editions" class="font-editorial text-2xl">Tillar</h2>
+          <h2 id="editions" class="font-editorial text-2xl">{{ ui('Languages') }}</h2>
           <p class="mt-1 text-xs text-muted-foreground">
-            Bu hikoya: {{ languageLabels[editor.draft.value.language] }}. Tahrirlar bir-biriga hreflang bilan
-            bog‘lanadi; o‘zbekcha /uz/, ruscha /ru/ ostida.
+            {{ ui('This story:') }} {{ languageLabels[editor.draft.value.language]
+            }}{{ ui('. Editions link to each other with hreflang; Uzbek uses /uz/ and Russian /ru/.') }}
           </p>
           <ul v-if="editions.length" class="mt-3 space-y-1 text-sm">
             <li v-for="e in editions" :key="e.id">
               <RouterLink :to="`/stories/${e.id}`" class="text-primary underline"
                 >{{ languageLabels[e.language] }}: {{ e.title }}</RouterLink
               >
-              <span class="ml-1 text-xs text-muted-foreground">({{ e.status }})</span>
+              <span class="ml-1 text-xs text-muted-foreground">({{ ui(e.status) }})</span>
             </li>
           </ul>
           <div v-if="missingLanguages.length" class="mt-3 flex flex-wrap gap-2">
@@ -708,27 +726,27 @@ function addProduct() {
               :disabled="unsavedChanges || editor.busy.value"
               @click="createEdition(l)"
             >
-              {{ languageLabels[l] }} tahririni yaratish
+              {{ languageLabels[l] }} {{ ui('create edition') }}
             </button>
           </div>
         </section>
 
-        <section v-if="previewUrl" class="panel p-0" aria-label="Jonli ko‘rinish">
+        <section v-if="previewUrl" class="panel p-0" :aria-label="ui('Live preview')">
           <div class="flex items-center justify-between border-b border-border px-4 py-2 text-xs text-muted-foreground">
-            <span>Saqlangan versiya ko‘rinishi</span>
-            <a :href="previewUrl" target="_blank" rel="noopener" class="text-primary">yangi oynada</a>
+            <span>{{ ui('Saved revision preview') }}</span>
+            <a :href="previewUrl" target="_blank" rel="noopener" class="text-primary">{{ ui('in a new window') }}</a>
           </div>
           <iframe
             :key="previewUrl"
             :src="previewUrl"
-            title="Hikoya ko‘rinishi"
+            :title="ui('Story preview')"
             class="h-[70vh] w-full rounded-b-2xl bg-white"
           ></iframe>
         </section>
 
         <section v-if="editor.history.value.length" class="panel" aria-labelledby="history">
           <h2 id="history" class="flex items-center gap-2 font-editorial text-2xl">
-            <Icon :icon="History" :size="18" />Tarix
+            <Icon :icon="History" :size="18" />{{ ui('History') }}
           </h2>
           <ol class="mt-3 max-h-72 space-y-2 overflow-y-auto text-sm">
             <li
@@ -749,7 +767,7 @@ function addProduct() {
                   editor.restore(h.revision);
                 "
               >
-                <Icon :icon="RotateCcw" :size="13" />Tiklash
+                <Icon :icon="RotateCcw" :size="13" />{{ ui('Restore') }}
               </button>
             </li>
           </ol>
@@ -760,14 +778,16 @@ function addProduct() {
     <div class="fixed inset-x-0 bottom-0 z-30 border-t border-border bg-card/95 backdrop-blur lg:left-60">
       <div class="mx-auto flex max-w-[1600px] flex-wrap items-center gap-3 px-5 py-3 sm:px-8 xl:px-10">
         <span :class="['text-sm', unsavedChanges ? 'font-semibold text-warning' : 'text-muted-foreground']">{{
-          unsavedChanges ? 'Saqlanmagan o‘zgarishlar' : 'Hammasi saqlangan'
+          unsavedChanges ? ui('Unsaved changes') : ui('All changes saved')
         }}</span>
-        <span v-if="pendingImageEdits" class="text-xs text-warning">Apply or cancel image edits before saving.</span>
+        <span v-if="pendingImageEdits" class="text-xs text-warning">{{
+          ui('Apply or cancel image edits before saving.')
+        }}</span>
         <input
           v-model="summary"
           class="field max-w-xs flex-1"
-          placeholder="O‘zgarish izohi (ixtiyoriy)"
-          aria-label="O‘zgarish izohi"
+          :placeholder="ui('Change note (optional)')"
+          :aria-label="ui('Change note')"
         />
         <button
           class="btn-ghost ml-auto"
@@ -777,7 +797,7 @@ function addProduct() {
             editor.reset();
           "
         >
-          Bekor qilish
+          {{ ui('Cancel') }}
         </button>
         <button
           class="btn-primary"
@@ -791,11 +811,11 @@ function addProduct() {
           "
           @click="save"
         >
-          <Icon :icon="Save" :size="15" />Saqlash
+          <Icon :icon="Save" :size="15" />{{ ui('Save') }}
         </button>
       </div>
     </div>
   </section>
-  <p v-else-if="loaded" class="panel p-10 text-center text-sm text-muted-foreground">Hikoya topilmadi.</p>
-  <p v-else class="text-sm text-muted-foreground" role="status">Yuklanmoqda…</p>
+  <p v-else-if="loaded" class="panel p-10 text-center text-sm text-muted-foreground">{{ ui('Story not found.') }}</p>
+  <p v-else class="text-sm text-muted-foreground" role="status">{{ ui('Loading…') }}</p>
 </template>

@@ -1,9 +1,11 @@
 <script setup lang="ts">
+import { useUiLocale } from '@ocharomarketing/connect/UseUiLocale';
 import { computed } from 'vue';
 
 import { Badge } from '@wow-two-beta/ui-vue/presentation/display';
 
 import { MarketingExtensions } from '../../domain/marketing';
+const { t: ui } = useUiLocale();
 
 /** Displays a recorded workflow state without deriving publication success. */
 defineOptions({ name: 'StatusIndicator' });
@@ -21,5 +23,5 @@ const variant = computed(() =>
 </script>
 
 <template>
-  <Badge :variant="variant" size="sm">{{ MarketingExtensions.statusLabel(status) }}</Badge>
+  <Badge :variant="variant" size="sm">{{ ui(MarketingExtensions.statusLabel(status)) }}</Badge>
 </template>

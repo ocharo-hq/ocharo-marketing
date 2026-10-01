@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import { useUiLocale } from '@ocharomarketing/connect/UseUiLocale';
 import FilePicker from './compatibility/MediaPicker.vue';
 import SelectPickerTrigger from './compatibility/PickerTrigger.vue';
 import { computed, ref } from 'vue';
@@ -20,6 +21,7 @@ import { MarketingExtensions, type ScanModel } from '../../domain/marketing';
 import GenerationPanel from './GenerationPanel.vue';
 import SourceImageAnalysisPanel from './SourceImageAnalysisPanel.vue';
 import StatusIndicator from './StatusIndicator.vue';
+const { t: ui } = useUiLocale();
 
 /** Reuses actual product records and media with explicit scan and upload actions. */
 defineOptions({ name: 'ProductsPage' });
@@ -71,14 +73,14 @@ async function scan() {
 <template>
   <div class="space-y-6">
     <div>
-      <p class="text-xs uppercase tracking-widest text-primary">Manbalar</p>
-      <h1 class="mt-2 font-editorial text-3xl">Mahsulotlar va tasvirlar</h1>
+      <p class="text-xs uppercase tracking-widest text-primary">{{ ui('Sources') }}</p>
+      <h1 class="mt-2 font-editorial text-3xl">{{ ui('Products and images') }}</h1>
       <p class="mt-3 text-sm text-muted-foreground">
-        Mavjud mahsulotdan boshlang. Rasmlar va manba matnini shu yerda tayyorlang.
+        {{ ui('Start with an existing product. Prepare images and source text here.') }}
       </p>
-      <Button class="mt-4" size="sm" :is-disabled="desk.busy.value !== null" @click="desk.syncCatalogue()"
-        >Ocharo Katalogdan yangilash</Button
-      >
+      <Button class="mt-4" size="sm" :is-disabled="desk.busy.value !== null" @click="desk.syncCatalogue()">{{
+        ui('Refresh from Ocharo Catalogue')
+      }}</Button>
     </div>
     <div class="flex flex-wrap gap-1 rounded-xl bg-muted p-1">
       <button
@@ -96,15 +98,15 @@ async function scan() {
         ]"
         @click="tab = item.id"
       >
-        {{ item.label }}
+        {{ ui(item.label) }}
       </button>
     </div>
     <section v-if="tab === 'products'" class="space-y-5">
       <div class="flex max-w-sm items-center gap-2">
         <Icon :icon="Search" :size="17" class="text-muted-foreground" /><TextInput
           v-model="search"
-          aria-label="Mahsulotni topish"
-          placeholder="Mahsulotni topish…"
+          :aria-label="ui('Find a product')"
+          :placeholder="ui('Find a product…')"
         />
       </div>
       <div class="grid gap-5 sm:grid-cols-2 xl:grid-cols-3">
@@ -128,27 +130,29 @@ async function scan() {
             <p class="mt-3 text-sm text-muted-foreground">{{ item.material }}</p>
             <p class="mt-2 text-xs text-muted-foreground">{{ item.sizes.join(' · ') }}</p>
             <p class="mt-4 text-sm font-semibold">
-              {{ MarketingExtensions.formatPrice(item.price, item.currency)
-              }}<span v-if="item.price !== null" class="ml-2 text-xs font-normal text-muted-foreground">1 dona</span>
+              {{ ui(MarketingExtensions.formatPrice(item.price, item.currency))
+              }}<span v-if="item.price !== null" class="ml-2 text-xs font-normal text-muted-foreground">{{
+                ui('Single item')
+              }}</span>
             </p>
             <Button
               variant="outline"
               class="mt-5"
               :is-full-width="true"
               @click="desk.navigate(`/posts/new?product=${item.id}`)"
-              >Post yaratish <Icon :icon="ArrowUpRight" :size="15" class="ml-2"
+              >{{ ui('Create post') }} <Icon :icon="ArrowUpRight" :size="15" class="ml-2"
             /></Button>
             <details v-if="item.issues.length" class="mt-4 text-xs">
-              <summary class="cursor-pointer text-warning">Tekshirish kerak · {{ item.issues.length }}</summary>
+              <summary class="cursor-pointer text-warning">{{ ui('Needs review ·') }} {{ item.issues.length }}</summary>
               <ul class="mt-2 space-y-2 leading-5 text-muted-foreground">
-                <li v-for="issue in item.issues" :key="issue">{{ issue }}</li>
+                <li v-for="issue in item.issues" :key="issue">{{ ui(issue) }}</li>
               </ul>
             </details>
           </div>
         </article>
       </div>
       <p v-if="!products.length" class="rounded-xl bg-card p-6 text-sm text-muted-foreground">
-        Mos mahsulot topilmadi.
+        {{ ui('No matching product found.') }}
       </p>
     </section>
     <section v-if="tab === 'media'" class="grid items-start gap-6 lg:grid-cols-[1fr_320px]">
@@ -168,10 +172,10 @@ async function scan() {
           <div class="p-4">
             <p class="truncate text-xs font-semibold" :title="asset.fileName">{{ asset.fileName }}</p>
             <p class="mt-2 text-xs text-muted-foreground">
-              {{ asset.role }} · {{ Math.round(asset.byteLength / 1024) }} KB
+              {{ ui(asset.role) }} · {{ Math.round(asset.byteLength / 1024) }} KB
             </p>
             <details class="mt-2 text-xs text-muted-foreground">
-              <summary class="cursor-pointer">Manba</summary>
+              <summary class="cursor-pointer">{{ ui('Source') }}</summary>
               <p class="mt-2 leading-5">{{ asset.provenance }}</p>
             </details>
           </div>
@@ -179,19 +183,22 @@ async function scan() {
       </div>
       <aside class="space-y-4 rounded-2xl border border-border bg-card p-5">
         <Icon :icon="ImagePlus" :size="24" class="text-primary" />
-        <h2 class="font-editorial text-xl">Tasvir qo‘shish</h2>
-        <p class="text-xs leading-6 text-muted-foreground">Asl foto, mos mato yoki ish detallari uchun.</p>
+        <h2 class="font-editorial text-xl">{{ ui('Add image') }}</h2>
+        <p class="text-xs leading-6 text-muted-foreground">
+          {{ ui('For original photos, matching fabric or craftsmanship details.') }}
+        </p>
         <FilePicker
-          label="Fayl tanlash"
+          :label="ui('Choose a file')"
           :preview="file?.name ?? ''"
           accept="image/png,image/jpeg,image/webp"
           @files-change="chooseFile"
         /><label class="block text-xs font-semibold"
-          >Manba izohi<TextInput
+          >{{ ui('Source note')
+          }}<TextInput
             v-model="provenance"
             class="mt-2"
-            aria-label="Tasvir manbasi"
-            placeholder="Rasm qayerdan olingan?" /></label
+            :aria-label="ui('Image source')"
+            :placeholder="ui('Where did the image come from?')" /></label
         ><SelectPicker
           v-model="role"
           :options="[
@@ -200,66 +207,66 @@ async function scan() {
             { itemKey: 'detail', value: 'detail', label: 'Mahsulot detali' },
             { itemKey: 'front', value: 'front', label: 'Mahsulot old ko‘rinishi' },
           ]"
-          ><SelectPickerTrigger aria-label="Tasvir turi"><SelectPickerValue /></SelectPickerTrigger
+          ><SelectPickerTrigger :aria-label="ui('Image type')"><SelectPickerValue /></SelectPickerTrigger
           ><SelectPickerContent
-            ><SelectPickerItem item-key="reference" label="Asl foto" /><SelectPickerItem
+            ><SelectPickerItem item-key="reference" :label="ui('Original photo')" /><SelectPickerItem
               item-key="fabric"
-              label="Mos mato" /><SelectPickerItem item-key="detail" label="Mahsulot detali" /><SelectPickerItem
+              :label="ui('Matching fabric')" /><SelectPickerItem
+              item-key="detail"
+              :label="ui('Product detail')" /><SelectPickerItem
               item-key="front"
-              label="Mahsulot old ko‘rinishi" /></SelectPickerContent></SelectPicker
+              :label="ui('Product front view')" /></SelectPickerContent></SelectPicker
         ><Button
           :is-disabled="!file || !provenance.trim() || desk.busy.value !== null"
           :is-loading="desk.busy.value === 'upload'"
           @click="upload"
-          ><Icon :icon="Upload" :size="16" class="mr-2" />Kutubxonaga qo‘shish</Button
+          ><Icon :icon="Upload" :size="16" class="mr-2" />{{ ui('Add to library') }}</Button
         >
       </aside>
     </section>
     <section v-if="tab === 'scan'" class="grid gap-6 lg:grid-cols-2">
       <div class="space-y-5 rounded-2xl border border-border bg-card p-6">
         <Icon :icon="FileSearch" :size="26" class="text-primary" />
-        <h2 class="font-editorial text-2xl">Manba matnini tekshiring</h2>
+        <h2 class="font-editorial text-2xl">{{ ui('Review source text') }}</h2>
         <p class="text-sm leading-7 text-muted-foreground">
-          Mahsulot haqidagi matnni joylang. Topilgan ma’lumot va yetishmayotgan qismlarni ko‘ring.
+          {{ ui('Paste product source text. Review extracted facts and missing details.') }}
         </p>
         <TextAreaInput
           v-model="scanText"
           :rows="9"
-          aria-label="Tekshirish uchun manba matni"
-          placeholder="Material: …
-O‘lcham: …
-Narx: …"
+          :aria-label="ui('Source text to review')"
+          :placeholder="ui('Material: … Size: … Price: …')"
         /><Button
           :is-disabled="!scanText.trim() || desk.busy.value !== null"
           :is-loading="desk.busy.value === 'scan'"
           @click="scan"
-          >Matnni tekshirish</Button
+          >{{ ui('Review text') }}</Button
         >
       </div>
       <div v-if="scanResult" class="space-y-4 rounded-2xl border border-border bg-card p-6">
-        <h2 class="font-editorial text-2xl">Tekshirish natijasi</h2>
+        <h2 class="font-editorial text-2xl">{{ ui('Review result') }}</h2>
         <p class="text-sm leading-7">{{ scanResult.summary }}</p>
         <div v-if="scanResult.suggestions.length">
-          <h3 class="mb-2 text-xs font-semibold text-primary">Takliflar</h3>
+          <h3 class="mb-2 text-xs font-semibold text-primary">{{ ui('Suggestions') }}</h3>
           <ul class="space-y-2 text-sm leading-6">
             <li v-for="item in scanResult.suggestions" :key="item">{{ item }}</li>
           </ul>
         </div>
         <div v-if="scanResult.issues.length" class="rounded-xl bg-warning-soft p-4">
-          <h3 class="mb-2 text-xs font-semibold text-warning">Tekshiring</h3>
+          <h3 class="mb-2 text-xs font-semibold text-warning">{{ ui('Review') }}</h3>
           <ul class="space-y-2 text-xs leading-6">
             <li v-for="item in scanResult.issues" :key="item">{{ item }}</li>
           </ul>
         </div>
         <p class="text-xs leading-6 text-muted-foreground">
-          Takliflar mahsulot ma’lumotlarini o‘z-o‘zidan o‘zgartirmaydi.
+          {{ ui('Suggestions do not change product facts automatically.') }}
         </p>
       </div>
       <div
         v-else
         class="flex min-h-64 items-center justify-center rounded-2xl border border-dashed border-border p-8 text-center text-sm text-muted-foreground"
       >
-        Natija shu yerda ko‘rinadi.
+        {{ ui('The result will appear here.') }}
       </div>
     </section>
     <SourceImageAnalysisPanel v-if="tab === 'analysis'" />

@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import { useUiLocale } from '@ocharomarketing/connect/UseUiLocale';
 import { computed, onBeforeUnmount, ref, watch } from 'vue';
 import { RefreshCw } from 'lucide-vue-next';
 import { Icon } from '@wow-two-beta/ui-vue/foundation/icons';
@@ -6,6 +7,8 @@ import { Button } from '@wow-two-beta/ui-vue/presentation/actions';
 import StatusIndicator from './StatusIndicator.vue';
 import { useMarketingWorkspace } from '../../application/marketing';
 import { MarketingExtensions, type MetricCacheModel, type ScheduleModel } from '../../domain/marketing';
+const { t: ui, formatNumber, formatDate } = useUiLocale();
+
 /** Reads saved observations on mount; a provider read requires the refresh button. */
 defineOptions({ name: 'ObservedMetricsPanel' });
 const props = defineProps<{ plan: ScheduleModel }>();
@@ -113,17 +116,17 @@ function name(value: string) {
     <div class="flex flex-wrap items-start justify-between gap-4">
       <div>
         <h2 class="font-editorial text-2xl">
-          {{ plan.draftTitle ?? operation?.snapshot.draft.title ?? 'Joylangan post' }}
+          {{ plan.draftTitle ?? operation?.snapshot.draft.title ?? ui('Published post') }}
         </h2>
         <p class="mt-2 text-xs text-muted-foreground">
-          {{ plan.channel }} · {{ plan.draftRevision }}-talqin ·
-          {{ MarketingExtensions.formatDate(plan.scheduledAt, { hour: '2-digit', minute: '2-digit' }) }}
+          {{ plan.channel }} · {{ plan.draftRevision }}{{ ui(' revision ·') }}
+          {{ formatDate(plan.scheduledAt, { hour: '2-digit', minute: '2-digit' }) }}
         </p>
       </div>
       <StatusIndicator :status="plan.status" />
     </div>
     <p v-if="operation?.receipt" class="mt-3 break-all text-[11px] text-muted-foreground">
-      Tasdiq: {{ operation.receipt.externalId }} · {{ operation.receipt.stage }}
+      {{ ui('Confirmation:') }} {{ operation.receipt.externalId }} · {{ ui(operation.receipt.stage) }}
     </p>
     <div class="mt-5 flex flex-wrap items-center gap-3">
       <Button
@@ -132,66 +135,69 @@ function name(value: string) {
         :is-disabled="!canRefresh || refreshing || desk.busy.value !== null"
         :is-loading="refreshing"
         @click="refresh"
-        ><Icon :icon="RefreshCw" :size="14" class="mr-2" />Kanaldan yangilash</Button
+        ><Icon :icon="RefreshCw" :size="14" class="mr-2" />{{ ui('Refresh from channel') }}</Button
       ><span class="text-[11px] leading-5 text-muted-foreground">{{
         plan.channel === 'x'
-          ? 'X so‘rovi kredit sarflashi mumkin. Faqat tugma bosilganda o‘qiladi.'
-          : 'Kanal faqat shu tugma bosilganda o‘qiladi.'
+          ? ui('Reading X data may use credits. Data is read only when the button is pressed.')
+          : ui('The channel is read only when this button is pressed.')
       }}</span>
     </div>
     <p v-if="!canRefresh" class="mt-3 text-xs leading-6 text-muted-foreground">
-      Haqiqiy joylash tasdig‘i, tekshirilgan ulanish va ko‘rsatkichlarni o‘qish ruxsati kerak. Quyida faqat avval
-      saqlangan kuzatuvlar ko‘rsatiladi.
+      {{
+        ui(
+          'Requires a confirmed publication, a verified connection and permission to read metrics. Only saved observations appear below.',
+        )
+      }}
     </p>
-    <p v-if="loading" class="mt-5 text-xs text-muted-foreground">Saqlangan kuzatuvlar yuklanmoqda…</p>
-    <p v-if="error" role="alert" class="mt-4 text-xs leading-6 text-destructive">{{ error }}</p>
+    <p v-if="loading" class="mt-5 text-xs text-muted-foreground">{{ ui('Loading saved observations…') }}</p>
+    <p v-if="error" role="alert" class="mt-4 text-xs leading-6 text-destructive">{{ ui(error) }}</p>
     <div v-if="cache?.lastAttempt" class="mt-4 rounded-lg bg-muted p-3 text-xs leading-6">
       <p>
-        Oxirgi so‘rov:
-        {{ MarketingExtensions.formatDate(cache.lastAttempt.attemptedAt, { hour: '2-digit', minute: '2-digit' }) }} ·
-        {{ MarketingExtensions.statusLabel(cache.lastAttempt.status) }}
+        {{ ui('Last request:') }}
+        {{ formatDate(cache.lastAttempt.attemptedAt, { hour: '2-digit', minute: '2-digit' }) }} ·
+        {{ ui(MarketingExtensions.statusLabel(cache.lastAttempt.status)) }}
       </p>
-      <p class="text-muted-foreground">{{ cache.lastAttempt.message }}</p>
+      <p class="text-muted-foreground">{{ ui(cache.lastAttempt.message) }}</p>
     </div>
     <div v-if="latest.length" class="mt-5 grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
       <div v-for="item in latest" :key="item.id" class="rounded-xl border border-border p-4">
-        <p class="text-xs font-semibold">{{ name(item.name) }}</p>
+        <p class="text-xs font-semibold">{{ ui(name(item.name)) }}</p>
         <p class="mt-3 font-editorial text-3xl">
-          {{ item.value === null ? '—' : new Intl.NumberFormat('uz-UZ').format(item.value) }}
+          {{ item.value === null ? '—' : formatNumber(item.value) }}
         </p>
         <p class="mt-3 text-[11px] leading-5 text-muted-foreground">
-          {{ item.scope === 'post' ? 'Post' : 'Akkaunt' }} ·
-          {{ item.aggregation === 'cumulative' ? 'Jamlangan' : item.aggregation }} ·
-          {{ MarketingExtensions.statusLabel(item.availability) }}
+          {{ item.scope === 'post' ? ui('Post') : ui('Account') }} ·
+          {{ item.aggregation === 'cumulative' ? ui('Cumulative') : item.aggregation }} ·
+          {{ ui(MarketingExtensions.statusLabel(item.availability)) }}
         </p>
         <p v-if="item.observedAt" class="mt-2 text-[11px] text-muted-foreground">
-          Kuzatildi: {{ MarketingExtensions.formatDate(item.observedAt, { hour: '2-digit', minute: '2-digit' }) }}
+          {{ ui('Observed:') }} {{ formatDate(item.observedAt, { hour: '2-digit', minute: '2-digit' }) }}
         </p>
-        <p v-if="item.reason" class="mt-2 text-xs leading-6 text-muted-foreground">{{ item.reason }}</p>
+        <p v-if="item.reason" class="mt-2 text-xs leading-6 text-muted-foreground">{{ ui(item.reason) }}</p>
       </div>
     </div>
     <p v-else-if="!loading" class="mt-5 text-sm leading-7 text-muted-foreground">
-      Saqlangan kuzatuv yo‘q. Bu nol natija degani emas.
+      {{ ui('No saved observations. This does not mean zero results.') }}
     </p>
     <details v-if="history.length" class="mt-5 text-xs">
       <summary class="cursor-pointer font-semibold text-primary">
-        {{ cache?.history ? 'Kuzatuv tarixi' : 'Saqlangan kuzatuvlar' }} · {{ history.length }}
+        {{ cache?.history ? ui('Observation history') : ui('Saved observations') }} · {{ history.length }}
       </summary>
       <p v-if="cache?.historyTruncated" class="mt-3 text-[11px] leading-6 text-muted-foreground">
-        Eng so‘nggi 250 kuzatuv ko‘rsatilgan; oldingi tarix saqlanib turibdi.
+        {{ ui('Showing the latest 250 observations; earlier history is preserved.') }}
       </p>
       <div class="mt-3 space-y-3">
         <div v-for="item in history" :key="item.id" class="rounded-lg bg-muted/40 p-3">
           <p>
-            {{ name(item.name) }}: {{ item.value === null ? 'Ma’lumot yo‘q' : item.value }} · {{ item.scope }} ·
-            {{ item.aggregation }}
+            {{ ui(name(item.name)) }}: {{ item.value === null ? ui('No data') : item.value }} · {{ ui(item.scope) }} ·
+            {{ ui(item.aggregation) }}
           </p>
           <p class="mt-1 break-all text-[11px] leading-6 text-muted-foreground">
-            {{ item.provider }} · Tasdiq {{ item.receiptId }} ·
+            {{ item.provider }} {{ ui('· Confirmation') }} {{ item.receiptId }} ·
             {{
               item.observedAt
-                ? MarketingExtensions.formatDate(item.observedAt, { hour: '2-digit', minute: '2-digit' })
-                : 'Kuzatuv sanasi yo‘q'
+                ? formatDate(item.observedAt, { hour: '2-digit', minute: '2-digit' })
+                : ui('No observation date')
             }}
           </p>
         </div>

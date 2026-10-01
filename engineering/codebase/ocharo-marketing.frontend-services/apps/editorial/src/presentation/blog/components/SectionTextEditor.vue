@@ -1,13 +1,21 @@
 <script setup lang="ts">
+import { useUiLocale } from '@ocharomarketing/connect/UseUiLocale';
 import { computed, ref, watch } from 'vue';
 import { MarkdownEditor } from '@wow-two-beta/ui-vue/presentation/forms';
 import type { ArticleSection } from '../../../domain/blog/BlogModels';
 import { formatSection, markdownParagraphs, maximumMarkdownCharacters } from '../../../domain/blog/SectionFormatting';
 import { joinParagraphs, splitLines, splitParagraphs } from '../../../domain/blog/BlogRules';
+const { t: ui } = useUiLocale();
 
 defineOptions({ name: 'SectionTextEditor' });
 const props = defineProps<{ section: ArticleSection; id: string; disabled?: boolean }>();
 const emit = defineEmits<{ change: [section: ArticleSection] }>();
+const view = ref<'edit' | 'split' | 'preview'>('split');
+const viewOptions = [
+  { value: 'edit', label: 'Edit' },
+  { value: 'split', label: 'Split' },
+  { value: 'preview', label: 'Preview' },
+] as const;
 const markdown = computed(() => props.section.paragraphs.join('\n\n'));
 const plainText = ref(joinParagraphs(props.section.paragraphs)),
   plainList = ref((props.section.list ?? []).join('\n'));
@@ -50,12 +58,26 @@ function updateList(value: string): void {
 <template>
   <div class="section-text-editor mt-3">
     <template v-if="section.format === 'markdown'">
-      <label class="label" :for="id">Formatted text</label>
+      <label class="label" :for="id">{{ ui('Formatted text') }}</label>
       <p class="mb-2 text-xs text-muted-foreground">
-        Headings, bold, italic, links, lists and quotes. Use the cover editor for images.
+        {{ ui('Headings, bold, italic, links, lists and quotes. Use the cover editor for images.') }}
       </p>
+      <div role="group" :aria-label="ui('View mode')" class="mb-2 flex flex-wrap gap-2">
+        <button
+          v-for="option in viewOptions"
+          :key="option.value"
+          type="button"
+          class="btn-outline text-xs"
+          :aria-pressed="view === option.value"
+          @click="view = option.value"
+        >
+          {{ ui(option.label) }}
+        </button>
+      </div>
       <MarkdownEditor
         :id="id"
+        v-model:view="view"
+        class="localized-markdown"
         :model-value="markdown"
         :is-disabled="disabled"
         :show-images="false"
@@ -69,14 +91,14 @@ function updateList(value: string): void {
         ]"
         :role="markdown.length > maximumMarkdownCharacters ? 'alert' : undefined"
       >
-        {{ markdown.length.toLocaleString() }} / {{ maximumMarkdownCharacters.toLocaleString() }} characters
+        {{ markdown.length.toLocaleString() }} / {{ maximumMarkdownCharacters.toLocaleString() }} {{ ui('characters') }}
       </p>
     </template>
     <template v-else>
       <div class="mb-2 flex flex-wrap items-center justify-between gap-2">
-        <label class="label" :for="id">Paragraflar (bo‘sh qator bilan ajrating)</label>
+        <label class="label" :for="id">{{ ui('Paragraphs (separate with blank lines)') }}</label>
         <button type="button" class="btn-outline text-xs" :disabled="disabled" @click="enable">
-          Enable formatting
+          {{ ui('Enable formatting') }}
         </button>
       </div>
       <textarea
@@ -87,7 +109,7 @@ function updateList(value: string): void {
         :disabled="disabled"
         @input="updateParagraphs(($event.target as HTMLTextAreaElement).value)"
       />
-      <label class="label mt-3" :for="`${id}-list`">Ro‘yxat (har qatorda bittadan, ixtiyoriy)</label>
+      <label class="label mt-3" :for="`${id}-list`">{{ ui('List (one item per line, optional)') }}</label>
       <textarea
         :id="`${id}-list`"
         :value="plainList"
@@ -101,6 +123,10 @@ function updateList(value: string): void {
 </template>
 
 <style scoped>
+/* SDK 0.0.12 exposes controlled view, but its mode enum labels have no locale hook. */
+.section-text-editor :deep(.localized-markdown [role='radiogroup']) {
+  display: none;
+}
 .section-text-editor {
   min-width: 0;
 }

@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import { useUiLocale } from '@ocharomarketing/connect/UseUiLocale';
 import { computed, ref } from 'vue';
 import { ArrowUpRight, Link2, RefreshCw, ShieldCheck, Sparkles } from 'lucide-vue-next';
 import { Icon } from '@wow-two-beta/ui-vue/foundation/icons';
@@ -7,6 +8,7 @@ import { useMarketingWorkspace } from '../../application/marketing';
 import GenerationPanel from './GenerationPanel.vue';
 import StatusIndicator from './StatusIndicator.vue';
 import ConnectionReadiness from './ConnectionReadiness.vue';
+const { t: ui } = useUiLocale();
 
 /** Reports real server-side configuration without simulating account authorization. */
 defineOptions({ name: 'ConnectionsPage' });
@@ -32,14 +34,14 @@ function documentation(url: string) {
   <div class="space-y-7">
     <div class="flex flex-wrap items-start justify-between gap-5">
       <div>
-        <p class="text-xs uppercase tracking-widest text-primary">Ulanishlar</p>
-        <h1 class="mt-2 font-editorial text-3xl">Har kanalning o‘z yo‘li bor.</h1>
+        <p class="text-xs uppercase tracking-widest text-primary">{{ ui('Connections') }}</p>
+        <h1 class="mt-2 font-editorial text-3xl">{{ ui('Every channel has its own approach.') }}</h1>
         <p class="mt-3 max-w-xl text-sm leading-7 text-muted-foreground">
-          Sozlangan xizmat hali tekshirilgan ulanish degani emas. Maxfiy kalitlar bu sahifada kiritilmaydi.
+          {{ ui('Configured service does not mean a verified connection. Secret keys are not entered on this page.') }}
         </p>
       </div>
       <Button variant="outline" :is-loading="desk.loading.value" @click="desk.refresh()"
-        ><Icon :icon="RefreshCw" :size="15" class="mr-2" />Holatni yangilash</Button
+        ><Icon :icon="RefreshCw" :size="15" class="mr-2" />{{ ui('Refresh status') }}</Button
       >
     </div>
     <div class="inline-flex flex-wrap gap-1 rounded-xl border border-border bg-card p-1">
@@ -56,7 +58,7 @@ function documentation(url: string) {
         :aria-pressed="view === tab.id"
         @click="view = tab.id"
       >
-        <Icon :icon="tab.icon" :size="15" />{{ tab.name }}
+        <Icon :icon="tab.icon" :size="15" />{{ ui(tab.name) }}
       </button>
     </div>
     <GenerationPanel v-if="view === 'generation'" />
@@ -77,7 +79,7 @@ function documentation(url: string) {
             <StatusIndicator :status="connection.status" />
           </div>
           <ConnectionReadiness :connection="connection" />
-          <p class="mt-5 text-xs leading-6 text-muted-foreground">{{ connection.setupHint }}</p>
+          <p class="mt-5 text-xs leading-6 text-muted-foreground">{{ ui(connection.setupHint) }}</p>
           <p v-if="connection.capabilities.length" class="mt-3 text-[11px] leading-6 text-muted-foreground">
             {{ connection.capabilities.join(' · ') }}
           </p>
@@ -87,14 +89,14 @@ function documentation(url: string) {
             target="_blank"
             rel="noopener noreferrer"
             class="mt-5 inline-flex items-center gap-1 text-xs font-semibold text-primary"
-            >Rasmiy sozlash yo‘riqnomasi <Icon :icon="ArrowUpRight" :size="14"
+            >{{ ui('Official setup guide') }} <Icon :icon="ArrowUpRight" :size="14"
           /></a>
         </article>
       </div>
       <section class="rounded-2xl border border-border bg-card p-6">
         <div class="flex items-center gap-3">
           <Icon :icon="Sparkles" :size="20" class="text-primary" />
-          <h2 class="font-editorial text-2xl">Matn va tasvir xizmatlari</h2>
+          <h2 class="font-editorial text-2xl">{{ ui('Text and image services') }}</h2>
         </div>
         <div class="mt-5 divide-y divide-border">
           <article
@@ -104,14 +106,14 @@ function documentation(url: string) {
           >
             <div class="max-w-2xl">
               <h3 class="text-sm font-semibold">{{ connection.name }}</h3>
-              <p class="mt-2 text-xs leading-6 text-muted-foreground">{{ connection.setupHint }}</p>
+              <p class="mt-2 text-xs leading-6 text-muted-foreground">{{ ui(connection.setupHint) }}</p>
               <a
                 v-if="documentation(connection.documentationUrl)"
                 :href="documentation(connection.documentationUrl) ?? undefined"
                 target="_blank"
                 rel="noopener noreferrer"
                 class="mt-2 inline-flex items-center gap-1 text-xs text-primary"
-                >Rasmiy hujjat <Icon :icon="ArrowUpRight" :size="13"
+                >{{ ui('Official documentation') }} <Icon :icon="ArrowUpRight" :size="13"
               /></a>
             </div>
             <StatusIndicator :status="connection.status" />
@@ -121,10 +123,13 @@ function documentation(url: string) {
       <div class="flex gap-3 rounded-xl border border-border p-5">
         <Icon :icon="ShieldCheck" :size="22" class="shrink-0 text-primary" />
         <div>
-          <h3 class="text-sm font-semibold">Hozir mahalliy ish stoli</h3>
+          <h3 class="text-sm font-semibold">{{ ui('Currently a local workspace') }}</h3>
           <p class="mt-2 text-xs leading-6 text-muted-foreground">
-            Ulanmagan kanal uchun ZIP paketni yuklab, qo‘lda joylash mumkin. Haqiqiy yuborish alohida sozlanadi va
-            tasdiqlangan post talqinini ishlatadi.
+            {{
+              ui(
+                'For disconnected channels, download a ZIP package and publish manually. Actual delivery is configured separately and uses the approved post revision.',
+              )
+            }}
           </p>
         </div>
       </div>

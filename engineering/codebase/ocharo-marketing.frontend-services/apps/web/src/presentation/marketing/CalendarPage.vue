@@ -1,12 +1,14 @@
 <script setup lang="ts">
+import { useUiLocale } from '@ocharomarketing/connect/UseUiLocale';
 import { computed, ref } from 'vue';
 import { CalendarDays, ChevronLeft, ChevronRight, Plus, X } from 'lucide-vue-next';
 import { Icon } from '@wow-two-beta/ui-vue/foundation/icons';
 import { Button } from '@wow-two-beta/ui-vue/presentation/actions';
 import { useMarketingWorkspace } from '../../application/marketing';
-import { MarketingExtensions, type ScheduleModel } from '../../domain/marketing';
+import { type ScheduleModel } from '../../domain/marketing';
 import StatusIndicator from './StatusIndicator.vue';
 import DeliveryPanel from './DeliveryPanel.vue';
+const { t: ui, formatDate } = useUiLocale();
 
 /** Displays recorded plans with their publishing state and exact approved revision. */
 defineOptions({ name: 'CalendarPage' });
@@ -64,28 +66,30 @@ async function cancel(id: string) {
   <div class="space-y-7">
     <div class="flex flex-wrap items-start justify-between gap-4">
       <div>
-        <p class="text-xs uppercase tracking-widest text-primary">Postlar taqvimi</p>
-        <h1 class="mt-2 font-editorial text-3xl">Shoshilmasdan, muntazam.</h1>
+        <p class="text-xs uppercase tracking-widest text-primary">{{ ui('Post calendar') }}</p>
+        <h1 class="mt-2 font-editorial text-3xl">{{ ui('Steady, without rushing.') }}</h1>
         <p class="mt-3 max-w-xl text-sm leading-7 text-muted-foreground">
-          Vaqtlar Toshkent bo‘yicha. “Rejada” holati post hali joylanmaganini bildiradi.
+          {{ ui('Times use Tashkent. Planned means the post has not been published yet.') }}
         </p>
       </div>
-      <Button @click="desk.navigate('/posts')"><Icon :icon="Plus" :size="16" class="mr-2" />Postni tanlash</Button>
+      <Button @click="desk.navigate('/posts')"
+        ><Icon :icon="Plus" :size="16" class="mr-2" />{{ ui('Choose a post') }}</Button
+      >
     </div>
     <section class="overflow-hidden rounded-2xl border border-border bg-card">
       <div class="flex flex-wrap items-center justify-between gap-3 border-b border-border px-6 py-5">
         <div class="flex items-center gap-3">
           <Icon :icon="CalendarDays" :size="19" class="text-primary" />
           <h2 class="text-sm font-semibold">
-            {{ MarketingExtensions.formatDate(`${days[0]?.date}T00:00:00Z`) }} —
-            {{ MarketingExtensions.formatDate(`${days[6]?.date}T00:00:00Z`) }}
+            {{ formatDate(`${days[0]?.date}T00:00:00Z`) }} —
+            {{ formatDate(`${days[6]?.date}T00:00:00Z`) }}
           </h2>
         </div>
         <div class="flex items-center gap-1">
-          <Button variant="ghost" size="sm" aria-label="Oldingi hafta" @click="offset--"
+          <Button variant="ghost" size="sm" :aria-label="ui('Previous week')" @click="offset--"
             ><Icon :icon="ChevronLeft" :size="17" /></Button
-          ><Button variant="ghost" size="sm" @click="offset = 0">Shu hafta</Button
-          ><Button variant="ghost" size="sm" aria-label="Keyingi hafta" @click="offset++"
+          ><Button variant="ghost" size="sm" @click="offset = 0">{{ ui('This week') }}</Button
+          ><Button variant="ghost" size="sm" :aria-label="ui('Next week')" @click="offset++"
             ><Icon :icon="ChevronRight" :size="17"
           /></Button>
         </div>
@@ -97,7 +101,7 @@ async function cancel(id: string) {
           :class="['min-h-48 p-3', day.date === today ? 'bg-primary-soft/40' : '']"
         >
           <div class="flex items-center justify-between text-xs">
-            <span class="capitalize text-muted-foreground">{{ day.label }}</span
+            <span class="capitalize text-muted-foreground">{{ ui(day.label) }}</span
             ><span
               :class="[
                 'flex h-7 w-7 items-center justify-center rounded-full',
@@ -116,7 +120,7 @@ async function cancel(id: string) {
             <p class="my-2 text-[10px] text-muted-foreground">
               {{ channelNames[item.channel] ?? item.channel }} ·
               {{
-                MarketingExtensions.formatDate(item.scheduledAt, {
+                formatDate(item.scheduledAt, {
                   hour: '2-digit',
                   minute: '2-digit',
                   day: undefined,
@@ -126,18 +130,21 @@ async function cancel(id: string) {
             </p>
             <StatusIndicator :status="item.status" />
             <p v-if="changed(item)" class="mt-2 text-[10px] leading-5 text-warning">
-              Qoralama yangilangan. Hozirgi talqinni ochish.
+              {{ ui('The draft was updated. Open the current revision.') }}
             </p>
           </button>
         </div>
       </div>
     </section>
     <div class="rounded-xl border border-warning/20 bg-warning-soft p-4 text-xs leading-6 text-warning-soft-foreground">
-      Ulanmagan kanal uchun saqlangan vaqt qo‘lda joylash rejasidir. Kanal keyinroq sozlansa ham, oldingi rejalar
-      o‘z-o‘zidan yuborilmaydi.
+      {{
+        ui(
+          'For disconnected channels, the saved time is a manual publishing plan. Connecting the channel later does not send earlier plans automatically.',
+        )
+      }}
     </div>
     <section class="rounded-2xl border border-border bg-card p-6">
-      <h2 class="font-editorial text-2xl">Barcha rejalar</h2>
+      <h2 class="font-editorial text-2xl">{{ ui('All plans') }}</h2>
       <div v-if="agenda.length" class="mt-4 divide-y divide-border">
         <article v-for="item in agenda" :key="item.id" class="flex flex-wrap items-center justify-between gap-4 py-5">
           <div class="min-w-0 flex-1">
@@ -149,17 +156,19 @@ async function cancel(id: string) {
             </button>
             <p class="mt-2 text-xs text-muted-foreground">
               {{ channelNames[item.channel] ?? item.channel }} ·
-              {{ MarketingExtensions.formatDate(item.scheduledAt, { hour: '2-digit', minute: '2-digit' }) }} ·
-              {{ item.draftRevision }}-talqin
+              {{ formatDate(item.scheduledAt, { hour: '2-digit', minute: '2-digit' }) }} · {{ item.draftRevision
+              }}{{ ui(' revision') }}
             </p>
-            <p v-if="item.message" class="mt-2 max-w-2xl text-xs leading-6 text-muted-foreground">{{ item.message }}</p>
+            <p v-if="item.message" class="mt-2 max-w-2xl text-xs leading-6 text-muted-foreground">
+              {{ ui(item.message) }}
+            </p>
             <p v-if="item.externalId" class="mt-1 break-all text-xs text-muted-foreground">
-              Joylash tasdig‘i: {{ item.externalId }}
+              {{ ui('Publication confirmation:') }} {{ item.externalId }}
             </p>
           </div>
           <StatusIndicator :status="item.status" />
           <p v-if="changed(item)" class="mt-2 text-[10px] leading-5 text-warning">
-            Qoralama yangilangan. Hozirgi talqinni ochish.
+            {{ ui('The draft was updated. Open the current revision.') }}
           </p>
           <Button
             v-if="
@@ -170,18 +179,20 @@ async function cancel(id: string) {
             size="sm"
             :is-disabled="desk.busy.value !== null"
             @click="cancel(item.id)"
-            ><Icon :icon="X" :size="15" class="mr-1" />Bekor qilish</Button
+            ><Icon :icon="X" :size="15" class="mr-1" />{{ ui('Cancel') }}</Button
           >
           <div class="w-full"><DeliveryPanel :plan="item" /></div>
         </article>
       </div>
       <div v-else class="py-12 text-center">
         <Icon :icon="CalendarDays" :size="30" class="mx-auto text-muted-foreground" />
-        <h3 class="mt-4 text-sm font-semibold">Hali reja yo‘q</h3>
+        <h3 class="mt-4 text-sm font-semibold">{{ ui('No plans yet') }}</h3>
         <p class="mt-2 text-xs leading-6 text-muted-foreground">
-          Tayyor postni tekshiring, so‘ng kanal va vaqtni tanlang.
+          {{ ui('Review the prepared post, then choose a channel and time.') }}
         </p>
-        <Button class="mt-5" variant="outline" @click="desk.navigate('/posts/new')">Birinchi postni yaratish</Button>
+        <Button class="mt-5" variant="outline" @click="desk.navigate('/posts/new')">{{
+          ui('Create the first post')
+        }}</Button>
       </div>
     </section>
   </div>
