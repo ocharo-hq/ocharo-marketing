@@ -29,3 +29,9 @@ engineering/             ← the HOW
 
 Workspace guidance: [Ocharo](../../CLAUDE.md) and [WoW2](../../../../../CLAUDE.md).
 Conventions: [WoW2 convention index](../../../../../conventions/conventions.md).
+
+## Canonical planning
+
+Use `engineering/planning/backlog.md` and `engineering/planning/version-track/v0.1/v0.1.md`.
+Previous-work research preserves evidence only. Working rules live in
+`engineering/development/rules.md`; owner verification remains open until reviewed.

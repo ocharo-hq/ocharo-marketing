@@ -31,17 +31,17 @@ These are review topics, not blocking implementation approvals. They create no n
 
 OpenAI image/edit and text/vision brokers, Gemini Nano Banana reference generation, and Telegram/Instagram/X/WhatsApp publication brokers exist behind neutral contracts. Provider payloads and failure paths are verified with fake transports. Image/text execution is reachable only after server-side configuration and an explicit operator action. Telegram/X have an explicit authorized queue and due-job worker. Account verification, queueing and provider execution remain disabled in the current local runtime. Fake transports verify their actual code paths.
 
-Credentials, OAuth onboarding, live acceptance, public Instagram media hosting and WhatsApp consent/template operator flows remain setup/review seams. The local pipeline records X observations and can reconcile a known final X receipt through explicit bounded reads; missing receipt IDs cannot safely trigger an automatic lookup or repost. Results show unavailable values until actual observations exist. Pinterest and selected-file Google Drive access are researched follow-on integrations; see [provider research](../research/providers.md).
+Credentials, OAuth onboarding, live acceptance, public Instagram media hosting and WhatsApp consent/template operator flows remain setup/review seams. The local pipeline records X observations and can reconcile a known final X receipt through explicit bounded reads; missing receipt IDs cannot safely trigger an automatic lookup or repost. Results show unavailable values until actual observations exist. Pinterest and selected-file Google Drive access are researched follow-on integrations; see [provider research](../providers.md).
 
 ## Review artifacts
 
-- [Six card comparisons](../../output/verification/ocharo-card-comparison.pdf): three products, identical bone/charcoal geometry, three landscape pages.
-- [Runtime assertions](../../output/verification/runtime-evidence.json): selected media integrity, stable ZIP, revision safety, manual planning and cancellation.
-- [Garment framing assertions](../../output/verification/card-shape-evidence.json): long, wide and asymmetric front cutouts.
-- [Browser navigation evidence](../codebase/ocharo-marketing.frontend-services/evidence/navigation-qa.json).
-- [Browser creation workflow evidence](../codebase/ocharo-marketing.frontend-services/evidence/pipeline-qa.json).
-- [Upload, scanning, provider controls and atlas evidence](../codebase/ocharo-marketing.frontend-services/evidence/features-qa.json).
-- [QA plan cleanup](../codebase/ocharo-marketing.frontend-services/evidence/qa-plan-cleanup.json).
+- [Six card comparisons](../../../output/verification/ocharo-card-comparison.pdf): three products, identical bone/charcoal geometry, three landscape pages.
+- [Runtime assertions](../../../output/verification/runtime-evidence.json): selected media integrity, stable ZIP, revision safety, manual planning and cancellation.
+- [Garment framing assertions](../../../output/verification/card-shape-evidence.json): long, wide and asymmetric front cutouts.
+- [Browser navigation evidence](../../codebase/ocharo-marketing.frontend-services/evidence/navigation-qa.json).
+- [Browser creation workflow evidence](../../codebase/ocharo-marketing.frontend-services/evidence/pipeline-qa.json).
+- [Upload, scanning, provider controls and atlas evidence](../../codebase/ocharo-marketing.frontend-services/evidence/features-qa.json).
+- [QA plan cleanup](../../codebase/ocharo-marketing.frontend-services/evidence/qa-plan-cleanup.json).
 
 Local QA records are review fixtures. No actual post or message was sent, and no paid image-generation request was made.
 
@@ -54,6 +54,6 @@ Local QA records are review fixtures. No actual post or message was sent, and no
 5. In **Natijalar**, cached observations retain their timestamps. A separate button requests a provider refresh and may consume X API credits. Observed zero, missing data and failed refresh are distinct; older measurements remain visible after a failed read. History exposes the latest 250 immutable observations and marks truncation.
 6. For an unknown publication with an actual saved final X ID, explicit read-only reconciliation verifies its owner and existence. It never reposts. Unknown outcomes without that evidence require provider-history inspection.
 
-New evidence: [isolated desktop/mobile workflow checks](../codebase/ocharo-marketing.frontend-services/evidence/delivery-simulated-ui-qa.json). Simulated screenshots show explicitly fake accounts/counters to exercise enabled UI; they are not evidence of real account connection, publication or engagement. Actual [disconnected-runtime checks](../codebase/ocharo-marketing.frontend-services/evidence/delivery-disconnected-ui-qa.json) and [final package/runtime evidence](../../output/verification/delivery-increment.json) are recorded separately.
+New evidence: [isolated desktop/mobile workflow checks](../../codebase/ocharo-marketing.frontend-services/evidence/delivery-simulated-ui-qa.json). Simulated screenshots show explicitly fake accounts/counters to exercise enabled UI; they are not evidence of real account connection, publication or engagement. Actual [disconnected-runtime checks](../../codebase/ocharo-marketing.frontend-services/evidence/delivery-disconnected-ui-qa.json) and [final package/runtime evidence](../../../output/verification/delivery-increment.json) are recorded separately.
 
 See [exact remaining setup and acceptance actions](external-setup.md). The working local app is the review artifact; no live account setup or remote deployment is required to inspect it.

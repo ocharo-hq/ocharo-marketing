@@ -4,7 +4,7 @@
 
 ## Current state
 
-Ocharo Marketing was scaffolded independently and is in an active continuous build. Its developer authorized the app for Maftuna first, with later merge/generalization and SDK extraction decisions. Source implementation and verification are recorded in the engineering [handoff](../engineering/planning/handoff.md).
+Ocharo Marketing was scaffolded independently and is in an active continuous build. Its developer authorized the app for Maftuna first, with later merge/generalization and SDK extraction decisions. Source implementation and verification are recorded in the engineering [handoff](../engineering/research/previous-work/handoff.md).
 
 ## Decisions
 

@@ -243,4 +243,4 @@ Background health is process-local evidence from actual worker loops, never fabr
 Only explicitly bound rendered output is invalidated by composition edits; library photos and independently selected
 cards survive edits and reopening. The composer never infers binding from the generic asset role.
 
-See [verified workflow and limits](../planning/marketing-operations-build.md).
+See [verified workflow and limits](../research/previous-work/marketing-operations-build.md).

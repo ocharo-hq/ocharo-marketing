@@ -1,5 +1,8 @@
 # Iteration guide
 
-*Last updated: 2026-09-27*
+*Last updated: 2026-10-01*
 
-Use the active [rough track](../planning/rough-track/r0.1/r0.1.md). Continue independent authorized tasks without waiting for optional provider setup. Preserve exclusive lanes and runtime ownership. Record implementation, executed tests, preview evidence, and remaining live-provider setup separately. Developer review closes the increment; package extraction follows the seam.
+Use the active [v0.1 track](../planning/version-track/v0.1/v0.1.md) and
+[backlog](../planning/backlog.md). Historical implementation and verification
+remain under `engineering/research/previous-work/`; they do not supersede the
+active track or establish owner acceptance. Keep live provider evidence separate.

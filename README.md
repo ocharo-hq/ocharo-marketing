@@ -25,7 +25,7 @@ The APIs remain separate local processes: Marketing HTTPS 8276 and Editorial HTT
 
 Use `pnpm install --frozen-lockfile`, each app's build/test command, and `dotnet test` in each backend root. Local TLS can use an existing trusted pair through `OCHARO_TLS_CERT` and `OCHARO_TLS_KEY`; proxies verify TLS and Node trusts the supplied CA through `NODE_EXTRA_CA_CERTS`. Native trust changes require user action.
 
-[Connected build and review guide](engineering/planning/connected-build.md) records configuration, contracts and verification. [Workspace ownership](../../docs/architecture.md) defines repository boundaries.
+[Connected build and review guide](engineering/research/previous-work/connected-build.md) records configuration, contracts and verification. [Workspace ownership](../../docs/architecture.md) defines repository boundaries.
 
 ## Git LFS
 
@@ -33,8 +33,8 @@ Images, PDFs, ZIPs and fonts are tracked with Git LFS (`.gitattributes`). Instal
 
 ## Planning and contracts
 
-- [Local app review](engineering/planning/review-guide.md)
-- [Exact setup and acceptance actions](engineering/planning/external-setup.md)
+- [Local app review](engineering/research/previous-work/review-guide.md)
+- [Exact setup and acceptance actions](engineering/research/previous-work/external-setup.md)
 - [Product](product/product.md)
 - [Shared API and lane contract](engineering/architecture/marketing-contract.md)
 - [Provider research](engineering/research/providers.md)

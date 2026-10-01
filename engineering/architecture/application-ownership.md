@@ -15,4 +15,4 @@ The user grouped recognition, public content, distribution and leads into this r
 Both Blog sources now live here; [Blog adoption](blog-adoption.md) records exact entrypoints.
 The public apps and Editorial share one frontend workspace. The adopted Editorial backend
 retains its project identities and isolated data. Historical routes, authored content and
-assets are preserved. [Connected build](../planning/connected-build.md) records operational boundaries.
+assets are preserved. [Connected build](../research/previous-work/connected-build.md) records operational boundaries.

@@ -10,7 +10,7 @@
 | Product state, tasks, decisions | `product/context.md` |
 | Features (per-feature specs) | `product/features/features.md` |
 | User / product flows | `product/flows/flows.md` |
-| Product milestones, roadmap | `product/planning/planning.md` |
+| Product milestones, roadmap | `engineering/planning/version-track/v0.1/v0.1.md` |
 | Marketing — GTM, channels, campaigns | `product/marketing/marketing.md` |
 | Technical overview · stack · map | `engineering/engineering.md` |
 | System / area architecture | `engineering/architecture/architecture.md` |
@@ -18,11 +18,11 @@
 | Backend dev guidelines | `engineering/development/backend-guidelines.md` |
 | Frontend dev guidelines | `engineering/development/frontend-guidelines.md` |
 | Iteration / version workflow | `engineering/development/iteration-guide.md` |
-| Engineering roadmap, tracker, decisions | `engineering/planning/planning.md` |
+| Engineering roadmap, tracker, decisions | `engineering/planning/version-track/v0.1/v0.1.md` |
 | Engineering backlog | `engineering/planning/backlog.md` |
-| Operational rules | `engineering/planning/rules.md` |
+| Operational rules | `engineering/development/rules.md` |
 | Deploy / ops | `engineering/deployment/deployment.md` |
-| Versioned iteration docs | `engineering/versions/versions.md` |
+| Versioned iteration docs | `engineering/planning/version-track/v0.1/v0.1.md` |
 | Technical research dumps | `engineering/research/research.md` |
 | Dev / ops scripts | `engineering/scripts/scripts.md` |
 

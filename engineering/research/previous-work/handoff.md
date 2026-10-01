@@ -6,11 +6,11 @@
 
 The user requested a saved handoff and no further editing until consolidation resumes.
 The current checkout is `/Users/max/Projects/10x-ws/workbench/career/engineering/wow-two/wow-two-ws/workbench/ocharo-hq/ocharo-ws/workbench/ventures.ocharo-marketing`; branch `main`, HEAD `f4ef34d407555171e6e7a145afb45fed8097d81f`.
-The [central chat handoff](../../../../docs/handoffs/ocharo-marketing-01a0a058-f53a-7a10-94ad-51c642845c30.md) owns the consolidation snapshot.
+The [central chat handoff](../../../../../docs/handoffs/ocharo-marketing-01a0a058-f53a-7a10-94ad-51c642845c30.md) owns the consolidation snapshot.
 
-- Existing dirty relocation/reference edits and the [next-build analysis](../research/next-build-analysis.md) remain saved in place.
+- Existing dirty relocation/reference edits and the [next-build analysis](../next-build-analysis.md) remain saved in place.
 - That analysis is a proposal; no new implementation scope or product acceptance was inferred.
-- Two temporary [atlas-feedback screenshots](../research/references/atlas-layout-feedback/atlas-layout-feedback.md) are now preserved with hashes.
+- Two temporary [atlas-feedback screenshots](../references/atlas-layout-feedback/atlas-layout-feedback.md) are now preserved with hashes.
 - The build heartbeat remains `PAUSED`; every child lane is finished.
 - No listeners were observed on 8242, 8276 or 8277. Sessions 28593/81804 below are historical, not active runtime claims.
 - September 29 migration records show successful backend/frontend builds; application tests were not rerun for relocation or this handoff.
@@ -22,7 +22,7 @@ must not be treated as current observations; use the central handoff and recheck
 
 ## Prior pilot scope
 
-Ocharo Marketing is an independent temporary venture for Maftuna, outside Brand Workspace. The local pilot's planned implementation is complete and verified; developer/Maftuna review and selected external setup remain. The build heartbeat `continue-ocharo-marketing-build` is **PAUSED**, confirmed through the automation tool and saved state. Do not resume an unchanged build loop or duplicate finished lanes. See [review guide](review-guide.md), [exact remaining actions](external-setup.md), [contract](../architecture/marketing-contract.md) and [r0.1](rough-track/r0.1/r0.1.md).
+Ocharo Marketing is an independent temporary venture for Maftuna, outside Brand Workspace. The local pilot's planned implementation is complete and verified; developer/Maftuna review and selected external setup remain. The build heartbeat `continue-ocharo-marketing-build` is **PAUSED**, confirmed through the automation tool and saved state. Do not resume an unchanged build loop or duplicate finished lanes. See [review guide](review-guide.md), [exact remaining actions](external-setup.md), [contract](../../architecture/marketing-contract.md) and [r0.1](rough-track/r0.1/r0.1.md).
 
 ## Platform integration increment — 2026-09-28
 
@@ -43,10 +43,10 @@ Ocharo Marketing is an independent temporary venture for Maftuna, outside Brand 
 
 Authoritative current evidence:
 
-- [Delivery, migration, packaging and runtime evidence](../../output/verification/delivery-increment.json).
-- [171-test backend result](../../output/verification/delivery-backend-tests.trx).
-- [Isolated enabled UI workflows](../codebase/ocharo-marketing.frontend-services/evidence/delivery-simulated-ui-qa.json).
-- [Actual disconnected UI workflows](../codebase/ocharo-marketing.frontend-services/evidence/delivery-disconnected-ui-qa.json).
+- [Delivery, migration, packaging and runtime evidence](../../../output/verification/delivery-increment.json).
+- [171-test backend result](../../../output/verification/delivery-backend-tests.trx).
+- [Isolated enabled UI workflows](../../codebase/ocharo-marketing.frontend-services/evidence/delivery-simulated-ui-qa.json).
+- [Actual disconnected UI workflows](../../codebase/ocharo-marketing.frontend-services/evidence/delivery-disconnected-ui-qa.json).
 
 Simulated screenshots contain explicitly fake accounts and counters; they do not prove a real connection, publication or engagement. Older `runtime-readiness.json` and `publish-verification.json` describe the first increment; use the delivery record above for current runtime/package evidence.
 

@@ -56,5 +56,5 @@ No donor CI or hosting automation is activated by this adoption.
 
 Check source/data checksums, generated static route parity, and exclusion of local data before
 committing. Modern Blog backend tests and editor typecheck/tests exercise relocated imports.
-Current full-build evidence and commands are in [connected build](../planning/connected-build.md).
+Current full-build evidence and commands are in [connected build](../research/previous-work/connected-build.md).
 Public launch remains separate from successful builds.
