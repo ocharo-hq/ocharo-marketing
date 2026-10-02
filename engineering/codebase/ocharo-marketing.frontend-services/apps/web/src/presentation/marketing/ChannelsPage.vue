@@ -13,14 +13,17 @@ const overview = ref<OperationsOverviewModel | null>(null);
 const editing = ref<ChannelStrategyModel | null>(null);
 const baseline = ref('');
 const saving = ref(false);
+const loading = ref(false);
 const dirty = computed(() => editing.value !== null && JSON.stringify(editing.value) !== baseline.value);
 const abort = new AbortController();
 let disposed = false;
 async function load() {
+  loading.value = true;
   const result = await desk.getOperations(abort.signal);
   if (disposed) return;
   if (result.ok) overview.value = result.value;
   else if (result.failure.code !== 'cancelled') desk.error.value = desk.failureMessage(result.failure);
+  loading.value = false;
 }
 function edit(strategy: ChannelStrategyModel) {
   if (dirty.value || saving.value) return;
@@ -39,10 +42,13 @@ async function save() {
     const result = await desk.saveChannelStrategy(snapshot);
     if (disposed) return;
     if (result.ok) {
-      editing.value = { ...result.value };
-      baseline.value = JSON.stringify(result.value);
-      desk.notice.value = 'Kanal rejasi saqlandi. Bu yuborishni yoqmaydi.';
       await load();
+      const current = overview.value?.channels.find(item => item.strategy.channel === snapshot.channel)?.strategy;
+      if (current && current.revision > snapshot.revision) {
+        editing.value = { ...current };
+        baseline.value = JSON.stringify(current);
+      }
+      desk.notice.value = 'Kanal rejasi saqlandi. Bu yuborishni yoqmaydi.';
     }
   } finally {
     saving.value = false;
@@ -82,7 +88,8 @@ onBeforeUnmount(() => {
       }}
     </p>
     <div class="grid items-start gap-5 xl:grid-cols-[minmax(0,1fr)_minmax(300px,420px)]">
-      <div class="grid gap-4 sm:grid-cols-2">
+      <div v-if="loading" aria-busy="true" class="grid gap-4 sm:grid-cols-2"><div v-for="card in 4" :key="card" class="h-64 animate-pulse rounded-2xl bg-muted" /></div>
+      <div v-show="!loading" class="grid gap-4 sm:grid-cols-2">
         <article
           v-for="item in overview?.channels"
           :key="item.strategy.channel"

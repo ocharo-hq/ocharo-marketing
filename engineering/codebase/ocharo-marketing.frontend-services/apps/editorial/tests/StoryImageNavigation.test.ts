@@ -82,6 +82,7 @@ beforeEach(() => {
     ...editor,
     detail: ref({ id: 'story', revision: 1, document }),
     canEdit: ref(true),
+    loading: ref(false),
     history: ref([]),
     media: ref([media]),
     products: ref([]),

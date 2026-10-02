@@ -1,6 +1,7 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { mount, flushPromises } from '@vue/test-utils';
 import { createAppRouter, RouterHistoryMode } from '@wow-two-beta/ui-vue/router';
+import { feedbackBus } from '../src/application/shared/UseFeedback';
 import InquiriesPage from '../src/presentation/marketing/InquiriesPage.vue';
 const { request } = vi.hoisted(() => ({ request: vi.fn<typeof fetch>() }));
 vi.mock('@ocharomarketing/connect', () => ({ integrationFetch: request }));
@@ -15,15 +16,17 @@ const sample = {
   productId: 'nimcha',
   status: 'new',
   revision: 1,
-  note: null,
+  note: null as string | null,
   createdAt: '2026-09-29T12:00:00Z',
-  assignedTo: null,
-  followUpAt: null,
-  nextStep: null,
+  assignedTo: null as string | null,
+  followUpAt: null as string | null,
+  nextStep: null as string | null,
 };
 const result = (items = [sample], total = items.length, offset = 0) =>
   Response.json({ items, total, offset, limit: 20, observedAt: '2026-09-29T13:00:00Z' });
 beforeEach(() => {
+  vi.restoreAllMocks();
+  vi.spyOn(feedbackBus, 'notify');
   request.mockReset();
   request.mockResolvedValue(result());
 });
@@ -55,7 +58,10 @@ describe('enquiry follow-up desk', () => {
     await wrapper.findAll('form')[1]!.trigger('submit');
     await flushPromises();
     expect((wrapper.get('textarea[maxlength="3000"]').element as HTMLTextAreaElement).value).toBe('Keep my note');
-    expect(wrapper.text()).toContain('Your changes stay here');
+    expect(wrapper.text()).not.toContain('The enquiry changed.');
+    expect(feedbackBus.notify).toHaveBeenCalledWith(
+      expect.objectContaining({ description: expect.stringContaining('current state') }),
+    );
     await router.push('/elsewhere');
     await flushPromises();
     expect(router.currentRoute.value.path).toBe('/');
@@ -75,6 +81,17 @@ describe('enquiry follow-up desk', () => {
         nextStep: body.followUp.nextStep,
       });
     });
+    request.mockResolvedValueOnce(
+      result([
+        {
+          ...sample,
+          revision: 2,
+          assignedTo: 'Atelier',
+          followUpAt: new Date('2026-10-01T15:30').toISOString(),
+          nextStep: 'Confirm dimensions',
+        },
+      ]),
+    );
     await wrapper.findAll('form')[1]!.trigger('submit');
     await flushPromises();
     const body = JSON.parse(String(request.mock.calls[1]![1]?.body));
@@ -122,7 +139,7 @@ describe('enquiry follow-up desk', () => {
       status: 'contacted',
       note: 'Measurements requested',
       assignedTo: 'Atelier',
-      followUpAt: null,
+      followUpAt: null as string | null,
       nextStep: 'Reply',
     };
     request.mockResolvedValueOnce(
@@ -161,7 +178,10 @@ describe('enquiry follow-up desk', () => {
       .trigger('click');
     await flushPromises();
     expect(wrapper.text()).toContain('Review reader');
-    expect(wrapper.text()).toContain('Network unavailable');
+    expect(wrapper.text()).not.toContain('Network unavailable');
+    expect(feedbackBus.notify).toHaveBeenCalledWith(
+      expect.objectContaining({ description: expect.stringContaining('try again') }),
+    );
   });
   it('serializes history reads with writes so older activity cannot overwrite a saved revision', async () => {
     const { wrapper } = await render();
@@ -188,6 +208,7 @@ describe('enquiry follow-up desk', () => {
     complete(Response.json({ total: 0, offset: 0, limit: 20, items: [] }));
     await flushPromises();
     request.mockResolvedValueOnce(Response.json({ ...sample, revision: 2, note: 'New note' }));
+    request.mockResolvedValueOnce(result([{ ...sample, revision: 2, note: 'New note' }]));
     request.mockResolvedValueOnce(
       Response.json({
         total: 1,
@@ -200,17 +221,117 @@ describe('enquiry follow-up desk', () => {
             actor: 'member',
             status: 'new',
             note: 'New note',
-            assignedTo: null,
-            followUpAt: null,
-            nextStep: null,
+            assignedTo: null as string | null,
+            followUpAt: null as string | null,
+            nextStep: null as string | null,
           },
         ],
       }),
     );
     await wrapper.findAll('form')[1]!.trigger('submit');
     await flushPromises();
-    expect(request).toHaveBeenCalledTimes(4);
+    expect(request).toHaveBeenCalledTimes(5);
     expect(wrapper.text()).toContain('Revision 2');
     expect(wrapper.text()).not.toContain('No recorded changes yet');
   });
+});
+
+describe('server-confirmed enquiry projection', () => {
+  it('does not skeleton or adopt mutation payload before acknowledgement, and keeps form mounted during the GET', async () => {
+    const { wrapper } = await render();
+    await wrapper.get('textarea[maxlength="3000"]').setValue('Local note');
+    let acknowledge!: (value: Response) => void;
+    let project!: (value: Response) => void;
+    request.mockImplementationOnce(
+      () =>
+        new Promise((resolve) => {
+          acknowledge = resolve;
+        }),
+    );
+    request.mockImplementationOnce(
+      () =>
+        new Promise((resolve) => {
+          project = resolve;
+        }),
+    );
+    await wrapper.findAll('form')[1]!.trigger('submit');
+    await flushPromises();
+    expect(request).toHaveBeenCalledTimes(2);
+    expect(wrapper.find('.grid[aria-busy="true"]').exists()).toBe(false);
+    expect((wrapper.get('textarea[maxlength="3000"]').element as HTMLTextAreaElement).value).toBe('Local note');
+    acknowledge(Response.json({ ...sample, revision: 2, note: 'Mutation response must not fill the view' }));
+    await flushPromises();
+    expect(request).toHaveBeenCalledTimes(3);
+    expect(wrapper.find('.grid[aria-busy="true"]').exists()).toBe(true);
+    expect((wrapper.get('textarea[maxlength="3000"]').element as HTMLTextAreaElement).value).toBe('Local note');
+    project(result([{ ...sample, revision: 2, note: 'Authoritative read' }]));
+    await flushPromises();
+    expect(wrapper.find('.grid[aria-busy="true"]').exists()).toBe(false);
+    expect((wrapper.get('textarea[maxlength="3000"]').element as HTMLTextAreaElement).value).toBe('Authoritative read');
+  });
+});
+
+it('uses a private acknowledged revision on retry after a failed follow-up read', async () => {
+  const { wrapper } = await render();
+  await wrapper.get('textarea[maxlength="3000"]').setValue('Local saved note');
+  request.mockResolvedValueOnce(Response.json({ ...sample, revision: 2, note: 'Local saved note' }));
+  request.mockResolvedValueOnce(Response.json({ detail: 'private read failure' }, { status: 503 }));
+  await wrapper.findAll('form')[1]!.trigger('submit');
+  await flushPromises();
+  expect((wrapper.get('textarea[maxlength="3000"]').element as HTMLTextAreaElement).value).toBe('Local saved note');
+  expect(wrapper.find('[aria-busy="true"]').exists()).toBe(false);
+  request.mockResolvedValueOnce(Response.json({ detail: 'private write failure' }, { status: 503 }));
+  await wrapper.findAll('form')[1]!.trigger('submit');
+  await flushPromises();
+  const retry = JSON.parse(String(request.mock.calls[3]![1]?.body));
+  expect(retry.expectedRevision).toBe(2);
+  expect(wrapper.text()).not.toContain('private');
+});
+
+it('reports a failed first read as unavailable instead of an empty confirmed result', async () => {
+  request.mockResolvedValueOnce(Response.json({ detail: 'private unavailable response' }, { status: 503 }));
+  const { wrapper } = await render();
+  expect(wrapper.text()).toContain('Enquiries unavailable');
+  expect(wrapper.text()).not.toContain('matching enquiries');
+  expect(wrapper.text()).not.toContain('No enquiries');
+  expect(wrapper.text()).not.toContain('private');
+  request.mockResolvedValueOnce(result([], 0));
+  await wrapper
+    .findAll('button')
+    .find((button) => button.text() === 'Try again')!
+    .trigger('click');
+  await flushPromises();
+  expect(wrapper.text()).toContain('0 matching enquiries');
+  expect(wrapper.text()).toContain('No enquiries in this view.');
+});
+it('uses a history skeleton then unavailable retry after a failed first activity read', async () => {
+  const { wrapper } = await render();
+  let finish!: (response: Response) => void;
+  request.mockImplementationOnce(
+    () =>
+      new Promise((resolve) => {
+        finish = resolve;
+      }),
+  );
+  await wrapper
+    .findAll('button')
+    .find((button) => button.text() === 'View activity')!
+    .trigger('click');
+  await flushPromises();
+  expect(wrapper.find('[aria-busy="true"]').exists()).toBe(true);
+  expect(wrapper.text()).not.toContain('Loading activity');
+  expect(wrapper.text()).not.toContain('No recorded changes');
+  finish(Response.json({ detail: 'private history' }, { status: 503 }));
+  await flushPromises();
+  expect(wrapper.find('[aria-busy="true"]').exists()).toBe(false);
+  expect(wrapper.text()).toContain('Activity unavailable');
+  expect(wrapper.text()).not.toContain('No recorded changes');
+  expect(wrapper.text()).not.toContain('private');
+  request.mockResolvedValueOnce(Response.json({ total: 0, items: [], nextBeforeRevision: null }));
+  await wrapper
+    .findAll('button')
+    .find((button) => button.text() === 'Try again')!
+    .trigger('click');
+  await flushPromises();
+  expect(wrapper.text()).toContain('No recorded changes');
 });

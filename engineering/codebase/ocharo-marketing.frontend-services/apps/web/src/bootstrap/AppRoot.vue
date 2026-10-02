@@ -1,4 +1,6 @@
 <script setup lang="ts">
+import { FeedbackToastHost } from '@wow-two-beta/ui-vue/presentation/feedback';
+import { feedbackBus, useErrorToast } from '../application/shared/UseFeedback';
 import { useUiLocale } from '@ocharomarketing/connect/UseUiLocale';
 import { provideLocale } from '@wow-two-beta/ui-vue/foundation/i18n';
 import LanguagePicker from '@ocharomarketing/connect/LanguagePicker.vue';
@@ -17,7 +19,6 @@ import {
   FolderOpen,
   LayoutDashboard,
   Link2,
-  LoaderCircle,
   RefreshCw,
   TrendingUp,
   X,
@@ -34,6 +35,7 @@ provideLocale(uiLocale, sdkMessages);
 /** Composes Maftuna’s local marketing desk with real persisted workspace state. */
 defineOptions({ name: 'AppRoot' });
 const desk = useMarketingWorkspace();
+useErrorToast(desk.error);
 const workspace = desk.workspace;
 const route = useRoute();
 const navigation = [
@@ -194,16 +196,6 @@ onScopeDispose(() => {
       <main id="main-content" tabindex="-1" class="mx-auto max-w-[1600px] px-5 py-8 sm:px-8 xl:px-10">
         <ConnectDesk :platform-url="connectPlatformUrl" />
         <div
-          v-if="desk.error.value"
-          role="alert"
-          class="mb-6 flex items-start justify-between gap-4 rounded-xl border border-destructive/20 bg-destructive-soft px-5 py-4 text-sm text-destructive-soft-foreground"
-        >
-          <p class="leading-6">{{ ui(desk.error.value) }}</p>
-          <button class="shrink-0 rounded p-1" :aria-label="ui('Dismiss message')" @click="desk.error.value = null">
-            <Icon :icon="X" :size="15" />
-          </button>
-        </div>
-        <div
           v-if="desk.notice.value"
           role="status"
           class="mb-6 flex items-start justify-between gap-4 rounded-xl border border-success/20 bg-success-soft px-5 py-4 text-sm text-success-soft-foreground"
@@ -213,16 +205,15 @@ onScopeDispose(() => {
             <Icon :icon="X" :size="15" />
           </button>
         </div>
-        <div v-if="!workspace && desk.loading.value" class="flex min-h-96 flex-col items-center justify-center">
-          <Icon :icon="LoaderCircle" :size="28" class="animate-spin text-primary" />
-          <p class="mt-4 text-sm text-muted-foreground">{{ ui('Loading workspace…') }}</p>
+        <div v-if="desk.loading.value" class="grid min-h-96 gap-5 md:grid-cols-3" aria-busy="true" :aria-label="ui('Loading workspace…')">
+          <div v-for="card in 3" :key="card" class="animate-pulse rounded-2xl border border-border bg-card p-6"><div class="h-5 w-2/3 rounded bg-muted" /><div class="mt-6 h-36 rounded bg-muted" /><div class="mt-5 h-4 w-1/2 rounded bg-muted" /></div>
         </div>
-        <section v-else-if="!workspace" class="rounded-2xl border border-border bg-card p-12 text-center">
+        <section v-if="!workspace && !desk.loading.value" class="rounded-2xl border border-border bg-card p-12 text-center">
           <h1 class="font-editorial text-3xl">{{ ui('Unable to connect to the workspace.') }}</h1>
-          <p class="mt-4 text-sm text-muted-foreground">{{ ui('Start the local service and try again.') }}</p>
+          <p class="mt-4 text-sm text-muted-foreground">{{ ui('Your data is preserved. Try again.') }}</p>
           <Button class="mt-6" @click="desk.refresh()">{{ ui('Retry') }}</Button>
         </section>
-        <AppErrorBoundary v-else
+        <AppErrorBoundary v-if="workspace" v-show="!desk.loading.value"
           ><RouterView v-slot="{ Component }"><component :is="Component" :key="route.fullPath" /></RouterView
           ><template #fallback="{ reset }"
             ><section class="rounded-2xl border border-border bg-card p-10 text-center">
@@ -233,6 +224,7 @@ onScopeDispose(() => {
           ></AppErrorBoundary
         >
       </main>
+      <FeedbackToastHost :bus="feedbackBus" position="bottom-right" />
       <RouteAnnouncer />
     </div>
   </div>

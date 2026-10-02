@@ -152,7 +152,8 @@ function addProduct() {
 </script>
 
 <template>
-  <section v-if="editor.draft.value" class="pb-28">
+  <div v-if="editor.loading.value" aria-busy="true" :aria-label="ui('Loading workspace…')" class="panel animate-pulse"><div class="h-8 w-1/3 rounded bg-muted" /><div class="mt-6 h-96 rounded bg-muted" /></div>
+  <section v-if="editor.draft.value" v-show="!editor.loading.value" class="pb-28">
     <RouterLink to="/" class="btn-ghost -ml-3 mb-3"
       ><Icon :icon="ArrowLeft" :size="15" />{{ ui('Stories') }}</RouterLink
     >

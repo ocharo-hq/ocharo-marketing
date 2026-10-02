@@ -3,6 +3,22 @@ export type UiLocale = "uz" | "ru" | "en";
 export const uiMessages: Readonly<
   Record<string, Readonly<{ uz: string; ru: string }>>
 > = {
+  'Preview unavailable': {uz:'Ko‘rinish mavjud emas',ru:'Предпросмотр недоступен'},
+  'Retry preview': {uz:'Ko‘rinishni qayta yuklash',ru:'Повторить предпросмотр'},
+  'Preview loading': {uz:'Ko‘rinish yuklanmoqda',ru:'Загрузка предпросмотра'},
+  'Enquiries unavailable': {uz:'Murojaatlar mavjud emas',ru:'Обращения недоступны'},
+  'Activity unavailable': {uz:'Faoliyat mavjud emas',ru:'История недоступна'},
+  'Enquiry activity': {uz:'Murojaat faoliyati',ru:'История обращения'},
+
+  "Sign in again. Your edits are preserved.": { uz: "Qayta kiring. O‘zgarishlaringiz saqlanib turibdi.", ru: "Войдите снова. Ваши изменения сохранены." },
+  "Your access changed. Your edits are preserved.": { uz: "Ruxsatingiz o‘zgardi. O‘zgarishlaringiz saqlanib turibdi.", ru: "Ваш доступ изменился. Ваши изменения сохранены." },
+  "Review the entered values. Your edits are preserved.": { uz: "Kiritilgan qiymatlarni tekshiring. O‘zgarishlaringiz saqlanib turibdi.", ru: "Проверьте введённые значения. Ваши изменения сохранены." },
+  "This item is unavailable. Your edits are preserved.": { uz: "Bu element mavjud emas. O‘zgarishlaringiz saqlanib turibdi.", ru: "Этот элемент недоступен. Ваши изменения сохранены." },
+  "The request could not complete. Your edits are preserved; try again.": { uz: "So‘rov bajarilmadi. O‘zgarishlaringiz saqlanib turibdi; qayta urinib ko‘ring.", ru: "Запрос не выполнен. Ваши изменения сохранены; попробуйте снова." },
+  'Needs attention': { uz: 'E’tibor kerak', ru: 'Требует внимания' },
+  'Saved successfully. The current view could not refresh. Your local edits are preserved.': { uz: 'Saqlandi. Ko‘rinishni yangilab bo‘lmadi. Mahalliy o‘zgarishlaringiz saqlanib qoldi.', ru: 'Сохранено. Не удалось обновить представление. Ваши локальные изменения сохранены.' },
+  "Could not complete the request": { uz: "So‘rovni bajarib bo‘lmadi", ru: "Не удалось выполнить запрос" },
+  "Content unavailable": { uz: "Ma’lumot mavjud emas", ru: "Данные недоступны" },
   "This operation no longer matches the current state. Your data is preserved; check the status.":
     {
       uz: "Amal mavjud holat bilan mos kelmadi. Ma’lumotlar saqlanib turibdi; holatni tekshiring.",

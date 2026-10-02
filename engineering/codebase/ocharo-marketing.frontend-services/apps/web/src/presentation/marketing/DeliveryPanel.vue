@@ -144,7 +144,7 @@ async function cancel() {
           </div>
         </div>
       </details>
-      <p v-if="operation.message" class="mt-3 text-xs leading-6 text-muted-foreground">{{ ui(operation.message) }}</p>
+      <p v-if="operation.message" class="mt-3 text-xs leading-6 text-muted-foreground">{{ ui('Needs attention') }}</p>
       <p v-if="operation.receipt" class="mt-3 break-all text-xs">
         {{ ui('Channel confirmation:') }} {{ operation.receipt.externalId }} · {{ ui(operation.receipt.stage) }}
       </p>
@@ -254,9 +254,7 @@ async function cancel() {
           <Button variant="ghost" size="sm" :is-disabled="desk.busy.value !== null" @click="desk.refresh()">{{
             ui('Refresh saved state')
           }}</Button>
-          <p v-if="desk.error.value" role="alert" class="text-xs leading-6 text-destructive">
-            {{ ui(desk.error.value) }}
-          </p>
+
         </div>
         <ModalFooter
           ><Button variant="outline" :is-disabled="desk.busy.value !== null" @click="confirmation.dismiss">{{

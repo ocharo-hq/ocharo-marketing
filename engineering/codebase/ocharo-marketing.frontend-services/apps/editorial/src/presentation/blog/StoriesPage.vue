@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import { requestFailureMessage } from '@ocharomarketing/connect/RequestFeedback';
 import { useUiLocale } from '@ocharomarketing/connect/UseUiLocale';
 import { ref as importRef } from 'vue';
 import { integrationFetch } from '@ocharomarketing/connect';
@@ -10,13 +11,12 @@ async function importResearch() {
       headers: { 'Content-Type': 'application/json' },
       body: '{}',
     });
+    if (!response.ok) { store.fail(requestFailureMessage({ code: 'http', status: response.status })); return; }
     const result = await response.json();
-    importResult.value = response.ok
-      ? `Imported ${result.created.length} drafts; preserved ${result.skipped.length} existing items.`
-      : (result.detail ?? 'Import failed.');
-    if (response.ok) await list.load();
+    importResult.value = `Imported ${result.created.length} drafts; preserved ${result.skipped.length} existing items.`;
+    await list.load();
   } catch {
-    importResult.value = 'Import unavailable. Existing drafts are preserved.';
+    store.fail(requestFailureMessage({ code: 'transport', status: 0 }));
   }
 }
 
@@ -82,7 +82,8 @@ onMounted(() => list.load());
         <option v-for="(label, key) in languageLabels" :key="key" :value="key">{{ ui(label) }}</option>
       </select>
     </div>
-    <div class="panel mt-4 overflow-x-auto p-0">
+    <div v-if="list.loading.value" aria-busy="true" :aria-label="ui('Loading workspace…')" class="panel mt-4 animate-pulse"><div v-for="row in 5" :key="row" class="my-4 h-10 rounded bg-muted" /></div>
+    <div v-show="!list.loading.value" class="panel mt-4 overflow-x-auto p-0">
       <table class="w-full min-w-[820px] text-sm">
         <thead class="bg-muted/60 text-left text-[11px] uppercase tracking-[0.12em] text-muted-foreground">
           <tr>

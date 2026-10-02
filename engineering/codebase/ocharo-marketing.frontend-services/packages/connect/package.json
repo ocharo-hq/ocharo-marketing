@@ -9,6 +9,7 @@
     "./BuildVersion.vue": "./src/BuildVersion.vue",
     "./UseUiLocale": "./src/UseUiLocale.ts",
     "./UiMessages": "./src/UiMessages.ts",
+    "./RequestFeedback": "./src/RequestFeedback.ts",
     "./LanguagePicker.vue": "./src/LanguagePicker.vue"
   },
   "dependencies": {

@@ -1,3 +1,4 @@
+import { requestFailureMessage } from '@ocharomarketing/connect/RequestFeedback';
 import type { ImageEditRecipe } from '@wow-two-beta/ui-vue/domain/imageEditing';
 import type { MediaEditingCapabilities, MediaEditPreview } from '../../domain/blog/MediaEditingModels';
 import { integrationFetch } from '@ocharomarketing/connect';
@@ -73,12 +74,9 @@ const isEditingCapabilities = (value: unknown): value is MediaEditingCapabilitie
   );
 };
 
-/** Reads a human message from an API failure (ProblemDetails detail first). */
+/** Selects safe operator copy without displaying server diagnostics. */
 export function describeFailure(failure: ApiFailure): string {
-  const detail = failure.problem?.['detail'];
-  if (typeof detail === 'string' && detail.length > 0) return detail;
-  if (failure.code === 'transport') return 'Blog xizmatiga ulanib bo‘lmadi. Xizmat ishlayotganini tekshiring.';
-  return failure.status > 0 ? `Xizmat ${failure.status} xato qaytardi.` : failure.message;
+  return requestFailureMessage(failure);
 }
 
 /** Same-origin blog endpoints; mutations are never retried automatically. */

@@ -15,6 +15,9 @@ export interface CardPreviewProps {
 </script>
 
 <script setup lang="ts">
+import { requestFailureMessage } from '@ocharomarketing/connect/RequestFeedback';
+import { useErrorToast } from '../../application/shared/UseFeedback';
+import { Button } from '@wow-two-beta/ui-vue/presentation/actions';
 import { useUiLocale } from '@ocharomarketing/connect/UseUiLocale';
 import { computed, onScopeDispose, ref, useTemplateRef, watch } from 'vue';
 
@@ -33,6 +36,8 @@ const html = ref('');
 const issues = ref<string[]>([]);
 const error = ref<string | null>(null);
 const loading = ref(true);
+const retry = ref(0);
+useErrorToast(error);
 let timer: ReturnType<typeof setTimeout> | undefined;
 let controller: AbortController | undefined;
 let requestRevision = 0;
@@ -48,7 +53,7 @@ useResizeObserver(frame, (entry) => {
 
 /** Replaces the proof only when the latest composition finishes. */
 watch(
-  () => JSON.stringify(props.composition),
+  () => [JSON.stringify(props.composition), retry.value],
   () => {
     clearTimeout(timer);
     controller?.abort();
@@ -58,6 +63,8 @@ watch(
     error.value = null;
     timer = setTimeout(async () => {
       if (!props.composition.productId) {
+        html.value = '';
+        issues.value = [];
         loading.value = false;
         return;
       }
@@ -69,8 +76,7 @@ watch(
         html.value = result.value.html;
         issues.value = result.value.issues;
       } else if (result.failure.code !== 'cancelled') {
-        html.value = '';
-        error.value = desk.failureMessage(result.failure);
+        error.value = requestFailureMessage(result.failure);
       }
     }, 200);
   },
@@ -97,22 +103,21 @@ onScopeDispose(() => {
         class="pointer-events-none absolute left-0 top-0 origin-top-left border-0"
         :style="artworkStyle"
       />
-      <div v-if="!html" class="absolute inset-0 flex flex-col items-center justify-center gap-3 p-5 text-center">
-        <span v-if="loading" class="size-6 animate-spin rounded-full border-2 border-border border-t-primary" />
-        <p class="text-sm text-muted-foreground">
-          {{ error ?? (loading ? ui('Preparing preview…') : ui('Choose a product')) }}
-        </p>
+      <div v-if="loading" class="absolute inset-0 animate-pulse bg-muted/95 p-5" :aria-label="ui('Preview loading')">
+        <div class="h-2/3 rounded-xl bg-background/60" />
+        <div class="mt-5 h-3 w-3/4 rounded bg-background/60" />
+        <div class="mt-3 h-3 w-1/2 rounded bg-background/60" />
       </div>
-      <span
-        v-if="loading && html"
-        class="absolute bottom-3 right-3 rounded-full bg-card px-3 py-1 text-xs text-muted-foreground"
-      >
-        {{ ui('Refreshing…') }}
-      </span>
+      <div v-else-if="!html" class="absolute inset-0 flex flex-col items-center justify-center gap-3 p-5 text-center">
+        <p class="text-sm text-muted-foreground">{{ error ? ui('Preview unavailable') : ui('Choose a product') }}</p>
+        <Button v-if="error" variant="outline" @click="retry++">{{ ui('Try again') }}</Button>
+      </div>
     </div>
     <ul v-if="showIssues && issues.length" class="mt-3 space-y-1 text-xs leading-relaxed text-warning">
       <li v-for="issue in issues" :key="issue">{{ ui(issue) }}</li>
     </ul>
-    <p v-if="error && html" class="mt-2 text-sm text-destructive">{{ ui(error) }}</p>
+    <Button v-if="error && html && !loading" class="mt-3" variant="outline" @click="retry++">{{
+      ui('Retry preview')
+    }}</Button>
   </div>
 </template>

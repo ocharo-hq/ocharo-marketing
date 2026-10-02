@@ -160,7 +160,7 @@ async function cancel(id: string) {
               }}{{ ui(' revision') }}
             </p>
             <p v-if="item.message" class="mt-2 max-w-2xl text-xs leading-6 text-muted-foreground">
-              {{ ui(item.message) }}
+              {{ ui('Needs attention') }}
             </p>
             <p v-if="item.externalId" class="mt-1 break-all text-xs text-muted-foreground">
               {{ ui('Publication confirmation:') }} {{ item.externalId }}

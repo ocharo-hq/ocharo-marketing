@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import { useErrorToast } from '../../application/shared/UseFeedback';
 import { useUiLocale } from '@ocharomarketing/connect/UseUiLocale';
 import { computed, onBeforeUnmount, onMounted, reactive, ref } from 'vue';
 import { Button } from '@wow-two-beta/ui-vue/presentation/actions';
@@ -19,6 +20,7 @@ const period = ref('30');
 const saving = ref(false);
 const open = ref(false);
 const error = ref('');
+useErrorToast(error);
 const abort = new AbortController();
 let disposed = false;
 function localInput(date: Date) {
@@ -161,7 +163,7 @@ onBeforeUnmount(() => {
       </div>
       <Button :is-disabled="dirty || saving" @click="newObservation()">{{ ui('Add observation') }}</Button>
     </div>
-    <p v-if="error" role="alert" class="rounded-xl bg-warning-soft p-4 text-sm">{{ ui(error) }}</p>
+
     <form v-if="open" class="space-y-4 rounded-xl border border-border bg-background p-4" @submit.prevent="save">
       <h3 class="font-semibold">{{ ui('Cumulative post metrics') }}</h3>
       <fieldset :disabled="saving" class="space-y-4">

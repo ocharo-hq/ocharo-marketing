@@ -16,9 +16,11 @@ import { formatWhen } from '../../domain/blog/UzDates';
 export function useArticleEditor() {
   const store = useBlogStore();
   const detail = shallowRef<ArticleDetail | null>(null);
+  const receipt = shallowRef<{ id: string; revision: number } | null>(null);
   const draft = ref<ArticleInput | null>(null);
   const baseline = ref('');
   const busy = ref(false);
+  const loading = ref(false);
   const canEdit = computed(
     () => integrationSession.value?.active === true && integrationSession.value.canEdit === true,
   );
@@ -34,6 +36,7 @@ export function useArticleEditor() {
 
   function adopt(next: ArticleDetail) {
     detail.value = next;
+    receipt.value = { id: next.id, revision: next.revision };
     draft.value = toInput(next.document, next.revision);
     baseline.value = JSON.stringify(draft.value);
     slugTouched.value = true;
@@ -59,7 +62,12 @@ export function useArticleEditor() {
       store.fail(describeFailure(result.failure));
       return false;
     }
-    adopt(result.value);
+    receipt.value = { id: result.value.id, revision: result.value.revision };
+    loading.value = true;
+    const current = await blogApi.get(result.value.id);
+    loading.value = false;
+    if (!current.ok) { store.fail('Saved successfully. The current view could not refresh. Your local edits are preserved.'); return false; }
+    adopt(current.value);
     await loadHistory();
     store.succeed(message);
     return true;
@@ -67,9 +75,11 @@ export function useArticleEditor() {
 
   return {
     detail,
+    receipt,
     draft,
     dirty,
     busy,
+    loading,
     canEdit,
     history,
     media,
@@ -78,7 +88,9 @@ export function useArticleEditor() {
     blockers,
     previewNonce,
     async load(id: string) {
+      loading.value = true;
       const result = await blogApi.get(id);
+      loading.value = false;
       if (!result.ok) {
         store.fail(describeFailure(result.failure));
         return false;
@@ -89,6 +101,7 @@ export function useArticleEditor() {
     },
     startNew(topic: string) {
       detail.value = null;
+      receipt.value = null;
       history.value = [];
       draft.value = emptyArticle(topic);
       baseline.value = JSON.stringify(draft.value);
@@ -111,14 +124,16 @@ export function useArticleEditor() {
         store.fail(describeFailure(result.failure));
         return null;
       }
-      media.value = [result.value, ...media.value.filter((m) => m.sha256 !== result.value.sha256)];
+      const current = await blogApi.media();
+      if (current.ok) media.value = current.value;
+      else store.fail(describeFailure(current.failure));
       return result.value;
     },
     async save(changeSummary?: string) {
       const value = draft.value;
       if (!value) return null;
-      const payload = { ...value, changeSummary };
-      const id = detail.value?.id;
+      const payload = { ...value, changeSummary, expectedRevision: receipt.value?.revision ?? value.expectedRevision };
+      const id = receipt.value?.id ?? detail.value?.id;
       const ok = await run(() => (id ? blogApi.update(id, payload) : blogApi.create(payload)), 'Hikoya saqlandi.');
       return ok ? (detail.value?.id ?? null) : null;
     },

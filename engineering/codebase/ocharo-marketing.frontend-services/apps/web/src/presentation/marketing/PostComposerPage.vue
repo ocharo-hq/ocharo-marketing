@@ -195,7 +195,12 @@ async function save() {
     currentId.value,
   );
   if (!result.ok) return null;
-  applySaved(result.value, submittedSnapshot);
+  // Confirmed receipt owns retry identity; only the independent read owns editor content.
+  currentId.value = result.value.id;
+  revision.value = result.value.revision;
+  const current = desk.workspace.value?.drafts.find(item => item.id === result.value.id);
+  if (!current || current.revision < result.value.revision) return null;
+  applySaved(current, submittedSnapshot);
   desk.notice.value = 'Post saqlandi.';
   return result.value;
 }
@@ -236,7 +241,9 @@ async function approve() {
   const submittedSnapshot = JSON.stringify({ form, composition: composition.value });
   const result = await desk.approveDraft(currentId.value, revision.value);
   if (result.ok) {
-    applySaved(result.value, submittedSnapshot);
+    const current = desk.workspace.value?.drafts.find(item => item.id === result.value.id);
+    if (!current || current.revision < result.value.revision) return;
+    applySaved(current, submittedSnapshot);
     desk.notice.value = 'Shu post varianti tekshirildi.';
   }
 }
@@ -497,7 +504,7 @@ function toggleChannel(channel: string) {
             >
           </div>
           <p v-if="renderJob.message" class="mt-2 text-xs leading-5 text-muted-foreground">
-            {{ ui(renderJob.message) }}
+            {{ ui('Needs attention') }}
           </p>
           <p v-if="renderJob.status === 'completed' && !canUseOutput" class="mt-2 text-xs text-warning">
             {{ ui('Regenerate the image if the appearance changed.') }}

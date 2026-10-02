@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import { useErrorToast } from '../../application/shared/UseFeedback';
 import { useUiLocale } from '@ocharomarketing/connect/UseUiLocale';
 import { computed, onMounted, ref, watch } from 'vue';
 import { BookOpen, CalendarClock, Plus, RefreshCw, Sparkles, Trash2, Zap } from 'lucide-vue-next';
@@ -24,6 +25,7 @@ const syncReport = ref<CatalogueSyncReportModel | null>(null);
 const fillReport = ref<SlotFillReportModel | null>(null);
 const stories = ref<BlogStoryModel[] | null>(null);
 const storiesError = ref<string | null>(null);
+useErrorToast(storiesError);
 const selected = ref<Set<string>>(new Set());
 const bulkLocale = ref('uz');
 const bulkPreset = ref('t02-bone');
@@ -129,7 +131,7 @@ async function saveSettings() {
   if (!settings.value) return;
   const result = await desk.saveAutomation(settings.value);
   if (result.ok) {
-    settings.value = structuredClone(result.value);
+    await loadSettings();
     desk.notice.value = 'Avtomatika sozlamalari saqlandi.';
   }
 }
@@ -229,7 +231,7 @@ onMounted(async () => {
         {{ run.lastFillAt ? `${localTime(run.lastFillAt)} (${run.lastFillPlanned})` : '—' }}
         <span v-if="run.lastError" class="block text-warning"
           >{{ ui('Last error (') }}{{ run.lastErrorAt ? localTime(run.lastErrorAt) : '' }}):
-          {{ ui(run.lastError) }}</span
+          {{ ui('Needs attention') }}</span
         >
       </p>
     </section>
@@ -510,10 +512,8 @@ onMounted(async () => {
           <Button variant="ghost" size="sm" @click="loadStories"><Icon :icon="RefreshCw" :size="14" /></Button>
         </div>
       </div>
-      <p v-if="storiesError" class="mt-4 rounded-xl bg-warning-soft p-4 text-sm text-warning-soft-foreground">
-        {{ ui(storiesError) }}
-      </p>
-      <ul v-else-if="stories" class="mt-4 divide-y divide-border">
+
+      <ul v-if="stories" class="mt-4 divide-y divide-border">
         <li
           v-for="story in stories.slice(0, 20)"
           :key="story.link"

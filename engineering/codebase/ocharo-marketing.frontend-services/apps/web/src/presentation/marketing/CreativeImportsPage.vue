@@ -1,4 +1,6 @@
 <script setup lang="ts">
+import { requestFailureMessage } from '@ocharomarketing/connect/RequestFeedback';
+import { useErrorToast } from '../../application/shared/UseFeedback';
 import { useUiLocale } from '@ocharomarketing/connect/UseUiLocale';
 import { ref } from 'vue';
 import { RouterLink } from 'vue-router';
@@ -14,6 +16,7 @@ const desk = useMarketingWorkspace(),
   error = ref(''),
   draftId = ref(''),
   busy = ref(false);
+useErrorToast(error);
 function choose(event: Event, kind: 'manifest' | 'image') {
   const file = (event.target as HTMLInputElement).files?.[0] ?? null;
   if (kind === 'manifest') manifest.value = file;
@@ -29,12 +32,12 @@ async function submit() {
     body.append('image', image.value);
     body.append('productId', productId.value);
     const r = await integrationFetch('/api/marketing/creative-imports', { method: 'POST', body });
+    if (!r.ok) { error.value = requestFailureMessage({ code: 'http', status: r.status }); return; }
     const result = await r.json();
-    if (!r.ok) throw new Error(result.detail ?? 'Import failed');
     draftId.value = result.draft.id;
-    await desk.refresh(true);
-  } catch (e) {
-    error.value = String(e);
+    await desk.refresh();
+  } catch {
+    error.value = requestFailureMessage({ code: 'transport', status: 0 });
   } finally {
     busy.value = false;
   }
@@ -81,13 +84,6 @@ async function submit() {
           </option>
         </select></label
       ><Button type="submit" :is-disabled="busy">{{ busy ? ui('Checking package…') : ui('Import as a draft') }}</Button>
-      <p
-        v-if="error"
-        role="alert"
-        class="my-4 rounded-xl bg-destructive-soft p-4 text-sm text-destructive-soft-foreground"
-      >
-        {{ ui(error) }}
-      </p>
       <RouterLink v-if="draftId" :to="'/posts/' + draftId" class="text-primary underline">{{
         ui('Open imported draft →')
       }}</RouterLink>

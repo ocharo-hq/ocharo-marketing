@@ -1,4 +1,6 @@
 <script setup lang="ts">
+import { FeedbackToastHost } from '@wow-two-beta/ui-vue/presentation/feedback';
+import { feedbackBus, useErrorToast } from '../application/shared/UseFeedback';
 import { useUiLocale } from '@ocharomarketing/connect/UseUiLocale';
 import { provideLocale } from '@wow-two-beta/ui-vue/foundation/i18n';
 import LanguagePicker from '@ocharomarketing/connect/LanguagePicker.vue';
@@ -19,6 +21,7 @@ provideLocale(uiLocale, sdkMessages);
 /** Composes Ocharo Blog Studio: stories, topics and site settings. */
 defineOptions({ name: 'AppRoot' });
 const store = useBlogStore();
+useErrorToast(store.error);
 const route = useRoute();
 const navigation = [
   { path: '/', label: 'Hikoyalar', icon: FileText },
@@ -130,16 +133,6 @@ onMounted(() => store.loadTopics());
       <main id="main-content" tabindex="-1" class="mx-auto max-w-[1600px] px-5 py-8 sm:px-8 xl:px-10">
         <ConnectDesk :platform-url="connectPlatformUrl" />
         <div
-          v-if="store.error.value"
-          role="alert"
-          class="mb-6 flex items-start justify-between gap-4 rounded-xl border border-destructive/20 bg-destructive-soft px-5 py-4 text-sm text-destructive-soft-foreground"
-        >
-          <p class="leading-6">{{ ui(store.error.value) }}</p>
-          <button class="shrink-0 rounded p-1" :aria-label="ui('Dismiss message')" @click="store.error.value = null">
-            <Icon :icon="X" :size="15" />
-          </button>
-        </div>
-        <div
           v-if="store.notice.value"
           role="status"
           class="mb-6 flex items-start justify-between gap-4 rounded-xl border border-success/20 bg-success-soft px-5 py-4 text-sm text-success-soft-foreground"
@@ -159,6 +152,7 @@ onMounted(() => store.loadTopics());
           </template>
         </AppErrorBoundary>
       </main>
+      <FeedbackToastHost :bus="feedbackBus" position="bottom-right" />
       <RouteAnnouncer />
     </div>
   </div>

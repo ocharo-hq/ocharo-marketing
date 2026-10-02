@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import { useErrorToast } from '../../application/shared/UseFeedback';
 import { useUiLocale } from '@ocharomarketing/connect/UseUiLocale';
 import { computed, onBeforeUnmount, ref, watch } from 'vue';
 import { RefreshCw } from 'lucide-vue-next';
@@ -17,6 +18,8 @@ const cache = ref<MetricCacheModel | null>(null);
 const loading = ref(false);
 const refreshing = ref(false);
 const error = ref<string | null>(null);
+useErrorToast(error);
+let loadedPlan: string | null = null;
 let controller: AbortController | null = null;
 let requestVersion = 0;
 const operation = computed(() =>
@@ -60,7 +63,7 @@ async function load(id: string) {
   controller?.abort();
   controller = new AbortController();
   const version = ++requestVersion;
-  cache.value = null;
+  if (loadedPlan !== id) { cache.value = null; loadedPlan = id; }
   error.value = null;
   loading.value = true;
   const result = await desk.getMetrics(id, controller.signal);
@@ -84,7 +87,7 @@ async function refresh() {
   try {
     const result = await desk.refreshMetrics(id);
     if (version !== requestVersion || id !== props.plan.id) return;
-    if (result.ok) cache.value = result.value;
+    if (result.ok) await load(id);
     else error.value = desk.failureMessage(result.failure);
   } finally {
     refreshing.value = false;
@@ -149,17 +152,16 @@ function name(value: string) {
         )
       }}
     </p>
-    <p v-if="loading" class="mt-5 text-xs text-muted-foreground">{{ ui('Loading saved observations…') }}</p>
-    <p v-if="error" role="alert" class="mt-4 text-xs leading-6 text-destructive">{{ ui(error) }}</p>
+    <div v-if="loading" aria-busy="true" class="mt-5 grid gap-3 sm:grid-cols-2"><div v-for="card in 4" :key="card" class="h-28 animate-pulse rounded-xl bg-muted" /></div>
     <div v-if="cache?.lastAttempt" class="mt-4 rounded-lg bg-muted p-3 text-xs leading-6">
       <p>
         {{ ui('Last request:') }}
         {{ formatDate(cache.lastAttempt.attemptedAt, { hour: '2-digit', minute: '2-digit' }) }} ·
         {{ ui(MarketingExtensions.statusLabel(cache.lastAttempt.status)) }}
       </p>
-      <p class="text-muted-foreground">{{ ui(cache.lastAttempt.message) }}</p>
+      <p class="text-muted-foreground">{{ ui('Needs attention') }}</p>
     </div>
-    <div v-if="latest.length" class="mt-5 grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
+    <div v-if="latest.length" v-show="!loading" class="mt-5 grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
       <div v-for="item in latest" :key="item.id" class="rounded-xl border border-border p-4">
         <p class="text-xs font-semibold">{{ ui(name(item.name)) }}</p>
         <p class="mt-3 font-editorial text-3xl">

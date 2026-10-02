@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import { useErrorToast } from '../../application/shared/UseFeedback';
 import { useUiLocale } from '@ocharomarketing/connect/UseUiLocale';
 import { computed, onBeforeUnmount, ref, watch } from 'vue';
 import { FileSearch, ArrowUpRight, RefreshCw } from 'lucide-vue-next';
@@ -29,6 +30,7 @@ const records = ref<SourceAnalysisModel[]>([]);
 const selectedId = ref<string | null>(null);
 const reviewText = ref('');
 const localError = ref<string | null>(null);
+useErrorToast(localError);
 const loading = ref(false);
 const analysisBusy = ref(false);
 const reviewBusy = ref(false);
@@ -73,9 +75,6 @@ watch(
   { flush: 'sync' },
 );
 /** An unchanged request retains its ID even if the HTTP response was lost. */
-function upsert(record: SourceAnalysisModel) {
-  records.value = [record, ...records.value.filter((item) => item.id !== record.id)];
-}
 /** Selecting a record explicitly replaces only the local review editor. */
 function choose(record: SourceAnalysisModel) {
   selectedId.value = record.id;
@@ -132,8 +131,9 @@ async function analyze() {
       prompt: prompt.value || undefined,
     });
     if (result.ok) {
-      upsert(result.value);
-      choose(result.value);
+      await load();
+      const current = records.value.find(item => item.id === result.value.id);
+      if (current) choose(current);
     } else localError.value = desk.failureMessage(result.failure);
   } finally {
     analysisBusy.value = false;
@@ -149,9 +149,10 @@ async function saveReview() {
   try {
     const result = await desk.reviewSourceAnalysis(record.id, record.revision, submitted);
     if (result.ok) {
-      upsert(result.value);
-      if (selectedId.value === record.id && reviewText.value === submitted)
-        reviewText.value = result.value.reviewedText ?? submitted;
+      await load();
+      const current = records.value.find(item => item.id === record.id);
+      if (current && selectedId.value === record.id && reviewText.value === submitted)
+        reviewText.value = current.reviewedText ?? submitted;
     } else localError.value = desk.failureMessage(result.failure);
   } finally {
     reviewBusy.value = false;
@@ -264,7 +265,7 @@ function reuse() {
           ><Icon :icon="RefreshCw" :size="14" class="mr-1" />{{ ui('Saved history') }}</Button
         >
       </div>
-      <p v-if="localError" role="alert" class="mt-4 text-xs leading-6 text-destructive">{{ ui(localError) }}</p>
+
       <div v-if="records.length" class="mt-4 flex max-h-40 flex-wrap gap-2 overflow-y-auto">
         <button
           v-for="record in records"
@@ -288,7 +289,7 @@ function reuse() {
             }}{{ ui(' revision') }}
           </p>
         </div>
-        <p class="text-xs leading-6 text-muted-foreground">{{ ui(selected.message) }}</p>
+        <p class="text-xs leading-6 text-muted-foreground">{{ ui('Needs attention') }}</p>
         <details class="rounded-lg bg-muted p-3 text-xs">
           <summary class="cursor-pointer font-semibold">{{ ui('Sources ·') }} {{ selected.sources.length }}</summary>
           <div v-for="source in selected.sources" :key="source.assetId" class="mt-3">

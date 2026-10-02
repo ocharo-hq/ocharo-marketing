@@ -200,7 +200,7 @@ async function generate() {
           ><StatusIndicator :status="job.status" />
         </div>
         <p class="mt-3 line-clamp-3 text-xs leading-6 text-muted-foreground">{{ job.prompt }}</p>
-        <p v-if="job.message" class="mt-2 text-xs text-warning">{{ ui(job.message) }}</p>
+        <p v-if="job.message" class="mt-2 text-xs text-warning">{{ ui('Needs attention') }}</p>
         <div v-if="job.outputAssetIds.length" class="mt-4 grid grid-cols-2 gap-2">
           <a
             v-for="id in job.outputAssetIds"

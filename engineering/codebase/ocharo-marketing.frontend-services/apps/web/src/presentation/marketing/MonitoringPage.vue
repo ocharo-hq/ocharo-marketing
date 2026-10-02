@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import { useErrorToast } from '../../application/shared/UseFeedback';
 import { useUiLocale } from '@ocharomarketing/connect/UseUiLocale';
 import { onBeforeUnmount, onMounted, ref } from 'vue';
 import { Button } from '@wow-two-beta/ui-vue/presentation/actions';
@@ -12,16 +13,19 @@ const desk = useMarketingWorkspace();
 const overview = ref<OperationsOverviewModel | null>(null);
 const refreshError = ref('');
 const loading = ref(false);
+let reading = false;
+useErrorToast(refreshError);
 let timer: ReturnType<typeof setTimeout> | undefined;
 const abort = new AbortController();
 let disposed = false;
 function date(value: string | null) {
   return value ? formatDate(value, { hour: '2-digit', minute: '2-digit' }) : 'Kuzatilmagan';
 }
-async function load() {
-  if (loading.value || disposed) return;
+async function load(quiet = false) {
+  if (reading || disposed) return;
   if (timer) clearTimeout(timer);
-  loading.value = true;
+  reading = true;
+  loading.value = !quiet;
   const result = await desk.getOperations(abort.signal);
   if (disposed) return;
   if (result.ok) {
@@ -29,8 +33,9 @@ async function load() {
     refreshError.value = '';
   } else if (result.failure.code !== 'cancelled') refreshError.value = desk.failureMessage(result.failure);
   loading.value = false;
+  reading = false;
   // Read-only local state. No provider refresh, retry or delivery can result from this timer.
-  if (!disposed) timer = setTimeout(load, 30000);
+  if (!disposed) timer = setTimeout(() => load(true), 30000);
 }
 const workerNames: Record<string, string> = {
   automation: 'Katalog va rejalashtirish',
@@ -44,7 +49,7 @@ const workerStatus: Record<string, string> = {
   failed: 'Oxirgi tekshiruv xato',
   stale: 'Yangi signal yo‘q',
 };
-onMounted(load);
+onMounted(() => load());
 onBeforeUnmount(() => {
   disposed = true;
   abort.abort();
@@ -65,12 +70,11 @@ onBeforeUnmount(() => {
           }}
         </p>
       </div>
-      <Button variant="outline" :is-disabled="loading" @click="load">{{ ui('Refresh status') }}</Button>
+      <Button variant="outline" :is-disabled="loading" @click="load()">{{ ui('Refresh status') }}</Button>
     </header>
-    <p v-if="refreshError" role="alert" class="rounded-xl bg-warning-soft p-4 text-sm">
-      {{ ui(refreshError) }} {{ ui('The previous state is preserved below.') }}
-    </p>
-    <template v-if="overview">
+    <div v-if="loading" aria-busy="true" class="grid gap-4 md:grid-cols-3"><div v-for="card in 6" :key="card" class="h-40 animate-pulse rounded-2xl bg-muted" /></div>
+    <p v-if="!loading && !overview" class="rounded-xl border border-border p-4">{{ ui('Content unavailable. Try refreshing.') }}</p>
+    <div v-if="overview" v-show="!loading" class="space-y-6">
       <p class="text-xs text-muted-foreground">
         {{ ui('Saved state:') }} {{ date(overview.observedAt) }} · {{ overview.timeZone }}
       </p>
@@ -108,7 +112,7 @@ onBeforeUnmount(() => {
           <p class="mt-1 text-xs text-muted-foreground">
             {{ ui('Successful check:') }} {{ date(worker.lastSuccessAt) }}
           </p>
-          <p v-if="worker.lastError" class="mt-3 text-xs text-warning">{{ ui(worker.lastError) }}</p>
+          <p v-if="worker.lastError" class="mt-3 text-xs text-warning">{{ ui('Needs attention') }}</p>
         </article>
       </section>
       <section class="rounded-xl border border-border bg-card p-5">
@@ -130,7 +134,7 @@ onBeforeUnmount(() => {
         </p>
         <p v-if="overview.automation.lastError" class="mt-3 text-xs text-warning">
           {{ ui('Last saved error (') }}{{ date(overview.automation.lastErrorAt) }}):
-          {{ ui(overview.automation.lastError) }}
+          {{ ui('Needs attention') }}
         </p>
         <Button class="mt-4" variant="outline" size="sm" @click="desk.navigate('/connections')">{{
           ui('Check connections')
@@ -149,7 +153,7 @@ onBeforeUnmount(() => {
           <h3 class="text-sm font-semibold">
             {{ item.snapshot.draft.title }} · {{ ops.channels[item.provider] ?? item.provider }}
           </h3>
-          <p class="mt-2 text-xs text-warning">{{ ui(item.status) }} · {{ ui(item.message) }}</p>
+          <p class="mt-2 text-xs text-warning">{{ ui(item.status) }} · {{ ui('Needs attention') }}</p>
           <p v-if="item.status === 'unknown'" class="mt-3 text-xs leading-6">
             {{
               ui(
@@ -186,6 +190,6 @@ onBeforeUnmount(() => {
           <Button variant="outline" size="sm" @click="desk.navigate('/calendar')">{{ ui('View plan') }}</Button>
         </article>
       </section>
-    </template>
+    </div>
   </div>
 </template>

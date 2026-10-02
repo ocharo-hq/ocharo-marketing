@@ -1,6 +1,7 @@
+import { feedbackBus } from '../src/application/shared/UseFeedback';
 import { useUiLocale } from '@ocharomarketing/connect/UseUiLocale';
 import { beforeEach as beforeLocaleTest } from 'vitest';
-beforeLocaleTest(() => useUiLocale().setUiLocale('uz'));
+beforeLocaleTest(() => {useUiLocale().setUiLocale('uz');vi.spyOn(feedbackBus,'notify');});
 import { mount, flushPromises } from '@vue/test-utils';
 import { ref, shallowRef } from 'vue';
 import { describe, it, expect, vi, afterEach } from 'vitest';
@@ -297,7 +298,8 @@ describe('saved metric evidence', () => {
     await button(wrapper, 'Kanaldan yangilash').trigger('click');
     await flushPromises();
     expect(state.refreshMetrics).toHaveBeenCalledTimes(1);
-    expect(wrapper.text()).toContain('Safe failure');
+    expect(wrapper.text()).not.toContain('Safe failure');
+    expect(feedbackBus.notify).toHaveBeenCalledWith(expect.objectContaining({description:expect.stringContaining('Safe failure')}));
     expect(wrapper.text()).toContain('Ko‘rishlar: 0');
   });
   it('disables provider reads when metrics gate is off while showing old cache', async () => {

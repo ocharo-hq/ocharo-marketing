@@ -1,4 +1,6 @@
 <script setup lang="ts">
+import { requestFailureMessage } from '@ocharomarketing/connect/RequestFeedback';
+import { useErrorToast } from '../../application/shared/UseFeedback';
 import { useUiLocale } from '@ocharomarketing/connect/UseUiLocale';
 import { computed, onBeforeUnmount, onMounted, ref } from 'vue';
 import { integrationFetch } from '@ocharomarketing/connect';
@@ -50,6 +52,10 @@ const busy = ref(false),
   offset = ref(0),
   total = ref(0);
 const observedAt = ref('');
+const hasLoaded = ref(false);
+// Receipts protect retry revisions without changing the confirmed grid projection.
+const writeReceipts = new Map<string, number>();
+useErrorToast(error);
 const pageSize = 20;
 const timeZone = Intl.DateTimeFormat().resolvedOptions().timeZone;
 const abort = new AbortController();
@@ -77,8 +83,8 @@ const due = (item: Inquiry) =>
   item.status !== 'closed' &&
   item.followUpAt !== null &&
   new Date(item.followUpAt).getTime() <= new Date(observedAt.value).getTime();
-async function load(nextOffset = 0) {
-  if (dirty.value || locked.value) return;
+async function load(nextOffset = 0, savedId?: string) {
+  if (!savedId && (dirty.value || locked.value)) return;
   busy.value = true;
   try {
     const params = new URLSearchParams({
@@ -89,19 +95,35 @@ async function load(nextOffset = 0) {
       followUp: followUp.value,
     });
     const r = await integrationFetch('/api/marketing/inquiries?' + params, { signal: abort.signal });
+    if (!r.ok) {
+      error.value = requestFailureMessage({ code: 'http', status: r.status });
+      return false;
+    }
     const d = await r.json();
-    if (!r.ok) throw new Error(d.detail ?? 'Inbox unavailable.');
     if (disposed) return;
-    items.value = (d.items as Inquiry[]).map(editable);
-    baseline.value = Object.fromEntries(items.value.map((item) => [item.id, { ...item }]));
+    const incoming = (d.items as Inquiry[]).map(editable);
+    for (const item of incoming) if (item.revision >= (writeReceipts.get(item.id) ?? 0)) writeReceipts.delete(item.id);
+    const retained = items.value.filter((item) => item.id !== savedId && changed(item));
+    const oldBaseline = baseline.value;
+    items.value = incoming.map((item) => retained.find((draft) => draft.id === item.id) ?? item);
+    baseline.value = Object.fromEntries(
+      incoming.map((item) => [
+        item.id,
+        retained.some((draft) => draft.id === item.id) ? oldBaseline[item.id]! : { ...item },
+      ]),
+    );
+    hasLoaded.value = true;
     total.value = d.total;
     offset.value = d.offset;
     observedAt.value = d.observedAt;
-    activity.value = {};
-    activityOpen.value = {};
+    if (!savedId) {
+      activity.value = {};
+      activityOpen.value = {};
+    }
     error.value = '';
-  } catch (e) {
-    if (!disposed) error.value = e instanceof Error ? e.message : 'Inbox unavailable.';
+    return true;
+  } catch {
+    if (!disposed) error.value = requestFailureMessage({ code: 'transport', status: 0 });
   } finally {
     if (!disposed) busy.value = false;
   }
@@ -123,16 +145,19 @@ async function loadActivity(item: Inquiry, more = false, afterSave = false) {
       `/api/marketing/inquiries/${encodeURIComponent(item.id)}/activity?limit=20${cursor == null ? '' : '&beforeRevision=' + cursor}`,
       { signal: abort.signal },
     );
+    if (!r.ok) {
+      error.value = requestFailureMessage({ code: 'http', status: r.status });
+      return;
+    }
     const d = await r.json();
-    if (!r.ok) throw new Error(d.detail ?? 'Activity unavailable.');
     if (!disposed)
       activity.value[item.id] = {
         total: d.total,
         items: [...previous, ...d.items],
         nextBeforeRevision: d.nextBeforeRevision ?? null,
       };
-  } catch (e) {
-    if (!disposed) error.value = e instanceof Error ? e.message : 'Activity unavailable.';
+  } catch {
+    if (!disposed) error.value = requestFailureMessage({ code: 'transport', status: 0 });
   } finally {
     if (!disposed) activityBusy.value = null;
   }
@@ -157,21 +182,35 @@ async function save(item: EditableInquiry) {
       headers: { 'Content-Type': 'application/json' },
       signal: abort.signal,
       body: JSON.stringify({
-        expectedRevision: item.revision,
+        expectedRevision: writeReceipts.get(item.id) ?? item.revision,
         status: item.status,
         note: item.note,
         followUp: { assignedTo: item.assignedTo, followUpAt, nextStep: item.nextStep },
       }),
     });
-    const d = await r.json();
-    if (!r.ok) throw new Error((d.detail ?? 'Could not save.') + ' Your changes stay here.');
+    if (!r.ok) {
+      error.value = requestFailureMessage({ code: 'http', status: r.status });
+      return;
+    }
     if (disposed) return;
-    Object.assign(item, editable(d));
-    baseline.value[item.id] = { ...item };
+    const receipt: unknown = await r.json();
+    if (
+      receipt &&
+      typeof receipt === 'object' &&
+      'id' in receipt &&
+      receipt.id === item.id &&
+      'revision' in receipt &&
+      Number.isSafeInteger(receipt.revision)
+    )
+      writeReceipts.set(item.id, Number(receipt.revision));
+    if (!(await load(offset.value, item.id))) {
+      error.value = 'Saved successfully. The current view could not refresh. Your local edits are preserved.';
+      return;
+    }
     notice.value = 'Follow-up saved. No outgoing message or order was created.';
     if (activityOpen.value[item.id]) await loadActivity(item, false, true);
-  } catch (e) {
-    if (!disposed) error.value = e instanceof Error ? e.message : 'Could not save. Your changes stay here.';
+  } catch {
+    if (!disposed) error.value = requestFailureMessage({ code: 'transport', status: 0 });
   } finally {
     if (!disposed) saving.value = null;
   }
@@ -242,24 +281,36 @@ onBeforeUnmount(() => {
         ui('Discard unsaved changes')
       }}</Button>
     </div>
-    <p v-if="error" role="alert" class="rounded-xl bg-destructive-soft p-4 text-sm text-destructive-soft-foreground">
-      {{ ui(error) }}
-    </p>
     <p v-if="notice" role="status" class="rounded-xl bg-success-soft p-4 text-sm text-success-soft-foreground">
       {{ ui(notice) }}
     </p>
-    <div class="flex flex-wrap items-center justify-between gap-3 text-sm">
+    <div v-if="hasLoaded" v-show="!busy" class="flex flex-wrap items-center justify-between gap-3 text-sm">
       <p aria-live="polite">
-        {{ busy ? ui('Loading enquiries…') : ui('{count} matching enquiries', { count: total }) }}
+        {{ ui('{count} matching enquiries', { count: total }) }}
       </p>
       <p v-if="observedAt" class="text-xs text-muted-foreground">
         {{ ui('Due as of') }} {{ formatTime(observedAt) }} · {{ timeZone }}
       </p>
     </div>
-    <p v-if="!busy && !items.length" class="rounded-2xl border border-border bg-card p-6 text-sm text-muted-foreground">
+    <div v-if="!busy && !hasLoaded" class="rounded-2xl border border-border bg-card p-6 text-sm text-muted-foreground">
+      <p>{{ ui('Enquiries unavailable') }}</p>
+      <Button class="mt-3" variant="outline" @click="load(offset)">{{ ui('Try again') }}</Button>
+    </div>
+    <p
+      v-if="!busy && hasLoaded && !items.length"
+      class="rounded-2xl border border-border bg-card p-6 text-sm text-muted-foreground"
+    >
       {{ ui('No enquiries in this view.') }}
     </p>
-    <article v-for="item in items" :key="item.id" class="min-w-0 rounded-2xl border border-border bg-card p-5 sm:p-6">
+    <div v-if="busy" aria-busy="true" class="grid gap-4">
+      <div v-for="card in 3" :key="card" class="h-64 animate-pulse rounded-2xl bg-muted" />
+    </div>
+    <article
+      v-for="item in items"
+      v-show="!busy"
+      :key="item.id"
+      class="min-w-0 rounded-2xl border border-border bg-card p-5 sm:p-6"
+    >
       <div class="flex flex-wrap justify-between gap-3">
         <h2 class="font-editorial text-2xl">{{ item.name }}</h2>
         <time class="break-words text-xs text-muted-foreground">{{ formatTime(item.createdAt) }}</time>
@@ -327,9 +378,13 @@ onBeforeUnmount(() => {
               class="mt-2 block w-full rounded-xl border border-border bg-background px-3 py-2.5 text-sm"
             />
           </label>
-          <Button type="submit" class="justify-self-start" :is-disabled="locked || !changed(item)">{{
-            saving === item.id ? ui('Saving…') : ui('Save update')
-          }}</Button>
+          <Button
+            type="submit"
+            class="justify-self-start"
+            :is-loading="saving === item.id"
+            :is-disabled="locked || !changed(item)"
+            >{{ ui('Save update') }}</Button
+          >
         </fieldset>
       </form>
       <div class="mt-5 border-t border-border pt-4">
@@ -341,11 +396,19 @@ onBeforeUnmount(() => {
           >{{ activityOpen[item.id] ? ui('Hide activity') : ui('View activity') }}</Button
         >
         <div v-if="activityOpen[item.id]" class="mt-4 space-y-3">
-          <p v-if="activityBusy === item.id" role="status" class="text-sm">{{ ui('Loading activity…') }}</p>
+          <div v-if="activityBusy === item.id" aria-busy="true" :aria-label="ui('Enquiry activity')" class="space-y-3">
+            <div v-for="card in 2" :key="card" class="h-24 animate-pulse rounded-xl bg-muted" />
+          </div>
+          <div v-else-if="!activity[item.id]" class="text-sm text-muted-foreground">
+            <p>{{ ui('Activity unavailable') }}</p>
+            <Button class="mt-3" variant="outline" :is-disabled="locked" @click="loadActivity(item)">{{
+              ui('Try again')
+            }}</Button>
+          </div>
           <p v-else-if="!activity[item.id]?.items.length" class="text-sm text-muted-foreground">
             {{ ui('No recorded changes yet. Earlier notes remain on the enquiry.') }}
           </p>
-          <ol class="space-y-3">
+          <ol v-show="activityBusy !== item.id" class="space-y-3">
             <li v-for="entry in activity[item.id]?.items" :key="entry.revision" class="rounded-xl bg-muted p-4 text-sm">
               <p class="break-words font-semibold">
                 {{ ui('Revision') }} {{ entry.revision }} · {{ ui(entry.status) }} · {{ formatTime(entry.recordedAt) }}

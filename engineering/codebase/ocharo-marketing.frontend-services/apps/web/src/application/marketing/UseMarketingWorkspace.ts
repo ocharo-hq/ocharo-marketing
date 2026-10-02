@@ -1,3 +1,4 @@
+import { requestFailureMessage } from '@ocharomarketing/connect/RequestFeedback';
 import { computed, inject, ref, shallowRef, type InjectionKey } from 'vue';
 
 import type { ApiFailure } from '@wow-two-beta/ui-vue/foundation/http';
@@ -33,13 +34,7 @@ export function createMarketingWorkspace(navigate: (path: string) => void) {
 
   /** Resolves an actionable message without exposing unexpected server diagnostics. */
   function failureMessage(failure: ApiFailure): string {
-    const detail = failure.problem?.detail;
-    if (typeof detail === 'string' && detail.length <= 600) return detail;
-    if (failure.status === 409)
-      return 'Amal mavjud holat bilan mos kelmadi. Ma’lumotlar saqlanib turibdi; holatni tekshiring.';
-    if (failure.code === 'protocol') return "Server javobi kutilgan formatda emas. Qayta urinib ko'ring.";
-    if (failure.code === 'transport') return "Serverga ulanib bo'lmadi. Mahalliy xizmat ishlayotganini tekshiring.";
-    return failure.status ? `Amal bajarilmadi (${failure.status}). Qayta urinib ko'ring.` : 'Amal bajarilmadi.';
+    return requestFailureMessage(failure);
   }
 
   /** Refreshes recorded state without inventing a fallback workspace. */
@@ -63,7 +58,15 @@ export function createMarketingWorkspace(navigate: (path: string) => void) {
     notice.value = null;
     try {
       const result = await operation();
-      if (result.ok) await refresh(true);
+      if (result.ok) {
+        try {
+          const current = await refresh();
+          if (!current.ok) error.value = 'Saved successfully. The current view could not refresh. Your local edits are preserved.';
+        } catch {
+          loading.value = false;
+          error.value = 'Saved successfully. The current view could not refresh. Your local edits are preserved.';
+        }
+      }
       else error.value = failureMessage(result.failure);
       return result;
     } finally {
