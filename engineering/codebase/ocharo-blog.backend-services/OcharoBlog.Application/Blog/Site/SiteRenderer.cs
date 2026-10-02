@@ -117,7 +117,7 @@ public sealed class SiteRenderer(SiteModel site)
         return $"<!doctype html><html lang=\"{Lang}\"><head><meta charset=\"utf-8\"><meta name=\"viewport\" content=\"width=device-width,initial-scale=1\">" +
             $"<title>{E(title)} — {E(S.Title)}</title><meta name=\"description\" content=\"{E(description)}\">{robots}{canonical}{hreflang}{feed}" +
             $"<meta property=\"og:title\" content=\"{E(title)}\"><meta property=\"og:description\" content=\"{E(description)}\"><meta property=\"og:type\" content=\"article\">" +
-            "<meta name=\"theme-color\" content=\"#f8f7f3\"><link rel=\"stylesheet\" href=\"/site.css\">" +
+            "<meta name=\"theme-color\" content=\"#f8f7f3\"><link rel=\"stylesheet\" href=\"/boot-splash.css\"><link rel=\"stylesheet\" href=\"/site.css\">" +
             "<link rel=\"icon\" type=\"image/svg+xml\" href=\"data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='7' fill='%23dd492f'/%3E%3Ctext x='16' y='24' font-family='Georgia' font-size='27' text-anchor='middle' fill='white'%3EO%3C/text%3E%3C/svg%3E\">" +
             $"</head><body><a class=\"skip\" href=\"#main\">{E(T("skip"))}</a>" +
             (preview ? $"<div class=\"preview-banner\" role=\"status\">{E(T("preview"))}</div>" : "");

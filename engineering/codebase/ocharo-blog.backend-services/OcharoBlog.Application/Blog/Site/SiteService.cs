@@ -81,6 +81,7 @@ public sealed class SiteService(IBlogRepository repository, TopicService topics,
             ["sitemap.xml"] when language == "en" => new SitePage(renderer.Sitemap(model.AvailableLanguages!), "application/xml; charset=utf-8"),
             ["robots.txt"] when language == "en" => new SitePage(renderer.Robots(), "text/plain; charset=utf-8"),
             ["site.css"] when language == "en" => new SitePage(Css, "text/css; charset=utf-8"),
+            ["boot-splash.css"] when language == "en" => new SitePage(PublicDocumentPaint.Css, "text/css; charset=utf-8"),
             _ => null,
         };
     }
@@ -143,6 +144,7 @@ public sealed class SiteService(IBlogRepository repository, TopicService topics,
             var root = new SiteRenderer(model);
             Text("sitemap.xml", root.Sitemap(model.AvailableLanguages!));
             Text("robots.txt", root.Robots());
+            Text("boot-splash.css", PublicDocumentPaint.Css);
             Text("site.css", Css);
             foreach (var (sha, path) in used)
             {

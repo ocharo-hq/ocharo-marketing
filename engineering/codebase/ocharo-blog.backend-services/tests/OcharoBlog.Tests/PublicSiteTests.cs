@@ -8,6 +8,23 @@ namespace OcharoBlog.Tests;
 
 public sealed class PublicSiteTests
 {
+    [Theory]
+    [InlineData("/", "/boot-splash.css", "#f8f7f3")]
+    [InlineData("/wear/", "/wear/boot-splash.css", "#faf5ed")]
+    [InlineData("/catalogue/", "/catalogue/boot-splash.css", "#f6f0e5")]
+    public async Task PublicDocumentsLoadTheirExternalInitialSurfaceBeforeTheFullTheme(string path, string initialCss, string color)
+    {
+        await using var harness = new BlogHarness();
+        using var client = harness.Client();
+        var html = await client.GetStringAsync(path);
+        var early = html.IndexOf(initialCss, StringComparison.Ordinal);
+        var full = html.IndexOf("/site.css", StringComparison.Ordinal);
+        Assert.True(early >= 0 && early < full);
+        var css = await client.GetStringAsync(initialCss);
+        Assert.Contains(color, css);
+        Assert.Contains("color-scheme:light", css);
+    }
+
     [Fact]
     public async Task Seeds_images_relative_to_api_content_root_after_relocation()
     {
@@ -109,6 +126,7 @@ public sealed class PublicSiteTests
         Assert.Contains("journal/index.html", names);
         Assert.Contains("topics/pieces/index.html", names);
         Assert.Contains("journal/let-one-piece-lead/index.html", names);
+        Assert.Contains("boot-splash.css", names);
         Assert.Contains("site.css", names);
         Assert.Contains("feed.xml", names);
         Assert.True(names.Count(n => n.StartsWith("media/", StringComparison.Ordinal)) >= 3);

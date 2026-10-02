@@ -41,6 +41,7 @@ public sealed class PublicSiteController(SiteService site) : ControllerBase
   [HttpGet("/sitemap.xml")]
   [HttpGet("/robots.txt")]
   [HttpGet("/site.css")]
+  [HttpGet("/boot-splash.css")]
   public Task<IActionResult> Resource(CancellationToken ct)
   {
     return PageAsync(ct);

@@ -49,6 +49,7 @@ public sealed partial class PublicationSiteService(IBlogRepository repository, S
 
     public async Task<SitePage?> RenderAsync(string path, IReadOnlyDictionary<string, string>? query, CancellationToken ct, bool preview = false)
     {
+        if (path.EndsWith("/boot-splash.css", StringComparison.Ordinal)) return new(PublicDocumentPaint.Css, "text/css; charset=utf-8");
         if (path.EndsWith("/site.css", StringComparison.Ordinal)) return new(Css, "text/css; charset=utf-8");
         if (path.EndsWith("/site.js", StringComparison.Ordinal)) return new(Script, "text/javascript; charset=utf-8");
         var arguments = query ?? new Dictionary<string, string>();
@@ -108,7 +109,7 @@ public sealed partial class PublicationSiteService(IBlogRepository repository, S
             "wear" => "<a href=\"/wear/guides/\">All guides</a><a href=\"/wear/#occasions\">Find your occasion</a>",
             _ => "<a href=\"/catalogue/#catalogues\">Catalogues</a><a href=\"/catalogue/#pieces\">The pieces</a>" + (m.Edition is {} edition ? $"<a href=\"{EditionPath(edition)}\">The catalogue</a>" : "") + "<a href=\"/wear/\">Ways to wear</a>",
         };
-        return $"<!doctype html><html lang=\"en\" data-content-locale=\"{(app == "catalogue" ? m.Locale : "en")}\"><head><meta charset=\"utf-8\"><meta name=\"viewport\" content=\"width=device-width,initial-scale=1\"><title>{E(title)} — {Title(app)}</title><meta name=\"description\" content=\"{E(description)}\">{robots}{canonical}<meta property=\"og:title\" content=\"{E(title)}\"><meta property=\"og:description\" content=\"{E(description)}\"><link rel=\"stylesheet\" href=\"/{app}/site.css\"><script src=\"/{app}/site.js\" defer></script></head><body class=\"publication {app}\"><a class=\"skip\" href=\"#main\">Skip to content</a>" +
+        return $"<!doctype html><html lang=\"en\" class=\"{app}\" data-content-locale=\"{(app == "catalogue" ? m.Locale : "en")}\"><head><meta charset=\"utf-8\"><meta name=\"viewport\" content=\"width=device-width,initial-scale=1\"><title>{E(title)} — {Title(app)}</title><meta name=\"description\" content=\"{E(description)}\">{robots}{canonical}<meta property=\"og:title\" content=\"{E(title)}\"><meta property=\"og:description\" content=\"{E(description)}\"><link rel=\"stylesheet\" href=\"/{app}/boot-splash.css\"><link rel=\"stylesheet\" href=\"/{app}/site.css\"><script src=\"/{app}/site.js\" defer></script></head><body class=\"publication {app}\"><a class=\"skip\" href=\"#main\">Skip to content</a>" +
             (m.Preview ? "<div class=\"preview-notice\" role=\"status\">Editorial preview · includes unpublished drafts · not a public edition</div>" : "") +
             $"<header class=\"mast\"><a class=\"wordmark\" href=\"/{app}/\">{Title(app)}<span>by Ocharo</span>{BuildVersion.Badge}</a><nav aria-label=\"Main navigation\">{nav}</nav><a class=\"parent-link\" href=\"/\">Ocharo Blog ↗</a></header>" + (app == "catalogue" ? CatalogueLanguageNavigation(m, path.StartsWith("/catalogue/collections/", StringComparison.Ordinal) ? path.Split("/pages/", 2)[0].Split('?')[0].TrimEnd('/') + "/" : "/catalogue/") : "");
     }
@@ -235,7 +236,7 @@ public sealed partial class PublicationSiteService(IBlogRepository repository, S
         {
             void Text(string name,string value){using var writer=new StreamWriter(zip.CreateEntry(name,CompressionLevel.Optimal).Open(),new UTF8Encoding(false));writer.Write(value);}
             foreach(var path in paths){var html=Render(model,path,new Dictionary<string,string>());if(html is not null)Text(path.TrimStart('/')+"index.html",html);}
-            Text("index.html",Render(model,$"/{publication}/",new Dictionary<string,string>())!);Text($"{publication}/site.css",Css);Text($"{publication}/site.js",Script);
+            Text("index.html",Render(model,$"/{publication}/",new Dictionary<string,string>())!);Text($"{publication}/boot-splash.css",PublicDocumentPaint.Css);Text($"{publication}/site.css",Css);Text($"{publication}/site.js",Script);
             Text("robots.txt",model.Settings.NoIndex?"User-agent: *\nDisallow: /\n":"User-agent: *\nAllow: /\n");
             Text("publication.json",System.Text.Json.JsonSerializer.Serialize(new{schemaVersion=1,publication,locale=model.Locale,generatedAt=DateTimeOffset.UtcNow,pages=paths.Count,noIndex=model.Settings.NoIndex,catalogueEditionId=publication=="catalogue"?model.Edition?.Id:null,catalogueSlugs=publication=="catalogue"?model.Catalogues?.Select(item=>item.Slug).ToArray():null}));
             foreach(var file in editionFiles){await using var entry=zip.CreateEntry(file.Key,CompressionLevel.NoCompression).Open();await entry.WriteAsync(file.Value,ct);}
