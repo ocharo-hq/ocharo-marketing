@@ -27,6 +27,8 @@ import { onMounted } from 'vue';
 import { RouterLink } from 'vue-router';
 import { Eye, ImageIcon, Search, ShoppingBag } from 'lucide-vue-next';
 import { Icon } from '@wow-two-beta/ui-vue/foundation/icons';
+import { Button } from '@wow-two-beta/ui-vue/presentation/actions';
+import { SkeletonState } from '@wow-two-beta/ui-vue/presentation/feedback';
 import { useArticleList, useBlogStore } from '../../application/blog';
 import { languageLabels, statusLabels, publicationPath } from '../../domain/blog/BlogRules';
 import StatusBadge from './components/StatusBadge.vue';
@@ -57,7 +59,10 @@ onMounted(() => list.load());
   <section>
     <h1 class="font-editorial text-4xl tracking-tight">{{ ui('Stories') }}</h1>
     <p class="mt-2 text-sm text-muted-foreground">
-      {{ list.articles.value.length }}
+      <SkeletonState v-if="!list.hasLoaded.value && list.loading.value" class="inline-block h-4 w-8" /><span
+        v-else-if="list.hasLoaded.value"
+        >{{ list.articles.value.length }}</span
+      >
       {{ ui('stories. Published stories appear on the site, in RSS and the sitemap.') }}
     </p>
     <div class="panel mt-6 grid gap-3 p-4 md:grid-cols-[1fr_auto_auto] xl:grid-cols-[1fr_auto_auto_auto_auto]">
@@ -85,65 +90,84 @@ onMounted(() => list.load());
         <option v-for="(label, key) in languageLabels" :key="key" :value="key">{{ ui(label) }}</option>
       </select>
     </div>
-    <div
-      v-if="list.loading.value"
-      aria-busy="true"
-      :aria-label="ui('Loading workspace…')"
-      class="panel mt-4 animate-pulse"
-    >
-      <div v-for="row in 5" :key="row" class="my-4 h-10 rounded bg-muted" />
-    </div>
-    <div v-show="!list.loading.value" class="panel mt-4 overflow-x-auto p-0">
-      <table class="w-full min-w-[820px] text-sm">
-        <thead class="bg-muted/60 text-left text-[11px] uppercase tracking-[0.12em] text-muted-foreground">
-          <tr>
-            <th class="px-4 py-3 font-semibold">{{ ui('Story') }}</th>
-            <th class="px-4 py-3 font-semibold">{{ ui('Topic') }}</th>
-            <th class="px-4 py-3 font-semibold">{{ ui('Status') }}</th>
-            <th class="px-4 py-3 font-semibold">{{ ui('Publication') }}</th>
-            <th class="px-4 py-3 font-semibold">{{ ui('Read') }}</th>
-            <th class="px-4 py-3"></th>
-          </tr>
-        </thead>
-        <tbody>
-          <tr v-for="a in list.articles.value" :key="a.id" class="border-t border-border hover:bg-background">
-            <td class="max-w-md px-4 py-3">
-              <RouterLink :to="`/stories/${a.id}`" class="font-editorial text-base leading-tight hover:text-primary">{{
-                a.title
-              }}</RouterLink>
-              <p class="mt-1 truncate text-xs text-muted-foreground">
-                <span class="chip mr-1 bg-secondary text-secondary-foreground">{{ a.language.toUpperCase() }}</span
-                >{{ publicationPath(a) }}
-              </p>
-            </td>
-            <td class="px-4 py-3">{{ store.topicName(a.topic) }}</td>
-            <td class="px-4 py-3"><StatusBadge :status="a.status" /></td>
-            <td class="px-4 py-3 text-xs text-muted-foreground">
-              {{ a.status === 'scheduled' ? `⏱ ${when(a.publishAt)}` : when(a.publishedAt) }}
-            </td>
-            <td class="px-4 py-3 text-xs text-muted-foreground">
-              {{ a.readMinutes }} {{ ui('min ·') }} {{ a.words }} {{ ui('words') }}
-              <Icon v-if="a.hasCover" :icon="ImageIcon" :size="12" class="ml-1 inline" />
-              <Icon v-if="a.productCount" :icon="ShoppingBag" :size="12" class="ml-1 inline" />
-            </td>
-            <td class="px-4 py-3 text-right">
-              <a
-                :href="store.links.preview(a.id)"
-                target="_blank"
-                rel="noopener"
-                class="btn-ghost px-2"
-                :aria-label="ui('View {title}', { title: a.title })"
-                ><Icon :icon="Eye" :size="15"
-              /></a>
-            </td>
-          </tr>
-        </tbody>
-      </table>
-      <p
-        v-if="!list.articles.value.length && !list.loading.value"
-        class="p-10 text-center text-sm text-muted-foreground"
+    <div class="mt-4 flex justify-end">
+      <Button
+        variant="outline"
+        :is-disabled="list.loading.value || list.refreshing.value"
+        :is-loading="list.refreshing.value"
+        @click="list.refresh()"
+        >{{ ui('Refresh') }}</Button
       >
-        {{ ui('Story not found.') }}
+    </div>
+    <div class="query-region mt-4" :aria-busy="list.loading.value || list.refreshing.value">
+      <div
+        v-if="list.articles.value.length || (!list.hasLoaded.value && list.loading.value)"
+        class="panel overflow-x-auto p-0"
+      >
+        <table class="w-full min-w-[820px] text-sm">
+          <thead class="bg-muted/60 text-left text-[11px] uppercase tracking-[0.12em] text-muted-foreground">
+            <tr>
+              <th class="px-4 py-3 font-semibold">{{ ui('Story') }}</th>
+              <th class="px-4 py-3 font-semibold">{{ ui('Topic') }}</th>
+              <th class="px-4 py-3 font-semibold">{{ ui('Status') }}</th>
+              <th class="px-4 py-3 font-semibold">{{ ui('Publication') }}</th>
+              <th class="px-4 py-3 font-semibold">{{ ui('Read') }}</th>
+              <th class="px-4 py-3"></th>
+            </tr>
+          </thead>
+          <tbody>
+            <template v-if="!list.hasLoaded.value && list.loading.value"
+              ><tr v-for="row in 5" :key="row" class="border-t border-border" aria-hidden="true">
+                <td v-for="cell in 6" :key="cell" class="px-4 py-3"><SkeletonState class="h-5 w-full" /></td></tr
+            ></template>
+            <tr v-for="a in list.articles.value" :key="a.id" class="border-t border-border hover:bg-background">
+              <td class="max-w-md px-4 py-3">
+                <RouterLink
+                  :to="`/stories/${a.id}`"
+                  class="font-editorial text-base leading-tight hover:text-primary"
+                  >{{ a.title }}</RouterLink
+                >
+                <p class="mt-1 truncate text-xs text-muted-foreground">
+                  <span class="chip mr-1 bg-secondary text-secondary-foreground">{{ a.language.toUpperCase() }}</span
+                  >{{ publicationPath(a) }}
+                </p>
+              </td>
+              <td class="px-4 py-3">
+                <SkeletonState v-if="list.loading.value || list.refreshing.value" class="h-5 w-20" /><span v-else>{{
+                  store.topicName(a.topic)
+                }}</span>
+              </td>
+              <td class="px-4 py-3">
+                <SkeletonState v-if="list.loading.value || list.refreshing.value" class="h-5 w-20" /><StatusBadge
+                  v-else
+                  :status="a.status"
+                />
+              </td>
+              <td class="px-4 py-3 text-xs text-muted-foreground">
+                {{ a.status === 'scheduled' ? `⏱ ${when(a.publishAt)}` : when(a.publishedAt) }}
+              </td>
+              <td class="px-4 py-3 text-xs text-muted-foreground">
+                {{ a.readMinutes }} {{ ui('min ·') }} {{ a.words }} {{ ui('words') }}
+                <Icon v-if="a.hasCover" :icon="ImageIcon" :size="12" class="ml-1 inline" />
+                <Icon v-if="a.productCount" :icon="ShoppingBag" :size="12" class="ml-1 inline" />
+              </td>
+              <td class="px-4 py-3 text-right">
+                <a
+                  :href="store.links.preview(a.id)"
+                  target="_blank"
+                  rel="noopener"
+                  class="btn-ghost px-2"
+                  :aria-label="ui('View {title}', { title: a.title })"
+                  ><Icon :icon="Eye" :size="15"
+                /></a>
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+      <p v-if="list.hasLoaded.value && !list.articles.value.length" class="query-label">{{ ui('Story not found.') }}</p>
+      <p v-else-if="!list.hasLoaded.value && !list.loading.value" class="query-label" role="status">
+        {{ ui('Content unavailable. Try refreshing.') }}
       </p>
     </div>
   </section>

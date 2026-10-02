@@ -70,23 +70,10 @@ const posts = computed(() =>
         />
       </div>
     </div>
-    <section
-      v-if="!posts.length"
-      class="flex min-h-80 flex-col items-center justify-center rounded-2xl border border-dashed border-border bg-card p-8 text-center"
-    >
-      <h2 class="font-editorial text-2xl">
-        {{ search ? ui('No matching post found') : ui('One product. One new post.') }}
-      </h2>
-      <p class="mt-3 max-w-sm text-sm leading-7 text-muted-foreground">
-        {{
-          search
-            ? ui('Try another name or change the filter.')
-            : ui('Choose an existing product image and save your first post.')
-        }}
-      </p>
-      <Button v-if="!search" class="mt-6" @click="desk.navigate('/posts/new')">{{ ui('Create post') }}</Button>
-    </section>
-    <div v-else class="grid gap-5 sm:grid-cols-2 xl:grid-cols-3">
+    <p v-if="!posts.length" class="query-label">
+      {{ search ? ui('No matching post found') : ui('Choose an existing product image and save your first post.') }}
+    </p>
+    <div v-else class="query-region grid gap-5 sm:grid-cols-2 xl:grid-cols-3">
       <button
         v-for="post in posts"
         :key="post.id"

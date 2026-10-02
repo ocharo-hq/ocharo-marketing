@@ -5,6 +5,7 @@ import { useUiLocale } from '@ocharomarketing/connect/UseUiLocale';
 import { computed, onBeforeUnmount, onMounted, ref } from 'vue';
 import { integrationFetch } from '@ocharomarketing/connect';
 import { Button } from '@wow-two-beta/ui-vue/presentation/actions';
+import { SkeletonState } from '@wow-two-beta/ui-vue/presentation/feedback';
 import OperationsUnsavedGuard from './OperationsUnsavedGuard.vue';
 const { t: ui, formatWhen } = useUiLocale();
 
@@ -270,9 +271,14 @@ onBeforeUnmount(() => {
           </select>
         </label>
         <Button type="submit" :is-disabled="locked || dirty">{{ ui('Apply filters') }}</Button>
-        <Button type="button" variant="outline" :is-disabled="locked || dirty" @click="load(offset)">{{
-          ui('Refresh')
-        }}</Button>
+        <Button
+          type="button"
+          variant="outline"
+          :is-disabled="locked || dirty"
+          :is-loading="busy"
+          @click="load(offset)"
+          >{{ ui('Refresh') }}</Button
+        >
       </fieldset>
     </form>
     <div v-if="dirty" class="rounded-xl border border-border bg-muted p-4 text-sm" role="status">
@@ -284,31 +290,37 @@ onBeforeUnmount(() => {
     <p v-if="notice" role="status" class="rounded-xl bg-success-soft p-4 text-sm text-success-soft-foreground">
       {{ ui(notice) }}
     </p>
-    <div v-if="hasLoaded" v-show="!busy" class="flex flex-wrap items-center justify-between gap-3 text-sm">
-      <p aria-live="polite">
+    <div v-if="hasLoaded || busy" class="flex flex-wrap items-center justify-between gap-3 text-sm">
+      <p v-if="hasLoaded && !busy" aria-live="polite">
         {{ ui('{count} matching enquiries', { count: total }) }}
       </p>
+      <SkeletonState v-else-if="busy" class="h-5 w-44" />
       <p v-if="observedAt" class="text-xs text-muted-foreground">
         {{ ui('Due as of') }} {{ formatTime(observedAt) }} · {{ timeZone }}
       </p>
     </div>
-    <div v-if="!busy && !hasLoaded" class="rounded-2xl border border-border bg-card p-6 text-sm text-muted-foreground">
-      <p>{{ ui('Enquiries unavailable') }}</p>
-      <Button class="mt-3" variant="outline" @click="load(offset)">{{ ui('Try again') }}</Button>
-    </div>
-    <p
-      v-if="!busy && hasLoaded && !items.length"
-      class="rounded-2xl border border-border bg-card p-6 text-sm text-muted-foreground"
-    >
+    <p v-if="!busy && !hasLoaded" class="query-label" role="status">{{ ui('Enquiries unavailable') }}</p>
+    <p v-if="hasLoaded && !items.length" class="query-label">
       {{ ui('No enquiries in this view.') }}
     </p>
-    <div v-if="busy" aria-busy="true" class="grid gap-4">
-      <div v-for="card in 3" :key="card" class="h-64 animate-pulse rounded-2xl bg-muted" />
+    <div v-if="busy && !hasLoaded" aria-busy="true" class="query-region space-y-4">
+      <div
+        v-for="card in 3"
+        :key="card"
+        class="rounded-2xl border border-border bg-card p-5 sm:p-6 space-y-4"
+        aria-hidden="true"
+      >
+        <SkeletonState class="h-8 w-1/3" /><SkeletonState class="h-5 w-2/3" /><SkeletonState class="h-16 w-full" />
+        <div class="grid gap-3 sm:grid-cols-2">
+          <SkeletonState class="h-10 w-full" /><SkeletonState class="h-10 w-full" />
+        </div>
+        <SkeletonState class="h-24 w-full" />
+      </div>
     </div>
     <article
       v-for="item in items"
-      v-show="!busy"
       :key="item.id"
+      :aria-busy="busy"
       class="min-w-0 rounded-2xl border border-border bg-card p-5 sm:p-6"
     >
       <div class="flex flex-wrap justify-between gap-3">
@@ -316,7 +328,8 @@ onBeforeUnmount(() => {
         <time class="break-words text-xs text-muted-foreground">{{ formatTime(item.createdAt) }}</time>
       </div>
       <p class="mt-2 break-words font-semibold">{{ item.contactMethod }} · {{ item.contact }}</p>
-      <p class="my-4 whitespace-pre-wrap break-words">{{ item.message }}</p>
+      <SkeletonState v-if="busy" class="my-4 h-12 w-full" />
+      <p v-else class="my-4 whitespace-pre-wrap break-words">{{ item.message }}</p>
       <p class="break-words text-xs text-muted-foreground">
         {{ item.sourcePath }} · {{ item.productId ?? ui('General enquiry') }} {{ ui('· Reference') }} {{ item.id }}
       </p>
@@ -395,20 +408,32 @@ onBeforeUnmount(() => {
           @click="activityOpen[item.id] ? (activityOpen[item.id] = false) : loadActivity(item)"
           >{{ activityOpen[item.id] ? ui('Hide activity') : ui('View activity') }}</Button
         >
+        <Button
+          v-if="activityOpen[item.id]"
+          class="mt-4 ml-3"
+          variant="outline"
+          size="sm"
+          :is-disabled="locked"
+          :is-loading="activityBusy === item.id"
+          @click="loadActivity(item)"
+          >{{ ui('Refresh') }}</Button
+        >
         <div v-if="activityOpen[item.id]" class="mt-4 space-y-3">
-          <div v-if="activityBusy === item.id" aria-busy="true" :aria-label="ui('Enquiry activity')" class="space-y-3">
-            <div v-for="card in 2" :key="card" class="h-24 animate-pulse rounded-xl bg-muted" />
+          <div
+            v-if="activityBusy === item.id && !activity[item.id]"
+            aria-busy="true"
+            :aria-label="ui('Enquiry activity')"
+            class="space-y-3"
+          >
+            <div v-for="row in 2" :key="row" class="rounded-xl bg-muted p-4 space-y-2" aria-hidden="true">
+              <SkeletonState class="h-5 w-2/3" /><SkeletonState class="h-4 w-1/2" /><SkeletonState class="h-5 w-full" />
+            </div>
           </div>
-          <div v-else-if="!activity[item.id]" class="text-sm text-muted-foreground">
-            <p>{{ ui('Activity unavailable') }}</p>
-            <Button class="mt-3" variant="outline" :is-disabled="locked" @click="loadActivity(item)">{{
-              ui('Try again')
-            }}</Button>
-          </div>
-          <p v-else-if="!activity[item.id]?.items.length" class="text-sm text-muted-foreground">
+          <p v-else-if="!activity[item.id]" class="query-label">{{ ui('Activity unavailable') }}</p>
+          <p v-else-if="!activity[item.id]?.items.length" class="query-label">
             {{ ui('No recorded changes yet. Earlier notes remain on the enquiry.') }}
           </p>
-          <ol v-show="activityBusy !== item.id" class="space-y-3">
+          <ol :aria-busy="activityBusy === item.id" class="space-y-3">
             <li v-for="entry in activity[item.id]?.items" :key="entry.revision" class="rounded-xl bg-muted p-4 text-sm">
               <p class="break-words font-semibold">
                 {{ ui('Revision') }} {{ entry.revision }} · {{ ui(entry.status) }} · {{ formatTime(entry.recordedAt) }}
@@ -421,7 +446,8 @@ onBeforeUnmount(() => {
               <p v-if="entry.nextStep" class="mt-2 whitespace-pre-wrap break-words">
                 {{ ui('Next:') }} {{ entry.nextStep }}
               </p>
-              <p v-if="entry.note" class="mt-2 whitespace-pre-wrap break-words">{{ entry.note }}</p>
+              <SkeletonState v-if="activityBusy === item.id && entry.note" class="mt-2 h-5 w-full" />
+              <p v-else-if="entry.note" class="mt-2 whitespace-pre-wrap break-words">{{ entry.note }}</p>
             </li>
           </ol>
           <Button

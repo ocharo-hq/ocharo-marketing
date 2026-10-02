@@ -1,4 +1,4 @@
-import { ref, shallowRef } from 'vue';
+import { computed, ref, shallowRef } from 'vue';
 import type { BrandStatus, MediaView, SiteSettings, TopicDocument } from '../../domain/blog/BlogModels';
 import { blogApi, describeFailure } from '../../integration/blog';
 import { useBlogStore } from './BlogStore';
@@ -12,6 +12,8 @@ export function useSiteAdmin() {
   const brand = shallowRef<BrandStatus | null>(null);
   const busy = ref(false);
   const loading = ref(false);
+  const baseline = ref('');
+  const dirty = computed(() => settings.value !== null && JSON.stringify(settings.value) !== baseline.value);
   async function loadSettings() {
     loading.value = true;
     try {
@@ -21,6 +23,7 @@ export function useSiteAdmin() {
         return false;
       }
       settings.value = result.value.settings;
+      baseline.value = JSON.stringify(settings.value);
       revision.value = result.value.revision;
       return true;
     } finally {
@@ -39,6 +42,7 @@ export function useSiteAdmin() {
     brand,
     busy,
     loading,
+    dirty,
     async load() {
       await Promise.all([
         loadSettings(),

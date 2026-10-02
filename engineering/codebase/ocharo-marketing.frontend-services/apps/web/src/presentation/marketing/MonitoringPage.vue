@@ -3,6 +3,7 @@ import { useErrorToast } from '../../application/shared/UseFeedback';
 import { useUiLocale } from '@ocharomarketing/connect/UseUiLocale';
 import { onBeforeUnmount, onMounted, ref } from 'vue';
 import { Button } from '@wow-two-beta/ui-vue/presentation/actions';
+import { SkeletonState } from '@wow-two-beta/ui-vue/presentation/feedback';
 import { useMarketingWorkspace } from '../../application/marketing';
 import { type OperationsOverviewModel } from '../../domain/marketing';
 import { OperationsExtensions as ops } from '../../domain/marketing/OperationsExtensions';
@@ -70,15 +71,36 @@ onBeforeUnmount(() => {
           }}
         </p>
       </div>
-      <Button variant="outline" :is-disabled="loading" @click="load()">{{ ui('Refresh status') }}</Button>
+      <Button variant="outline" :is-disabled="loading" :is-loading="loading" @click="load()">{{
+        ui('Refresh')
+      }}</Button>
     </header>
-    <div v-if="loading" aria-busy="true" class="grid gap-4 md:grid-cols-3">
-      <div v-for="card in 6" :key="card" class="h-40 animate-pulse rounded-2xl bg-muted" />
+    <div v-if="loading && !overview" aria-busy="true" class="query-region space-y-6">
+      <div class="grid grid-cols-2 gap-3 xl:grid-cols-6">
+        <article v-for="stat in 6" :key="stat" class="rounded-xl border border-border bg-card p-4" aria-hidden="true">
+          <SkeletonState class="h-4 w-3/4" /><SkeletonState class="mt-3 h-9 w-16" />
+        </article>
+      </div>
+      <div class="grid gap-4 md:grid-cols-3">
+        <article
+          v-for="worker in 3"
+          :key="worker"
+          class="rounded-xl border border-border bg-card p-5 space-y-3"
+          aria-hidden="true"
+        >
+          <SkeletonState class="h-5 w-2/3" /><SkeletonState class="h-5 w-1/2" /><SkeletonState
+            class="h-4 w-3/4"
+          /><SkeletonState class="h-4 w-3/4" />
+        </article>
+      </div>
+      <div class="rounded-xl border border-border bg-card p-5 space-y-4" aria-hidden="true">
+        <SkeletonState class="h-8 w-64" /><SkeletonState class="h-5 w-3/4" /><SkeletonState class="h-10 w-full" />
+      </div>
     </div>
-    <p v-if="!loading && !overview" class="rounded-xl border border-border p-4">
+    <p v-if="!loading && !overview" class="query-label" role="status">
       {{ ui('Content unavailable. Try refreshing.') }}
     </p>
-    <div v-if="overview" v-show="!loading" class="space-y-6">
+    <div v-if="overview" :aria-busy="loading" class="space-y-6">
       <p class="text-xs text-muted-foreground">
         {{ ui('Saved state:') }} {{ date(overview.observedAt) }} · {{ overview.timeZone }}
       </p>
@@ -96,7 +118,8 @@ onBeforeUnmount(() => {
           class="rounded-xl border border-border bg-card p-4"
         >
           <p class="text-xs text-muted-foreground">{{ ui(stat[0]) }}</p>
-          <p class="mt-3 font-editorial text-3xl">{{ stat[1] }}</p>
+          <SkeletonState v-if="loading" class="mt-3 h-9 w-16" />
+          <p v-else class="mt-3 font-editorial text-3xl">{{ stat[1] }}</p>
         </article>
       </section>
       <section class="grid gap-4 md:grid-cols-3">

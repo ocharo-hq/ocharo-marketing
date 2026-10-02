@@ -5,6 +5,7 @@ import { computed, onBeforeUnmount, ref, watch } from 'vue';
 import { RefreshCw } from 'lucide-vue-next';
 import { Icon } from '@wow-two-beta/ui-vue/foundation/icons';
 import { Button } from '@wow-two-beta/ui-vue/presentation/actions';
+import { SkeletonState } from '@wow-two-beta/ui-vue/presentation/feedback';
 import StatusIndicator from './StatusIndicator.vue';
 import { useMarketingWorkspace } from '../../application/marketing';
 import { MarketingExtensions, type MetricCacheModel, type ScheduleModel } from '../../domain/marketing';
@@ -16,6 +17,7 @@ const props = defineProps<{ plan: ScheduleModel }>();
 const desk = useMarketingWorkspace();
 const cache = ref<MetricCacheModel | null>(null);
 const loading = ref(false);
+const hasLoaded = ref(false);
 const refreshing = ref(false);
 const error = ref<string | null>(null);
 useErrorToast(error);
@@ -65,14 +67,17 @@ async function load(id: string) {
   const version = ++requestVersion;
   if (loadedPlan !== id) {
     cache.value = null;
+    hasLoaded.value = false;
     loadedPlan = id;
   }
   error.value = null;
   loading.value = true;
   const result = await desk.getMetrics(id, controller.signal);
   if (version !== requestVersion) return;
-  if (result.ok) cache.value = result.value;
-  else if (result.failure.code !== 'cancelled') error.value = desk.failureMessage(result.failure);
+  if (result.ok) {
+    cache.value = result.value;
+    hasLoaded.value = true;
+  } else if (result.failure.code !== 'cancelled') error.value = desk.failureMessage(result.failure);
   loading.value = false;
 }
 watch(() => props.plan.id, load, { immediate: true });
@@ -138,6 +143,14 @@ function name(value: string) {
       <Button
         variant="outline"
         size="sm"
+        :is-disabled="loading || refreshing"
+        :is-loading="loading"
+        @click="load(plan.id)"
+        >{{ ui('Refresh') }}</Button
+      >
+      <Button
+        variant="outline"
+        size="sm"
         :is-disabled="!canRefresh || refreshing || desk.busy.value !== null"
         :is-loading="refreshing"
         @click="refresh"
@@ -155,8 +168,8 @@ function name(value: string) {
         )
       }}
     </p>
-    <div v-if="loading" aria-busy="true" class="mt-5 grid gap-3 sm:grid-cols-2">
-      <div v-for="card in 4" :key="card" class="h-28 animate-pulse rounded-xl bg-muted" />
+    <div v-if="loading && !hasLoaded" aria-busy="true" class="mt-5 grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
+      <div v-for="card in 3" :key="card" class="h-40 animate-pulse rounded-xl bg-muted" aria-hidden="true" />
     </div>
     <div v-if="cache?.lastAttempt" class="mt-4 rounded-lg bg-muted p-3 text-xs leading-6">
       <p>
@@ -166,10 +179,11 @@ function name(value: string) {
       </p>
       <p class="text-muted-foreground">{{ ui('Needs attention') }}</p>
     </div>
-    <div v-if="latest.length" v-show="!loading" class="mt-5 grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
+    <div v-if="latest.length" :aria-busy="loading" class="mt-5 grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
       <div v-for="item in latest" :key="item.id" class="rounded-xl border border-border p-4">
         <p class="text-xs font-semibold">{{ ui(name(item.name)) }}</p>
-        <p class="mt-3 font-editorial text-3xl">
+        <SkeletonState v-if="loading" class="mt-3 h-9 w-20" />
+        <p v-else class="mt-3 font-editorial text-3xl">
           {{ item.value === null ? '—' : formatNumber(item.value) }}
         </p>
         <p class="mt-3 text-[11px] leading-5 text-muted-foreground">
@@ -183,8 +197,11 @@ function name(value: string) {
         <p v-if="item.reason" class="mt-2 text-xs leading-6 text-muted-foreground">{{ ui(item.reason) }}</p>
       </div>
     </div>
-    <p v-else-if="!loading" class="mt-5 text-sm leading-7 text-muted-foreground">
+    <p v-else-if="hasLoaded" class="query-label">
       {{ ui('No saved observations. This does not mean zero results.') }}
+    </p>
+    <p v-if="!loading && !hasLoaded" class="query-label" role="status">
+      {{ ui('Content unavailable. Try refreshing.') }}
     </p>
     <details v-if="history.length" class="mt-5 text-xs">
       <summary class="cursor-pointer font-semibold text-primary">

@@ -29,6 +29,7 @@ import { Button } from '@wow-two-beta/ui-vue/presentation/actions';
 import { AppErrorBoundary, RouteAnnouncer } from '@wow-two-beta/ui-vue/router';
 import { useMarketingWorkspace } from '../application/marketing';
 import { platformLinks } from './PlatformLinks';
+import WorkspaceSkeleton from '../presentation/marketing/WorkspaceSkeleton.vue';
 const { t: ui, uiLocale, sdkMessages } = useUiLocale();
 provideLocale(uiLocale, sdkMessages);
 
@@ -168,9 +169,10 @@ onScopeDispose(() => {
             variant="ghost"
             size="sm"
             :aria-label="ui('Refresh status')"
-            :is-disabled="desk.busy.value !== null"
-            @click="desk.refresh(true)"
-            ><Icon :icon="RefreshCw" :size="16" /></Button
+            :is-disabled="desk.busy.value !== null || desk.loading.value"
+            :is-loading="desk.loading.value"
+            @click="desk.refresh()"
+            ><Icon :icon="RefreshCw" :size="16" class="mr-2" />{{ ui('Refresh') }}</Button
           ><Button size="sm" @click="desk.navigate('/posts/new')"
             ><Icon :icon="CirclePlus" :size="16" class="mr-2" />{{ ui('New post') }}</Button
           >
@@ -205,27 +207,11 @@ onScopeDispose(() => {
             <Icon :icon="X" :size="15" />
           </button>
         </div>
-        <div
-          v-if="desk.loading.value"
-          class="grid min-h-96 gap-5 md:grid-cols-3"
-          aria-busy="true"
-          :aria-label="ui('Loading workspace…')"
-        >
-          <div v-for="card in 3" :key="card" class="animate-pulse rounded-2xl border border-border bg-card p-6">
-            <div class="h-5 w-2/3 rounded bg-muted" />
-            <div class="mt-6 h-36 rounded bg-muted" />
-            <div class="mt-5 h-4 w-1/2 rounded bg-muted" />
-          </div>
-        </div>
-        <section
-          v-if="!workspace && !desk.loading.value"
-          class="rounded-2xl border border-border bg-card p-12 text-center"
-        >
-          <h1 class="font-editorial text-3xl">{{ ui('Unable to connect to the workspace.') }}</h1>
-          <p class="mt-4 text-sm text-muted-foreground">{{ ui('Your data is preserved. Try again.') }}</p>
-          <Button class="mt-6" @click="desk.refresh()">{{ ui('Retry') }}</Button>
-        </section>
-        <AppErrorBoundary v-if="workspace" v-show="!desk.loading.value"
+        <WorkspaceSkeleton v-if="desk.loading.value && !workspace" :path="route.path" />
+        <p v-if="!workspace && !desk.loading.value" class="query-label" role="status">
+          {{ ui('Unable to connect to the workspace.') }}
+        </p>
+        <AppErrorBoundary v-if="workspace"
           ><RouterView v-slot="{ Component }"><component :is="Component" :key="route.fullPath" /></RouterView
           ><template #fallback="{ reset }"
             ><section class="rounded-2xl border border-border bg-card p-10 text-center">

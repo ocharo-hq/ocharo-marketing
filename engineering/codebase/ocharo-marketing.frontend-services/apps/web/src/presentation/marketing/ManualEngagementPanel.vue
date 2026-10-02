@@ -1,4 +1,6 @@
 <script setup lang="ts">
+import { requestFailureMessage } from '@ocharomarketing/connect/RequestFeedback';
+import { SkeletonState } from '@wow-two-beta/ui-vue/presentation/feedback';
 import { useErrorToast } from '../../application/shared/UseFeedback';
 import { useUiLocale } from '@ocharomarketing/connect/UseUiLocale';
 import { computed, onBeforeUnmount, onMounted, reactive, ref } from 'vue';
@@ -18,6 +20,7 @@ const overview = ref<OperationsOverviewModel | null>(null);
 const channel = ref('all');
 const period = ref('30');
 const saving = ref(false);
+const loading = ref(false);
 const open = ref(false);
 const error = ref('');
 useErrorToast(error);
@@ -73,14 +76,24 @@ function delta(item: EngagementObservationModel, key: (typeof ops.metrics)[numbe
   const difference = current - old;
   return `${difference >= 0 ? '+' : ''}${difference}`;
 }
-async function load() {
-  const result = await desk.getOperations(abort.signal);
-  if (disposed) return;
-  if (result.ok) overview.value = result.value;
-  else if (result.failure.code !== 'cancelled') error.value = desk.failureMessage(result.failure);
+async function load(afterSave = false) {
+  if (loading.value || (!afterSave && (saving.value || dirty.value))) return;
+  loading.value = true;
+  try {
+    const result = await desk.getOperations(abort.signal);
+    if (disposed) return;
+    if (result.ok) {
+      overview.value = result.value;
+      error.value = '';
+    } else if (result.failure.code !== 'cancelled') error.value = desk.failureMessage(result.failure);
+  } catch {
+    if (!disposed) error.value = requestFailureMessage({ code: 'transport', status: 0 });
+  } finally {
+    if (!disposed) loading.value = false;
+  }
 }
 function newObservation(item?: EngagementObservationModel) {
-  if (dirty.value || saving.value) return;
+  if (dirty.value || saving.value || loading.value) return;
   Object.assign(form, fresh());
   if (item)
     Object.assign(form, {
@@ -102,7 +115,7 @@ function close() {
   error.value = '';
 }
 async function save() {
-  if (saving.value) return;
+  if (saving.value || loading.value) return;
   const observed = new Date(`${form.observedAt}:00+05:00`);
   const published = new Date(`${form.publishedAt}:00+05:00`);
   if (!Number.isFinite(observed.getTime()) || !Number.isFinite(published.getTime())) {
@@ -133,7 +146,7 @@ async function save() {
       baseline.value = JSON.stringify(form);
       open.value = false;
       desk.notice.value = 'Qo‘lda kuzatuv saqlandi. Kanal tasdig‘i o‘zgarmadi.';
-      await load();
+      await load(true);
     } else error.value = desk.failureMessage(result.failure);
   } finally {
     saving.value = false;
@@ -146,10 +159,7 @@ onBeforeUnmount(() => {
 });
 </script>
 <template>
-  <section
-    class="space-y-5 rounded-2xl border border-border bg-card p-5 sm:p-6"
-    aria-labelledby="manual-engagement-heading"
-  >
+  <section class="space-y-5" aria-labelledby="manual-engagement-heading">
     <div class="flex flex-wrap items-start justify-between gap-4">
       <div>
         <h2 id="manual-engagement-heading" class="font-editorial text-2xl">{{ ui('Manually observed results') }}</h2>
@@ -161,7 +171,12 @@ onBeforeUnmount(() => {
           }}
         </p>
       </div>
-      <Button :is-disabled="dirty || saving" @click="newObservation()">{{ ui('Add observation') }}</Button>
+      <div class="flex flex-wrap gap-3">
+        <Button variant="outline" :is-disabled="dirty || saving || loading" :is-loading="loading" @click="load()">{{
+          ui('Refresh')
+        }}</Button>
+        <Button :is-disabled="dirty || saving || loading" @click="newObservation()">{{ ui('Add observation') }}</Button>
+      </div>
     </div>
 
     <form v-if="open" class="space-y-4 rounded-xl border border-border bg-background p-4" @submit.prevent="save">
@@ -294,10 +309,22 @@ onBeforeUnmount(() => {
       {{ overview.observationCount }} {{ ui('latest records out of') }} {{ overview.observations.length }}
       {{ ui('shown. Weekly totals use the full history.') }}
     </p>
-    <p v-if="!latest.length" class="rounded-xl bg-muted p-5 text-sm text-muted-foreground">
+    <div v-if="loading && !overview" class="query-region grid gap-4 xl:grid-cols-2" aria-busy="true">
+      <article v-for="card in 2" :key="card" class="space-y-4 rounded-xl border border-border p-4" aria-hidden="true">
+        <SkeletonState class="h-4 w-24" /><SkeletonState class="h-6 w-1/2" /><SkeletonState class="h-4 w-40" />
+        <div class="grid grid-cols-3 gap-3">
+          <div v-for="metric in ops.metrics" :key="metric.key" class="space-y-2">
+            <SkeletonState class="h-3 w-16" /><SkeletonState class="h-5 w-12" />
+          </div>
+        </div>
+        <SkeletonState class="h-5 w-full" /><SkeletonState class="h-9 w-40" />
+      </article>
+    </div>
+    <p v-else-if="!overview" class="query-label">{{ ui('Manual observations unavailable') }}</p>
+    <p v-else-if="!latest.length" class="query-label">
       {{ ui('No manual observations for this period. Missing data is not counted as zero.') }}
     </p>
-    <div class="grid gap-4 xl:grid-cols-2">
+    <div class="grid gap-4 xl:grid-cols-2" :aria-busy="loading">
       <article v-for="item in latest" :key="item.observation.id" class="min-w-0 rounded-xl border border-border p-4">
         <div class="flex flex-wrap items-start justify-between gap-3">
           <div>
@@ -306,7 +333,9 @@ onBeforeUnmount(() => {
             </p>
             <h3 class="mt-1 font-semibold">{{ item.observation.title }}</h3>
           </div>
-          <strong class="text-xl">{{ item.engagementRate === null ? '—' : `${item.engagementRate}%` }}</strong>
+          <SkeletonState v-if="loading" class="h-7 w-16" /><strong v-else class="text-xl">{{
+            item.engagementRate === null ? '—' : `${item.engagementRate}%`
+          }}</strong>
         </div>
         <a
           :href="item.observation.postUrl"
@@ -322,7 +351,8 @@ onBeforeUnmount(() => {
         <div class="mt-4 grid grid-cols-3 gap-3">
           <div v-for="metric in ops.metrics" :key="metric.key">
             <p class="text-[10px] text-muted-foreground">{{ ui(metric.label) }}</p>
-            <p class="mt-1 text-sm font-semibold">
+            <SkeletonState v-if="loading" class="mt-1 h-5 w-12" />
+            <p v-else class="mt-1 text-sm font-semibold">
               {{ item.observation[metric.key] ?? '—' }}
               <span v-if="delta(item, metric.key) !== null" class="font-normal text-[10px] text-muted-foreground"
                 >({{ delta(item, metric.key) }})</span
@@ -338,9 +368,14 @@ onBeforeUnmount(() => {
             )
           }}
         </p>
-        <Button size="sm" variant="outline" class="mt-4" :is-disabled="dirty || saving" @click="newObservation(item)">{{
-          ui('Add a new measurement')
-        }}</Button>
+        <Button
+          size="sm"
+          variant="outline"
+          class="mt-4"
+          :is-disabled="dirty || saving || loading"
+          @click="newObservation(item)"
+          >{{ ui('Add a new measurement') }}</Button
+        >
         <details class="mt-3 text-xs">
           <summary class="cursor-pointer text-primary">{{ ui('Observation history for this post') }}</summary>
           <div

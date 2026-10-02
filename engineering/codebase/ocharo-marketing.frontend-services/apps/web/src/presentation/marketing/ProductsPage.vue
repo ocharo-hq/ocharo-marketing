@@ -109,7 +109,7 @@ async function scan() {
           :placeholder="ui('Find a product…')"
         />
       </div>
-      <div class="grid gap-5 sm:grid-cols-2 xl:grid-cols-3">
+      <div v-if="products.length" class="query-region grid gap-5 sm:grid-cols-2 xl:grid-cols-3">
         <article
           v-for="item in products"
           :key="item.id"
@@ -151,7 +151,7 @@ async function scan() {
           </div>
         </article>
       </div>
-      <p v-if="!products.length" class="rounded-xl bg-card p-6 text-sm text-muted-foreground">
+      <p v-if="!products.length" class="query-label">
         {{ ui('No matching product found.') }}
       </p>
     </section>

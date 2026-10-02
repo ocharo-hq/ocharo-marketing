@@ -257,16 +257,16 @@ describe('server-confirmed enquiry projection', () => {
     await wrapper.findAll('form')[1]!.trigger('submit');
     await flushPromises();
     expect(request).toHaveBeenCalledTimes(2);
-    expect(wrapper.find('.grid[aria-busy="true"]').exists()).toBe(false);
+    expect(wrapper.find('article[aria-busy="true"]').exists()).toBe(false);
     expect((wrapper.get('textarea[maxlength="3000"]').element as HTMLTextAreaElement).value).toBe('Local note');
     acknowledge(Response.json({ ...sample, revision: 2, note: 'Mutation response must not fill the view' }));
     await flushPromises();
     expect(request).toHaveBeenCalledTimes(3);
-    expect(wrapper.find('.grid[aria-busy="true"]').exists()).toBe(true);
+    expect(wrapper.find('article[aria-busy="true"]').exists()).toBe(true);
     expect((wrapper.get('textarea[maxlength="3000"]').element as HTMLTextAreaElement).value).toBe('Local note');
     project(result([{ ...sample, revision: 2, note: 'Authoritative read' }]));
     await flushPromises();
-    expect(wrapper.find('.grid[aria-busy="true"]').exists()).toBe(false);
+    expect(wrapper.find('article[aria-busy="true"]').exists()).toBe(false);
     expect((wrapper.get('textarea[maxlength="3000"]').element as HTMLTextAreaElement).value).toBe('Authoritative read');
   });
 });
@@ -298,13 +298,13 @@ it('reports a failed first read as unavailable instead of an empty confirmed res
   request.mockResolvedValueOnce(result([], 0));
   await wrapper
     .findAll('button')
-    .find((button) => button.text() === 'Try again')!
+    .find((button) => button.text() === 'Refresh')!
     .trigger('click');
   await flushPromises();
   expect(wrapper.text()).toContain('0 matching enquiries');
   expect(wrapper.text()).toContain('No enquiries in this view.');
 });
-it('uses a history skeleton then unavailable retry after a failed first activity read', async () => {
+it('uses a history skeleton then a persistent toolbar refresh after a failed first activity read', async () => {
   const { wrapper } = await render();
   let finish!: (response: Response) => void;
   request.mockImplementationOnce(
@@ -329,9 +329,52 @@ it('uses a history skeleton then unavailable retry after a failed first activity
   expect(wrapper.text()).not.toContain('private');
   request.mockResolvedValueOnce(Response.json({ total: 0, items: [], nextBeforeRevision: null }));
   await wrapper
+    .get('article')
     .findAll('button')
-    .find((button) => button.text() === 'Try again')!
+    .find((button) => button.text() === 'Refresh')!
     .trigger('click');
   await flushPromises();
   expect(wrapper.text()).toContain('No recorded changes');
+});
+
+it('keeps a successful empty region plain during toolbar refresh', async () => {
+  request.mockResolvedValueOnce(result([]));
+  const { wrapper } = await render();
+  expect(wrapper.get('.query-label').text()).toBe('No enquiries in this view.');
+  expect(wrapper.get('.query-label').classes()).not.toContain('border');
+  let finish!: (value: Response) => void;
+  request.mockReturnValueOnce(
+    new Promise((resolve) => {
+      finish = resolve;
+    }),
+  );
+  await wrapper
+    .findAll('button')
+    .find((button) => button.text() === 'Refresh')!
+    .trigger('click');
+  expect(wrapper.findAll('article')).toHaveLength(0);
+  expect(wrapper.find('.query-region[aria-busy=true]').exists()).toBe(false);
+  finish(result([]));
+  await flushPromises();
+  expect(wrapper.get('.query-label').text()).toBe('No enquiries in this view.');
+});
+it('keeps enquiry names and form actions mounted while a successful refresh is pending', async () => {
+  const { wrapper } = await render();
+  let finish!: (value: Response) => void;
+  request.mockReturnValueOnce(
+    new Promise((resolve) => {
+      finish = resolve;
+    }),
+  );
+  await wrapper
+    .findAll('button')
+    .find((button) => button.text() === 'Refresh')!
+    .trigger('click');
+  expect(wrapper.get('article h2').text()).toBe('Review reader');
+  expect(wrapper.get('textarea[maxlength="3000"]').isVisible()).toBe(true);
+  expect(wrapper.get('article').attributes('aria-busy')).toBe('true');
+  finish(Response.json({}, { status: 503 }));
+  await flushPromises();
+  expect(wrapper.get('article h2').text()).toBe('Review reader');
+  expect(wrapper.text()).not.toContain('Enquiries unavailable');
 });

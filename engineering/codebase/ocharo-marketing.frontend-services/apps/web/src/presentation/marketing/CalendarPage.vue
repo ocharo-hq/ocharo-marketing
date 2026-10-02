@@ -143,7 +143,7 @@ async function cancel(id: string) {
         )
       }}
     </div>
-    <section class="rounded-2xl border border-border bg-card p-6">
+    <section :class="agenda.length ? 'rounded-2xl border border-border bg-card p-6' : 'query-region'">
       <h2 class="font-editorial text-2xl">{{ ui('All plans') }}</h2>
       <div v-if="agenda.length" class="mt-4 divide-y divide-border">
         <article v-for="item in agenda" :key="item.id" class="flex flex-wrap items-center justify-between gap-4 py-5">
@@ -184,16 +184,7 @@ async function cancel(id: string) {
           <div class="w-full"><DeliveryPanel :plan="item" /></div>
         </article>
       </div>
-      <div v-else class="py-12 text-center">
-        <Icon :icon="CalendarDays" :size="30" class="mx-auto text-muted-foreground" />
-        <h3 class="mt-4 text-sm font-semibold">{{ ui('No plans yet') }}</h3>
-        <p class="mt-2 text-xs leading-6 text-muted-foreground">
-          {{ ui('Review the prepared post, then choose a channel and time.') }}
-        </p>
-        <Button class="mt-5" variant="outline" @click="desk.navigate('/posts/new')">{{
-          ui('Create the first post')
-        }}</Button>
-      </div>
+      <p v-else class="query-label">{{ ui('No plans yet') }}</p>
     </section>
   </div>
 </template>

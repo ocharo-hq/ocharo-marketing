@@ -83,3 +83,21 @@ body {
     transition-duration: 0.01ms;
   }
 }
+
+.query-region {
+  min-height: 18rem;
+}
+.query-label {
+  min-height: 18rem;
+  display: grid;
+  place-content: center;
+  text-align: center;
+  padding: 1.5rem;
+  font-size: 0.875rem;
+  color: var(--color-muted-foreground);
+}
+@media (prefers-reduced-motion: reduce) {
+  .animate-pulse {
+    animation: none;
+  }
+}

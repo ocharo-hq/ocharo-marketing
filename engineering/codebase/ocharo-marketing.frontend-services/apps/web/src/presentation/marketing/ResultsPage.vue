@@ -87,7 +87,7 @@ function metricName(name: string) {
         >{{ ui('View connection status') }} <Icon :icon="ArrowUpRight" :size="16" class="ml-2"
       /></Button>
     </section>
-    <section class="rounded-2xl border border-border bg-card p-6">
+    <section :class="published.length ? 'rounded-2xl border border-border bg-card p-6' : 'query-region'">
       <h2 class="font-editorial text-2xl">{{ ui('Publishing history') }}</h2>
       <div v-if="published.length" class="mt-5 divide-y divide-border">
         <div v-for="item in published" :key="item.id" class="flex flex-wrap items-center justify-between gap-4 py-4">
@@ -101,7 +101,7 @@ function metricName(name: string) {
           <StatusIndicator :status="item.status" />
         </div>
       </div>
-      <p v-else class="mt-4 text-sm leading-7 text-muted-foreground">
+      <p v-else class="query-label">
         {{ ui('No channel delivery history yet. Planned posts are not included in this list.') }}
       </p>
     </section>
