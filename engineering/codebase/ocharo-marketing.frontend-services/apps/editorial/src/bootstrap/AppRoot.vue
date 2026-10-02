@@ -152,7 +152,7 @@ onMounted(() => store.loadTopics());
           </template>
         </AppErrorBoundary>
       </main>
-      <FeedbackToastHost :bus="feedbackBus" position="bottom-right" />
+      <FeedbackToastHost :bus="feedbackBus" position="top-right" />
       <RouteAnnouncer />
     </div>
   </div>
