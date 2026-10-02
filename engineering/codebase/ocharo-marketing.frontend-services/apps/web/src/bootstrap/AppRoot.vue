@@ -205,10 +205,22 @@ onScopeDispose(() => {
             <Icon :icon="X" :size="15" />
           </button>
         </div>
-        <div v-if="desk.loading.value" class="grid min-h-96 gap-5 md:grid-cols-3" aria-busy="true" :aria-label="ui('Loading workspace…')">
-          <div v-for="card in 3" :key="card" class="animate-pulse rounded-2xl border border-border bg-card p-6"><div class="h-5 w-2/3 rounded bg-muted" /><div class="mt-6 h-36 rounded bg-muted" /><div class="mt-5 h-4 w-1/2 rounded bg-muted" /></div>
+        <div
+          v-if="desk.loading.value"
+          class="grid min-h-96 gap-5 md:grid-cols-3"
+          aria-busy="true"
+          :aria-label="ui('Loading workspace…')"
+        >
+          <div v-for="card in 3" :key="card" class="animate-pulse rounded-2xl border border-border bg-card p-6">
+            <div class="h-5 w-2/3 rounded bg-muted" />
+            <div class="mt-6 h-36 rounded bg-muted" />
+            <div class="mt-5 h-4 w-1/2 rounded bg-muted" />
+          </div>
         </div>
-        <section v-if="!workspace && !desk.loading.value" class="rounded-2xl border border-border bg-card p-12 text-center">
+        <section
+          v-if="!workspace && !desk.loading.value"
+          class="rounded-2xl border border-border bg-card p-12 text-center"
+        >
           <h1 class="font-editorial text-3xl">{{ ui('Unable to connect to the workspace.') }}</h1>
           <p class="mt-4 text-sm text-muted-foreground">{{ ui('Your data is preserved. Try again.') }}</p>
           <Button class="mt-6" @click="desk.refresh()">{{ ui('Retry') }}</Button>

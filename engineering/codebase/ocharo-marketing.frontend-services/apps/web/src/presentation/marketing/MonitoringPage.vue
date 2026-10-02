@@ -72,8 +72,12 @@ onBeforeUnmount(() => {
       </div>
       <Button variant="outline" :is-disabled="loading" @click="load()">{{ ui('Refresh status') }}</Button>
     </header>
-    <div v-if="loading" aria-busy="true" class="grid gap-4 md:grid-cols-3"><div v-for="card in 6" :key="card" class="h-40 animate-pulse rounded-2xl bg-muted" /></div>
-    <p v-if="!loading && !overview" class="rounded-xl border border-border p-4">{{ ui('Content unavailable. Try refreshing.') }}</p>
+    <div v-if="loading" aria-busy="true" class="grid gap-4 md:grid-cols-3">
+      <div v-for="card in 6" :key="card" class="h-40 animate-pulse rounded-2xl bg-muted" />
+    </div>
+    <p v-if="!loading && !overview" class="rounded-xl border border-border p-4">
+      {{ ui('Content unavailable. Try refreshing.') }}
+    </p>
     <div v-if="overview" v-show="!loading" class="space-y-6">
       <p class="text-xs text-muted-foreground">
         {{ ui('Saved state:') }} {{ date(overview.observedAt) }} · {{ overview.timeZone }}

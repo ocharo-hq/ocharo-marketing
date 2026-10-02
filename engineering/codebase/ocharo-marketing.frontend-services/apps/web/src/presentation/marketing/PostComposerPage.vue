@@ -198,7 +198,7 @@ async function save() {
   // Confirmed receipt owns retry identity; only the independent read owns editor content.
   currentId.value = result.value.id;
   revision.value = result.value.revision;
-  const current = desk.workspace.value?.drafts.find(item => item.id === result.value.id);
+  const current = desk.workspace.value?.drafts.find((item) => item.id === result.value.id);
   if (!current || current.revision < result.value.revision) return null;
   applySaved(current, submittedSnapshot);
   desk.notice.value = 'Post saqlandi.';
@@ -241,7 +241,7 @@ async function approve() {
   const submittedSnapshot = JSON.stringify({ form, composition: composition.value });
   const result = await desk.approveDraft(currentId.value, revision.value);
   if (result.ok) {
-    const current = desk.workspace.value?.drafts.find(item => item.id === result.value.id);
+    const current = desk.workspace.value?.drafts.find((item) => item.id === result.value.id);
     if (!current || current.revision < result.value.revision) return;
     applySaved(current, submittedSnapshot);
     desk.notice.value = 'Shu post varianti tekshirildi.';

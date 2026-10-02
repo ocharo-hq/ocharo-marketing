@@ -132,7 +132,7 @@ async function analyze() {
     });
     if (result.ok) {
       await load();
-      const current = records.value.find(item => item.id === result.value.id);
+      const current = records.value.find((item) => item.id === result.value.id);
       if (current) choose(current);
     } else localError.value = desk.failureMessage(result.failure);
   } finally {
@@ -150,7 +150,7 @@ async function saveReview() {
     const result = await desk.reviewSourceAnalysis(record.id, record.revision, submitted);
     if (result.ok) {
       await load();
-      const current = records.value.find(item => item.id === record.id);
+      const current = records.value.find((item) => item.id === record.id);
       if (current && selectedId.value === record.id && reviewText.value === submitted)
         reviewText.value = current.reviewedText ?? submitted;
     } else localError.value = desk.failureMessage(result.failure);

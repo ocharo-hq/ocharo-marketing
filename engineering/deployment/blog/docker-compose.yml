@@ -1,4 +1,4 @@
-# One OcharoBlog instance per environment. Bring up from engineering/deployment/:
+# One OcharoBlog instance per environment. Bring up from engineering/deployment/blog/:
 #
 #   docker compose up -d --build
 #
@@ -6,8 +6,8 @@
 services:
   ocharoblog:
     build:
-      context: ../codebase
-      dockerfile: ../deployment/Dockerfile
+      context: ../../codebase
+      dockerfile: ../deployment/blog/Dockerfile
     image: ocharoblog
     container_name: ocharoblog
     restart: unless-stopped

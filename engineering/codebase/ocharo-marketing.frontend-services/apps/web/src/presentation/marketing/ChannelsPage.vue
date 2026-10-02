@@ -43,7 +43,7 @@ async function save() {
     if (disposed) return;
     if (result.ok) {
       await load();
-      const current = overview.value?.channels.find(item => item.strategy.channel === snapshot.channel)?.strategy;
+      const current = overview.value?.channels.find((item) => item.strategy.channel === snapshot.channel)?.strategy;
       if (current && current.revision > snapshot.revision) {
         editing.value = { ...current };
         baseline.value = JSON.stringify(current);
@@ -88,7 +88,9 @@ onBeforeUnmount(() => {
       }}
     </p>
     <div class="grid items-start gap-5 xl:grid-cols-[minmax(0,1fr)_minmax(300px,420px)]">
-      <div v-if="loading" aria-busy="true" class="grid gap-4 sm:grid-cols-2"><div v-for="card in 4" :key="card" class="h-64 animate-pulse rounded-2xl bg-muted" /></div>
+      <div v-if="loading" aria-busy="true" class="grid gap-4 sm:grid-cols-2">
+        <div v-for="card in 4" :key="card" class="h-64 animate-pulse rounded-2xl bg-muted" />
+      </div>
       <div v-show="!loading" class="grid gap-4 sm:grid-cols-2">
         <article
           v-for="item in overview?.channels"

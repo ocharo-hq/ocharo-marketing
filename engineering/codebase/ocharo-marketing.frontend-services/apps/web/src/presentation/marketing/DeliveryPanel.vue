@@ -254,7 +254,6 @@ async function cancel() {
           <Button variant="ghost" size="sm" :is-disabled="desk.busy.value !== null" @click="desk.refresh()">{{
             ui('Refresh saved state')
           }}</Button>
-
         </div>
         <ModalFooter
           ><Button variant="outline" :is-disabled="desk.busy.value !== null" @click="confirmation.dismiss">{{

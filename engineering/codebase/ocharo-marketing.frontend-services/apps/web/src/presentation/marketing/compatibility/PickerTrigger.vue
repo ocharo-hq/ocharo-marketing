@@ -8,4 +8,6 @@ interface Props extends /* @vue-ignore */ SelectPickerTriggerProps {
 defineOptions({ name: 'PickerTrigger' });
 const props = defineProps<Props>();
 </script>
-<template><SelectPickerTrigger v-bind="props"><slot /></SelectPickerTrigger></template>
+<template>
+  <SelectPickerTrigger v-bind="props"><slot /></SelectPickerTrigger>
+</template>

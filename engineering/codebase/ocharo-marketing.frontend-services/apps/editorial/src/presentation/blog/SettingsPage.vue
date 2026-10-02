@@ -25,7 +25,12 @@ onMounted(async () => {
 </script>
 
 <template>
-  <div v-if="admin.loading.value" aria-busy="true" :aria-label="ui('Loading workspace…')" class="grid gap-5"><div v-for="card in 3" :key="card" class="panel animate-pulse"><div class="h-5 w-1/3 rounded bg-muted" /><div class="mt-6 h-16 rounded bg-muted" /></div></div>
+  <div v-if="admin.loading.value" aria-busy="true" :aria-label="ui('Loading workspace…')" class="grid gap-5">
+    <div v-for="card in 3" :key="card" class="panel animate-pulse">
+      <div class="h-5 w-1/3 rounded bg-muted" />
+      <div class="mt-6 h-16 rounded bg-muted" />
+    </div>
+  </div>
   <section v-if="admin.settings.value" v-show="!admin.loading.value" class="space-y-6">
     <div class="flex flex-wrap items-end justify-between gap-4">
       <h1 class="font-editorial text-4xl tracking-tight">{{ ui('Site') }}</h1>

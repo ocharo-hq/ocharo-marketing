@@ -32,7 +32,10 @@ async function submit() {
     body.append('image', image.value);
     body.append('productId', productId.value);
     const r = await integrationFetch('/api/marketing/creative-imports', { method: 'POST', body });
-    if (!r.ok) { error.value = requestFailureMessage({ code: 'http', status: r.status }); return; }
+    if (!r.ok) {
+      error.value = requestFailureMessage({ code: 'http', status: r.status });
+      return;
+    }
     const result = await r.json();
     draftId.value = result.draft.id;
     await desk.refresh();

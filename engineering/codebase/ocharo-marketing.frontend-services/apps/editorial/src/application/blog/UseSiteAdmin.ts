@@ -16,11 +16,16 @@ export function useSiteAdmin() {
     loading.value = true;
     try {
       const result = await blogApi.settings();
-      if (!result.ok) { store.fail(describeFailure(result.failure)); return false; }
+      if (!result.ok) {
+        store.fail(describeFailure(result.failure));
+        return false;
+      }
       settings.value = result.value.settings;
       revision.value = result.value.revision;
       return true;
-    } finally { loading.value = false; }
+    } finally {
+      loading.value = false;
+    }
   }
   async function loadMedia() {
     const result = await blogApi.media();
@@ -35,11 +40,15 @@ export function useSiteAdmin() {
     busy,
     loading,
     async load() {
-      await Promise.all([loadSettings(), loadMedia(), (async () => {
-        const result = await blogApi.brand();
-        if (result.ok) brand.value = result.value;
-        else store.fail(describeFailure(result.failure));
-      })()]);
+      await Promise.all([
+        loadSettings(),
+        loadMedia(),
+        (async () => {
+          const result = await blogApi.brand();
+          if (result.ok) brand.value = result.value;
+          else store.fail(describeFailure(result.failure));
+        })(),
+      ]);
     },
     async save() {
       if (!settings.value) return;
@@ -48,7 +57,10 @@ export function useSiteAdmin() {
       busy.value = false;
       if (!result.ok) return store.fail(describeFailure(result.failure));
       revision.value = result.value.revision;
-      if (!await loadSettings()) { store.fail('Saved successfully. The current view could not refresh. Your local edits are preserved.'); return; }
+      if (!(await loadSettings())) {
+        store.fail('Saved successfully. The current view could not refresh. Your local edits are preserved.');
+        return;
+      }
       store.succeed('Sayt sozlamalari saqlandi.');
     },
     async upload(file: File) {

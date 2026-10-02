@@ -38,14 +38,12 @@ describe('editorial preservation', () => {
     expect(source.places).toEqual(['Bukhara']);
   });
   it('does not retry an expired save or mutate the draft', async () => {
-    const fetcher = vi
-      .fn()
-      .mockResolvedValue(
-        new Response(JSON.stringify({ detail: 'Connect a current ticket' }), {
-          status: 401,
-          headers: { 'Content-Type': 'application/problem+json' },
-        }),
-      );
+    const fetcher = vi.fn().mockResolvedValue(
+      new Response(JSON.stringify({ detail: 'Connect a current ticket' }), {
+        status: 401,
+        headers: { 'Content-Type': 'application/problem+json' },
+      }),
+    );
     const draft = emptyArticle('cloth');
     draft.title = 'Unsaved words';
     const result = await createBlogApi(fetcher).update('story-id', draft);

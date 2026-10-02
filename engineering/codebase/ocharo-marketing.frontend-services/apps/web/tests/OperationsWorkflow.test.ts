@@ -1,7 +1,10 @@
 import { feedbackBus } from '../src/application/shared/UseFeedback';
 import { useUiLocale } from '@ocharomarketing/connect/UseUiLocale';
 import { beforeEach as beforeLocaleTest } from 'vitest';
-beforeLocaleTest(() => {useUiLocale().setUiLocale('uz');vi.spyOn(feedbackBus,'notify');});
+beforeLocaleTest(() => {
+  useUiLocale().setUiLocale('uz');
+  vi.spyOn(feedbackBus, 'notify');
+});
 import { afterEach, describe, expect, it, vi } from 'vitest';
 import { mount, flushPromises } from '@vue/test-utils';
 import { shallowRef, ref } from 'vue';
@@ -185,7 +188,9 @@ describe('channel operations', () => {
     await wrapper.get('form').trigger('submit');
     await flushPromises();
     expect(wrapper.text()).not.toContain('input is preserved');
-    expect(feedbackBus.notify).toHaveBeenCalledWith(expect.objectContaining({description:expect.stringContaining('input is preserved')}));
+    expect(feedbackBus.notify).toHaveBeenCalledWith(
+      expect.objectContaining({ description: expect.stringContaining('input is preserved') }),
+    );
     await wrapper.get('form').trigger('submit');
     await flushPromises();
     const first = desk.recordEngagement.mock.calls[0]![0];

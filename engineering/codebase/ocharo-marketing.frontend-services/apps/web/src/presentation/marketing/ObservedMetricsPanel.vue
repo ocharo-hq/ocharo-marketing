@@ -63,7 +63,10 @@ async function load(id: string) {
   controller?.abort();
   controller = new AbortController();
   const version = ++requestVersion;
-  if (loadedPlan !== id) { cache.value = null; loadedPlan = id; }
+  if (loadedPlan !== id) {
+    cache.value = null;
+    loadedPlan = id;
+  }
   error.value = null;
   loading.value = true;
   const result = await desk.getMetrics(id, controller.signal);
@@ -152,7 +155,9 @@ function name(value: string) {
         )
       }}
     </p>
-    <div v-if="loading" aria-busy="true" class="mt-5 grid gap-3 sm:grid-cols-2"><div v-for="card in 4" :key="card" class="h-28 animate-pulse rounded-xl bg-muted" /></div>
+    <div v-if="loading" aria-busy="true" class="mt-5 grid gap-3 sm:grid-cols-2">
+      <div v-for="card in 4" :key="card" class="h-28 animate-pulse rounded-xl bg-muted" />
+    </div>
     <div v-if="cache?.lastAttempt" class="mt-4 rounded-lg bg-muted p-3 text-xs leading-6">
       <p>
         {{ ui('Last request:') }}

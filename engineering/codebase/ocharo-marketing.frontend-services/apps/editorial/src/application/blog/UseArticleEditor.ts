@@ -66,7 +66,10 @@ export function useArticleEditor() {
     loading.value = true;
     const current = await blogApi.get(result.value.id);
     loading.value = false;
-    if (!current.ok) { store.fail('Saved successfully. The current view could not refresh. Your local edits are preserved.'); return false; }
+    if (!current.ok) {
+      store.fail('Saved successfully. The current view could not refresh. Your local edits are preserved.');
+      return false;
+    }
     adopt(current.value);
     await loadHistory();
     store.succeed(message);

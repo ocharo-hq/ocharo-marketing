@@ -61,13 +61,13 @@ export function createMarketingWorkspace(navigate: (path: string) => void) {
       if (result.ok) {
         try {
           const current = await refresh();
-          if (!current.ok) error.value = 'Saved successfully. The current view could not refresh. Your local edits are preserved.';
+          if (!current.ok)
+            error.value = 'Saved successfully. The current view could not refresh. Your local edits are preserved.';
         } catch {
           loading.value = false;
           error.value = 'Saved successfully. The current view could not refresh. Your local edits are preserved.';
         }
-      }
-      else error.value = failureMessage(result.failure);
+      } else error.value = failureMessage(result.failure);
       return result;
     } finally {
       busy.value = null;
