@@ -15,4 +15,8 @@
     <ProjectReference Include="..\OcharoBlog.Domain\OcharoBlog.Domain.csproj" />
   </ItemGroup>
 
+  <ItemGroup>
+    <InternalsVisibleTo Include="OcharoBlog.Api" />
+  </ItemGroup>
+
 </Project>

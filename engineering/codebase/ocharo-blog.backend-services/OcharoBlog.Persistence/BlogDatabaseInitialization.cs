@@ -1,34 +1,12 @@
 using Microsoft.Data.Sqlite;
 using Microsoft.EntityFrameworkCore;
-using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
-using Microsoft.Extensions.Hosting;
-using OcharoBlog.Application.Blog.Repositories;
-using OcharoBlog.Persistence.Blog;
 
 namespace OcharoBlog.Persistence;
 
-/// <summary>Registers the persistence layer — the EF Core SQLite context and the blog repository.</summary>
-public static class DependencyInjection
+/// <summary>Initializes the SQLite blog schema and its additive pilot tables.</summary>
+public static class BlogDatabaseInitialization
 {
-    private const string DefaultConnection = "Data Source=App_Data/ocharo-blog.db";
-
-    /// <summary>Adds the SQLite context; the connection string resolves lazily and relative files anchor at the content root.</summary>
-    public static IServiceCollection AddPersistence(this IServiceCollection services, IConfiguration configuration)
-    {
-        services.AddDbContext<OcharoBlogDbContext>((provider, options) =>
-        {
-            var raw = (provider.GetService<IConfiguration>() ?? configuration)["ConnectionStrings:OcharoBlog"] ?? DefaultConnection;
-            var builder = new SqliteConnectionStringBuilder(raw);
-            var contentRoot = provider.GetService<IHostEnvironment>()?.ContentRootPath;
-            if (builder.DataSource is { Length: > 0 } file && file != ":memory:" && !Path.IsPathRooted(file) && contentRoot is not null)
-                builder.DataSource = Path.Combine(contentRoot, file);
-            options.UseSqlite(builder.ToString());
-        });
-        services.AddScoped<IBlogRepository, BlogRepository>();
-        return services;
-    }
-
     /// <summary>Creates the SQLite schema on boot.</summary>
     public static async Task InitializeDatabaseAsync(this IServiceProvider services)
     {
