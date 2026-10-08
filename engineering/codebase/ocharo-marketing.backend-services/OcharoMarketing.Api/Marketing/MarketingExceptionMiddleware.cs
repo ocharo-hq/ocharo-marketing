@@ -10,19 +10,19 @@ public sealed class MarketingExceptionMiddleware(RequestDelegate next)
     public async Task InvokeAsync(HttpContext context)
     {
         try { await next(context); }
-        catch (MarketingException exception)
+        catch (MarketingException exception) when (!context.Response.HasStarted)
         {
             await Results.Problem(statusCode: exception.StatusCode, title: "Marketing command rejected", detail: exception.Message).ExecuteAsync(context);
         }
-        catch (CardRenderingException exception)
+        catch (CardRenderingException exception) when (!context.Response.HasStarted)
         {
             await Results.Problem(statusCode: 422, title: "Card needs revision", detail: exception.Message).ExecuteAsync(context);
         }
-        catch (ArgumentException exception)
+        catch (ArgumentException) when (!context.Response.HasStarted)
         {
-            await Results.Problem(statusCode: 400, title: "Invalid composition", detail: exception.Message).ExecuteAsync(context);
+            await Results.Problem(statusCode: 400, title: "Invalid composition", detail: "The supplied composition is invalid.").ExecuteAsync(context);
         }
-        catch (SqliteException exception) when (exception.SqliteErrorCode is 5 or 6)
+        catch (SqliteException exception) when (exception.SqliteErrorCode is 5 or 6 && !context.Response.HasStarted)
         {
             await Results.Problem(statusCode: 409, title: "Workspace busy", detail: "Another update is finishing. Reload and retry.").ExecuteAsync(context);
         }

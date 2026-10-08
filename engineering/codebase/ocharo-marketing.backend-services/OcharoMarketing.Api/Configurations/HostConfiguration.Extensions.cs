@@ -29,6 +29,7 @@ using OcharoMarketing.Persistence.Scanning;
 using WoW.Two.Sdk.Backend.Beta.Data.Migrations.Ef;
 using WoW.Two.Sdk.Backend.Beta.Mediator;
 using WoW.Two.Sdk.Backend.Beta.Storage.FileSystem;
+using WoW.Two.Sdk.Backend.Beta.Web.ProblemDetails;
 
 namespace OcharoMarketing.Api.Configurations;
 
@@ -266,6 +267,7 @@ public static partial class HostConfiguration
     /// <summary>Registers HTTP problem details, controllers and OpenAPI.</summary>
     private static WebApplicationBuilder AddControllers(this WebApplicationBuilder builder)
     {
+        builder.Services.AddHttpProblemDetails();
         builder.Services.AddControllers();
         builder.Services.AddOpenApi();
         return builder;
@@ -274,6 +276,7 @@ public static partial class HostConfiguration
     /// <summary>Configures the existing request boundaries, static shell and public inquiry budget.</summary>
     private static WebApplication UsePipeline(this WebApplication app)
     {
+        app.UseHttpProblemDetails();
         app.UseMiddleware<MarketingExceptionMiddleware>();
         app.UseMiddleware<LocalPilotBoundaryMiddleware>();
         app.UseMiddleware<IntegrationBoundaryMiddleware>();

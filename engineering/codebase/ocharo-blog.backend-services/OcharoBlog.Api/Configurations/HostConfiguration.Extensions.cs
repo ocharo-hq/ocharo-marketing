@@ -17,6 +17,7 @@ using WoW.Two.Sdk.Backend.Beta.Media.Images;
 using WoW.Two.Sdk.Backend.Beta.Mediator;
 using WoW.Two.Sdk.Backend.Beta.Storage.Core;
 using WoW.Two.Sdk.Backend.Beta.Storage.FileSystem;
+using WoW.Two.Sdk.Backend.Beta.Web.ProblemDetails;
 
 namespace OcharoBlog.Api.Configurations;
 
@@ -149,6 +150,7 @@ public static partial class HostConfiguration
     /// <summary>Registers HTTP problem details, controllers and OpenAPI.</summary>
     private static WebApplicationBuilder AddControllers(this WebApplicationBuilder builder)
     {
+        builder.Services.AddHttpProblemDetails();
         builder.Services.AddControllers();
         builder.Services.AddOpenApi();
         return builder;
@@ -167,6 +169,7 @@ public static partial class HostConfiguration
     /// <summary>Configures the request boundaries and editorial SPA static files.</summary>
     private static WebApplication UsePipeline(this WebApplication app)
     {
+        app.UseHttpProblemDetails();
         app.UseMiddleware<BlogExceptionMiddleware>();
         app.UseMiddleware<LocalPilotBoundaryMiddleware>();
         app.UseMiddleware<IntegrationBoundaryMiddleware>();

@@ -19,15 +19,24 @@ public sealed class PublicInquiriesController(IConfiguration configuration, IHtt
       return Problem(statusCode: 503, detail: "Enquiries are unavailable. Use Ocharo's listed contact channels.");
     try
     {
-      using var response = await clients.CreateClient("ocharo-inquiries").PostAsJsonAsync(
-          value!.TrimEnd('/') + "/api/public/inquiries",
-          input,
-          ct);
+      using var client = clients.CreateClient("ocharo-inquiries");
+      using var deadline = CancellationTokenSource.CreateLinkedTokenSource(ct);
+      if (client.Timeout != Timeout.InfiniteTimeSpan) deadline.CancelAfter(client.Timeout);
+      using var request = new HttpRequestMessage(HttpMethod.Post, value!.TrimEnd('/') + "/api/public/inquiries")
+      {
+        Content = JsonContent.Create(input)
+      };
+      using var response = await client.SendAsync(request, HttpCompletionOption.ResponseHeadersRead, deadline.Token);
+      if (!response.IsSuccessStatusCode)
+      {
+        var problem = await InquiryProblemRelay.ReadAsync(response, HttpContext, deadline.Token);
+        return new ObjectResult(problem) { StatusCode = problem.Status };
+      }
       return new ContentResult
       {
         StatusCode = (int)response.StatusCode,
         ContentType = "application/json",
-        Content = await response.Content.ReadAsStringAsync(ct)
+        Content = await response.Content.ReadAsStringAsync(deadline.Token)
       };
     }
     catch (Exception e) when (!ct.IsCancellationRequested && (e is HttpRequestException or TaskCanceledException))
