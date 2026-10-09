@@ -3,6 +3,7 @@ import { mount, flushPromises } from '@vue/test-utils';
 import { createAppRouter, RouterHistoryMode } from '@wow-two-beta/ui-vue/router';
 import { feedbackBus } from '../src/application/shared/UseFeedback';
 import InquiriesPage from '../src/presentation/marketing/InquiriesPage.vue';
+import { useUiLocale } from '@ocharomarketing/connect/UseUiLocale';
 const { request } = vi.hoisted(() => ({ request: vi.fn<typeof fetch>() }));
 vi.mock('@ocharomarketing/connect', () => ({ integrationFetch: request }));
 const wrappers: ReturnType<typeof mount>[] = [];
@@ -121,7 +122,11 @@ describe('enquiry follow-up desk', () => {
     await flushPromises();
     expect(String(request.mock.calls[1]![0])).toContain('offset=20');
     await wrapper.get('input[type="search"]').setValue('Atelier');
-    await wrapper.get('select[aria-label="Follow-up filter"]').setValue('due');
+    wrapper
+      .findAllComponents({ name: 'MarketingSelect' })
+      .find((picker) => picker.props('label') === 'Follow-up filter')!
+      .vm.$emit('update:modelValue', 'due');
+    await flushPromises();
     request.mockResolvedValueOnce(result());
     await wrapper.findAll('form')[0]!.trigger('submit');
     await flushPromises();
@@ -377,4 +382,25 @@ it('keeps enquiry names and form actions mounted while a successful refresh is p
   await flushPromises();
   expect(wrapper.get('article h2').text()).toBe('Review reader');
   expect(wrapper.text()).not.toContain('Enquiries unavailable');
+});
+
+it('keeps enquiry status keys stable when labels are translated', async () => {
+  const locale = useUiLocale();
+  locale.setUiLocale('ru');
+  try {
+    const { wrapper } = await render();
+    const picker = wrapper
+      .findAllComponents({ name: 'MarketingSelect' })
+      .find((control) => control.props('modelValue') === 'new')!;
+    expect(picker.props('options')).toEqual(expect.arrayContaining([expect.objectContaining({ value: 'contacted' })]));
+    picker.vm.$emit('update:modelValue', 'contacted');
+    await flushPromises();
+    request.mockResolvedValueOnce(Response.json({ ...sample, status: 'contacted', revision: 2 }));
+    request.mockResolvedValueOnce(result([{ ...sample, status: 'contacted', revision: 2 }]));
+    await wrapper.findAll('form')[1]!.trigger('submit');
+    await flushPromises();
+    expect(JSON.parse(String(request.mock.calls[1]![1]?.body)).status).toBe('contacted');
+  } finally {
+    locale.setUiLocale('en');
+  }
 });

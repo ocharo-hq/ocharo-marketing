@@ -1,6 +1,7 @@
 @import 'tailwindcss';
 @import '@wow-two-beta/ui-vue/styles.css';
 @source '../../node_modules/@wow-two-beta/ui-vue/dist';
+@source '../../../../packages/connect/src';
 
 @theme {
   --color-background: #f5f2eb;

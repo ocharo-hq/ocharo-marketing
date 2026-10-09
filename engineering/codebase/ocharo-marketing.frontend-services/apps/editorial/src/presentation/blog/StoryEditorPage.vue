@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import MarketingSelect from '@ocharomarketing/connect/MarketingSelect.vue';
 import { useUiLocale } from '@ocharomarketing/connect/UseUiLocale';
 import { computed, onBeforeUnmount, onMounted, ref } from 'vue';
 import { onBeforeRouteLeave, RouterLink, useRoute, useRouter } from 'vue-router';
@@ -150,6 +151,26 @@ function applyEditedCover(media: MediaView) {
   editor.draft.value!.cover = { ...cover, mediaSha256: media.sha256 };
   imageEditing.value = false;
 }
+function chooseCover(sha: string) {
+  if (
+    !sha ||
+    !editor.draft.value ||
+    !editor.canEdit.value ||
+    editor.busy.value ||
+    editor.loading.value ||
+    refreshing.value ||
+    imageBusy.value
+  )
+    return;
+  editor.draft.value.cover = { mediaSha256: sha, alt: '', caption: '', cardClass: null };
+}
+function chooseRelated(slot: number, value: string) {
+  if (!editor.draft.value || !editor.canEdit.value || editor.busy.value || editor.loading.value || refreshing.value)
+    return;
+  const next = [...editor.draft.value.relatedSlugs];
+  next[slot] = value;
+  editor.draft.value.relatedSlugs = next.filter(Boolean);
+}
 function addProduct() {
   if (productPick.value && editor.draft.value && !editor.draft.value.productIds.includes(productPick.value))
     editor.draft.value.productIds.push(productPick.value);
@@ -203,25 +224,32 @@ function addProduct() {
             <div class="mt-4 grid gap-4 sm:grid-cols-2">
               <label class="label"
                 >{{ ui('Publication')
-                }}<select
+                }}<MarketingSelect
                   v-model="editor.draft.value.publication"
-                  class="field"
-                  @change="editor.draft.value.kind = editor.draft.value.publication === 'wear' ? 'guide' : 'story'"
-                >
-                  <option value="blog">Ocharo Blog</option>
-                  <option value="atlas">Ocharo Atlas</option>
-                  <option value="wear">Ocharo Wear</option>
-                </select></label
-              >
+                  :label="ui('Publication')"
+                  :options="[
+                    { value: 'blog' as const, label: 'Ocharo Blog' },
+                    { value: 'atlas' as const, label: 'Ocharo Atlas' },
+                    { value: 'wear' as const, label: 'Ocharo Wear' },
+                  ]"
+                  :disabled="editor.busy.value || editor.loading.value || refreshing || !editor.canEdit.value"
+                  @update:model-value="
+                    editor.draft.value.kind = editor.draft.value.publication === 'wear' ? 'guide' : 'story'
+                  "
+              /></label>
               <label class="label"
                 >{{ ui('Content type')
-                }}<select v-model="editor.draft.value.kind" class="field">
-                  <option value="story">{{ ui('Story') }}</option>
-                  <option value="textile">{{ ui('Textile object') }}</option>
-                  <option value="archive">{{ ui('Archive encounter') }}</option>
-                  <option value="guide">{{ ui('Guide') }}</option>
-                </select></label
-              >
+                }}<MarketingSelect
+                  v-model="editor.draft.value.kind"
+                  :label="ui('Content type')"
+                  :options="[
+                    { value: 'story' as const, label: ui('Story') },
+                    { value: 'textile' as const, label: ui('Textile object') },
+                    { value: 'archive' as const, label: ui('Archive encounter') },
+                    { value: 'guide' as const, label: ui('Guide') },
+                  ]"
+                  :disabled="editor.busy.value || editor.loading.value || refreshing || !editor.canEdit.value"
+              /></label>
               <label
                 v-for="axis in ['places', 'techniques', 'motifs', 'occasions', 'textileSlugs'] as const"
                 :key="axis"
@@ -317,9 +345,13 @@ function addProduct() {
                 </div>
                 <div>
                   <label class="label" for="topic">{{ ui('Topic') }}</label>
-                  <select id="topic" v-model="editor.draft.value.topic" class="field">
-                    <option v-for="t in store.topics.value" :key="t.key" :value="t.key">{{ t.short }}</option>
-                  </select>
+                  <MarketingSelect
+                    id="topic"
+                    v-model="editor.draft.value.topic"
+                    :label="ui('Topic')"
+                    :options="store.topics.value.map((t) => ({ value: t.key, label: t.short }))"
+                    :disabled="editor.busy.value || editor.loading.value || refreshing || !editor.canEdit.value"
+                  />
                 </div>
               </div>
               <div class="grid gap-4 sm:grid-cols-3">
@@ -343,11 +375,17 @@ function addProduct() {
                 </div>
                 <div>
                   <label class="label" for="lang">{{ ui('Language') }}</label>
-                  <select id="lang" v-model="editor.draft.value.language" class="field">
-                    <option value="en">{{ ui('English') }}</option>
-                    <option value="uz">O‘zbekcha</option>
-                    <option value="ru">Русский</option>
-                  </select>
+                  <MarketingSelect
+                    id="lang"
+                    v-model="editor.draft.value.language"
+                    :label="ui('Language')"
+                    :options="[
+                      { value: 'en' as const, label: ui('English') },
+                      { value: 'uz' as const, label: 'O‘zbekcha' },
+                      { value: 'ru' as const, label: 'Русский' },
+                    ]"
+                    :disabled="editor.busy.value || editor.loading.value || refreshing || !editor.canEdit.value"
+                  />
                 </div>
               </div>
               <div>
@@ -522,21 +560,16 @@ function addProduct() {
                 </div>
                 <div v-else class="rounded-xl border border-dashed border-border p-4 text-sm text-muted-foreground">
                   {{ ui('A typographic cover will be used.') }}
-                  <select
-                    class="field mt-2"
-                    :aria-label="ui('Choose from library')"
-                    @change="
-                      editor.draft.value.cover = {
-                        mediaSha256: ($event.target as HTMLSelectElement).value,
-                        alt: '',
-                        caption: '',
-                        cardClass: null,
-                      }
+                  <MarketingSelect
+                    class="mt-2"
+                    :placeholder="ui('Choose from library…')"
+                    :label="ui('Choose from library')"
+                    :options="editor.media.value.map((m) => ({ value: m.sha256, label: m.fileName }))"
+                    :disabled="
+                      editor.busy.value || editor.loading.value || refreshing || !editor.canEdit.value || imageBusy
                     "
-                  >
-                    <option value="">{{ ui('Choose from library…') }}</option>
-                    <option v-for="m in editor.media.value" :key="m.sha256" :value="m.sha256">{{ m.fileName }}</option>
-                  </select>
+                    @update:model-value="chooseCover"
+                  />
                 </div>
                 <button
                   v-if="coverMedia && !imageEditing"
@@ -579,14 +612,15 @@ function addProduct() {
                 <div>
                   <p class="label">{{ ui('Catalogue products (below the story)') }}</p>
                   <div class="flex gap-2">
-                    <select v-model="productPick" class="field" :aria-label="ui('Select product')">
-                      <option value="">
-                        {{ editor.products.value.length ? ui('Choose a product…') : ui('Catalogue disconnected') }}
-                      </option>
-                      <option v-for="p in editor.products.value" :key="p.id" :value="p.id">
-                        {{ p.name }} — {{ p.id }}
-                      </option>
-                    </select>
+                    <MarketingSelect
+                      v-model="productPick"
+                      :placeholder="
+                        editor.products.value.length ? ui('Choose a product…') : ui('Catalogue disconnected')
+                      "
+                      :label="ui('Select product')"
+                      :options="editor.products.value.map((p) => ({ value: p.id, label: p.name + ' — ' + p.id }))"
+                      :disabled="editor.busy.value || editor.loading.value || refreshing || !editor.canEdit.value"
+                    />
                     <button class="btn-outline" :disabled="!productPick" @click="addProduct">{{ ui('Add') }}</button>
                   </div>
                   <ul class="mt-2 flex flex-wrap gap-2">
@@ -607,30 +641,21 @@ function addProduct() {
                 </div>
                 <div>
                   <p class="label">{{ ui('Keep reading (blank — automatic)') }}</p>
-                  <select
+                  <MarketingSelect
                     v-for="slot in [0, 1]"
                     :key="slot"
-                    class="field mb-2"
-                    :value="editor.draft.value.relatedSlugs[slot] ?? ''"
-                    :aria-label="ui('Related story {number}', { number: slot + 1 })"
-                    @change="
-                      (() => {
-                        const value = ($event.target as HTMLSelectElement).value;
-                        const next = [...editor.draft.value!.relatedSlugs];
-                        next[slot] = value;
-                        editor.draft.value!.relatedSlugs = next.filter((s) => s);
-                      })()
-                    "
-                  >
-                    <option value="">—</option>
-                    <option
-                      v-for="o in others.filter((o) => o.slug !== editor.draft.value!.slug)"
-                      :key="o.slug"
-                      :value="o.slug"
-                    >
-                      {{ o.title }}
-                    </option>
-                  </select>
+                    class="mb-2"
+                    :model-value="editor.draft.value.relatedSlugs[slot] ?? ''"
+                    :label="ui('Related story {number}', { number: slot + 1 })"
+                    :options="[
+                      { value: '' as const, label: '—' },
+                      ...others
+                        .filter((o) => o.slug !== editor.draft.value!.slug)
+                        .map((o) => ({ value: o.slug, label: o.title })),
+                    ]"
+                    :disabled="editor.busy.value || editor.loading.value || refreshing || !editor.canEdit.value"
+                    @update:model-value="chooseRelated(slot, $event)"
+                  />
                 </div>
                 <div>
                   <p class="label">SEO</p>

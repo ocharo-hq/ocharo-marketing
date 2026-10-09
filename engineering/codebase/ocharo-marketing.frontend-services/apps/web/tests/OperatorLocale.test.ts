@@ -15,12 +15,14 @@ describe('operator locale', () => {
     const picker = mount(LanguagePicker),
       status = mount(StatusIndicator, { props: { status: 'draft' } });
     expect(status.text()).toBe('Draft');
-    await picker.get('select').setValue('ru');
+    picker.getComponent({ name: 'MarketingSelect' }).vm.$emit('update:modelValue', 'ru');
+    await nextTick();
     expect(localStorage.getItem(operatorLocaleKey)).toBe('ru');
     expect(document.documentElement.lang).toBe('ru');
     expect(status.text()).toBe('Черновик');
-    expect(picker.get('select').attributes('aria-label')).toBe('Язык интерфейса');
-    await picker.get('select').setValue('uz');
+    expect(picker.get('button[aria-haspopup="listbox"]').attributes('aria-label')).toBe('Язык интерфейса');
+    picker.getComponent({ name: 'MarketingSelect' }).vm.$emit('update:modelValue', 'uz');
+    await nextTick();
     expect(status.text()).toBe('Qoralama');
     picker.unmount();
     status.unmount();

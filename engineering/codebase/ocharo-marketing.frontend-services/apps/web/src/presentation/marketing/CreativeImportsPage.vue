@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import MarketingSelect from '@ocharomarketing/connect/MarketingSelect.vue';
 import { requestFailureMessage } from '@ocharomarketing/connect/RequestFeedback';
 import { useErrorToast } from '../../application/shared/UseFeedback';
 import { useUiLocale } from '@ocharomarketing/connect/UseUiLocale';
@@ -76,16 +77,16 @@ async function submit() {
           @change="choose($event, 'image')" /></label
       ><label class="block min-w-0 text-xs font-semibold"
         >{{ ui('Product context')
-        }}<select
+        }}<MarketingSelect
           v-model="productId"
-          class="mt-2 block min-h-11 w-full min-w-0 rounded-xl border border-border bg-background px-3 py-2.5 text-sm text-foreground outline-none focus:ring-2 focus:ring-ring"
+          class="mt-2 block w-full min-w-0"
           required
-        >
-          <option value="">{{ ui('Choose an existing piece') }}</option>
-          <option v-for="product in desk.workspace.value?.products ?? []" :key="product.id" :value="product.id">
-            {{ product.name }}
-          </option>
-        </select></label
+          :placeholder="ui('Choose an existing piece')"
+          :label="ui('Product context')"
+          :options="
+            (desk.workspace.value?.products ?? []).map((product) => ({ value: product.id, label: product.name }))
+          "
+          :disabled="busy" /></label
       ><Button type="submit" :is-disabled="busy">{{ busy ? ui('Checking package…') : ui('Import as a draft') }}</Button>
       <RouterLink v-if="draftId" :to="'/posts/' + draftId" class="text-primary underline">{{
         ui('Open imported draft →')

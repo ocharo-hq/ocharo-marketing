@@ -1,4 +1,5 @@
 import { ESLint } from 'eslint';
+import { parse } from '@vue/compiler-sfc';
 import { describe, expect, it } from 'vitest';
 
 const eslint = new ESLint();
@@ -19,4 +20,25 @@ describe('application boundaries', () => {
     );
     expect(result?.messages).toEqual([]);
   });
+});
+
+it('uses styled SDK dropdowns throughout Marketing, Editorial and shared controls', () => {
+  const sources = import.meta.glob<string>(
+    [
+      '../src/presentation/**/*.vue',
+      '../../editorial/src/presentation/**/*.vue',
+      '../../../packages/connect/src/**/*.vue',
+    ],
+    {
+      eager: true,
+      query: '?raw',
+      import: 'default',
+    },
+  );
+  const violations = Object.entries(sources).flatMap(([filename, source]) => {
+    const template = parse(source, { filename }).descriptor.template?.content ?? '';
+    return /<select(?=[\s/>])/i.test(template.replace(/<!--[\s\S]*?-->/g, '')) ? [filename] : [];
+  });
+  expect(Object.keys(sources).length).toBeGreaterThan(20);
+  expect(violations).toEqual([]);
 });

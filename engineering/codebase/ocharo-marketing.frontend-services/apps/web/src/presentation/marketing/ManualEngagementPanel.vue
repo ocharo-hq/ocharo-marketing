@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import MarketingSelect from '@ocharomarketing/connect/MarketingSelect.vue';
 import { requestFailureMessage } from '@ocharomarketing/connect/RequestFeedback';
 import { SkeletonState } from '@wow-two-beta/ui-vue/presentation/feedback';
 import { useErrorToast } from '../../application/shared/UseFeedback';
@@ -185,23 +186,26 @@ onBeforeUnmount(() => {
         <div class="grid gap-4 sm:grid-cols-2">
           <label class="block text-xs font-semibold"
             >{{ ui('Channel')
-            }}<select
+            }}<MarketingSelect
               v-model="form.channel"
-              class="mt-1 w-full rounded-lg border border-border bg-card p-2"
-              @change="form.scheduleId = ''"
-            >
-              <option v-for="(label, key) in ops.channels" :key="key" :value="key">{{ ui(label) }}</option>
-            </select></label
-          >
+              class="mt-1 w-full"
+              :label="ui('Channel')"
+              :options="Object.entries(ops.channels).map(([value, label]) => ({ value, label: ui(label) }))"
+              :disabled="saving"
+              @update:model-value="form.scheduleId = ''"
+          /></label>
           <label class="block text-xs font-semibold"
             >{{ ui('Existing plan (optional)')
-            }}<select v-model="form.scheduleId" class="mt-1 w-full rounded-lg border border-border bg-card p-2">
-              <option value="">{{ ui('Not linked to a plan') }}</option>
-              <option v-for="plan in eligibleSchedules" :key="plan.id" :value="plan.id">
-                {{ plan.draftTitle || plan.id }}
-              </option>
-            </select></label
-          >
+            }}<MarketingSelect
+              v-model="form.scheduleId"
+              class="mt-1 w-full"
+              :label="ui('Existing plan (optional)')"
+              :options="[
+                { value: '' as const, label: ui('Not linked to a plan') },
+                ...eligibleSchedules.map((plan) => ({ value: plan.id, label: plan.draftTitle || plan.id })),
+              ]"
+              :disabled="saving"
+          /></label>
         </div>
         <label class="block text-xs font-semibold"
           >{{ ui('Post name')
@@ -283,20 +287,28 @@ onBeforeUnmount(() => {
     <div class="flex flex-wrap gap-3">
       <label class="text-xs font-semibold"
         >{{ ui('Channel')
-        }}<select v-model="channel" class="ml-2 rounded-lg border border-border bg-background p-2">
-          <option value="all">{{ ui('All') }}</option>
-          <option v-for="(label, key) in ops.channels" :key="key" :value="key">{{ ui(label) }}</option>
-        </select></label
-      >
+        }}<MarketingSelect
+          v-model="channel"
+          class="ml-2"
+          :label="ui('Channel')"
+          :options="[
+            { value: 'all' as const, label: ui('All') },
+            ...Object.entries(ops.channels).map(([value, label]) => ({ value, label: ui(label) })),
+          ]"
+      /></label>
       <label class="text-xs font-semibold"
         >{{ ui('Observation period')
-        }}<select v-model="period" class="ml-2 rounded-lg border border-border bg-background p-2">
-          <option value="7">{{ ui('7 days') }}</option>
-          <option value="30">{{ ui('30 days') }}</option>
-          <option value="90">{{ ui('90 days') }}</option>
-          <option value="all">{{ ui('All saved') }}</option>
-        </select></label
-      >
+        }}<MarketingSelect
+          v-model="period"
+          class="ml-2"
+          :label="ui('Observation period')"
+          :options="[
+            { value: '7' as const, label: ui('7 days') },
+            { value: '30' as const, label: ui('30 days') },
+            { value: '90' as const, label: ui('90 days') },
+            { value: 'all' as const, label: ui('All saved') },
+          ]"
+      /></label>
     </div>
     <p class="text-xs leading-6 text-muted-foreground">
       {{

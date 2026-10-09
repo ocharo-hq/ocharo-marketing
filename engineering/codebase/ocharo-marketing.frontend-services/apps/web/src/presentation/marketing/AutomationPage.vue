@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import MarketingSelect from '@ocharomarketing/connect/MarketingSelect.vue';
 import { useErrorToast } from '../../application/shared/UseFeedback';
 import { useUiLocale } from '@ocharomarketing/connect/UseUiLocale';
 import { computed, onMounted, ref, watch } from 'vue';
@@ -301,23 +302,27 @@ onMounted(async () => {
         <div class="space-y-3">
           <label class="block text-xs font-semibold"
             >{{ ui('Language') }}
-            <select
+            <MarketingSelect
               v-model="bulkLocale"
-              class="mt-1 w-full rounded-lg border border-border bg-background px-3 py-2 text-sm"
-            >
-              <option value="uz">O‘zbekcha</option>
-              <option value="ru">{{ ui('Russian') }}</option>
-              <option value="en">{{ ui('English') }}</option>
-            </select>
+              class="mt-1 w-full"
+              :label="ui('Language')"
+              :options="[
+                { value: 'uz' as const, label: 'O‘zbekcha' },
+                { value: 'ru' as const, label: ui('Russian') },
+                { value: 'en' as const, label: ui('English') },
+              ]"
+              :disabled="desk.busy.value !== null"
+            />
           </label>
           <label class="block text-xs font-semibold"
             >{{ ui('Card') }}
-            <select
+            <MarketingSelect
               v-model="bulkPreset"
-              class="mt-1 w-full rounded-lg border border-border bg-background px-3 py-2 text-sm"
-            >
-              <option v-for="preset in presets" :key="preset.id" :value="preset.id">{{ preset.name }}</option>
-            </select>
+              class="mt-1 w-full"
+              :label="ui('Card')"
+              :options="presets.map((preset) => ({ value: preset.id, label: preset.name }))"
+              :disabled="desk.busy.value !== null"
+            />
           </label>
         </div>
         <fieldset class="space-y-2 text-sm">
@@ -393,15 +398,16 @@ onMounted(async () => {
         <tbody>
           <tr v-for="(slot, index) in settings.slots" :key="index" class="border-t border-border">
             <td class="py-2 pr-2">
-              <select
+              <MarketingSelect
                 v-model="slot.channel"
-                class="rounded-lg border border-border bg-background px-2 py-1.5"
-                :aria-label="ui('Channel')"
-              >
-                <option value="telegram">Telegram</option>
-                <option value="instagram">Instagram</option>
-                <option value="x">X</option>
-              </select>
+                :label="ui('Channel')"
+                :options="[
+                  { value: 'telegram' as const, label: 'Telegram' },
+                  { value: 'instagram' as const, label: 'Instagram' },
+                  { value: 'x' as const, label: 'X' },
+                ]"
+                :disabled="desk.busy.value !== null"
+              />
             </td>
             <td class="pr-2">
               <div class="flex flex-wrap gap-1">
@@ -492,16 +498,15 @@ onMounted(async () => {
           </p>
         </div>
         <div class="flex flex-wrap items-center gap-2 text-sm">
-          <select
+          <MarketingSelect
             v-model="storyProduct"
-            class="rounded-lg border border-border bg-background px-2 py-1.5"
-            :aria-label="ui('Product for image')"
-          >
-            <option value="">{{ ui('Image: first product') }}</option>
-            <option v-for="p in products" :key="p.id" :value="p.id">
-              {{ ui('Image:') }} {{ p.name }} · {{ p.id }}
-            </option>
-          </select>
+            :label="ui('Product for image')"
+            :options="[
+              { value: '' as const, label: ui('Image: first product') },
+              ...products.map((p) => ({ value: p.id, label: ui('Image:') + ' ' + p.name + ' · ' + p.id })),
+            ]"
+            :disabled="desk.busy.value !== null"
+          />
           <label v-for="c in ['telegram', 'instagram', 'x']" :key="c" class="flex items-center gap-1">
             <input
               type="checkbox"

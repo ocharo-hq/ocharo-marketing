@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import MarketingSelect from '@ocharomarketing/connect/MarketingSelect.vue';
 import { requestFailureMessage } from '@ocharomarketing/connect/RequestFeedback';
 import { useUiLocale } from '@ocharomarketing/connect/UseUiLocale';
 import { ref as importRef } from 'vue';
@@ -71,24 +72,44 @@ onMounted(() => list.load());
         <Icon :icon="Search" :size="16" class="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground" />
         <input v-model="list.filter.q" class="field pl-9" :placeholder="ui('Title, URL or description')" />
       </label>
-      <select v-model="list.filter.publication" class="field md:w-48" :aria-label="ui('Publication')">
-        <option value="">{{ ui('All publications') }}</option>
-        <option value="atlas">Atlas</option>
-        <option value="wear">Wear</option>
-        <option value="blog">{{ ui('Blog') }}</option>
-      </select>
-      <select v-model="list.filter.status" class="field md:w-48" :aria-label="ui('Status')">
-        <option value="">{{ ui('All statuses') }}</option>
-        <option v-for="(label, key) in statusLabels" :key="key" :value="key">{{ ui(label) }}</option>
-      </select>
-      <select v-model="list.filter.topic" class="field md:w-48" :aria-label="ui('Topic')">
-        <option value="">{{ ui('All topics') }}</option>
-        <option v-for="t in store.topics.value" :key="t.key" :value="t.key">{{ t.short }}</option>
-      </select>
-      <select v-model="list.filter.language" class="field md:w-40" :aria-label="ui('Language')">
-        <option value="">{{ ui('All languages') }}</option>
-        <option v-for="(label, key) in languageLabels" :key="key" :value="key">{{ ui(label) }}</option>
-      </select>
+      <MarketingSelect
+        v-model="list.filter.publication"
+        class="md:w-48"
+        :label="ui('Publication')"
+        :options="[
+          { value: '' as const, label: ui('All publications') },
+          { value: 'atlas' as const, label: 'Atlas' },
+          { value: 'wear' as const, label: 'Wear' },
+          { value: 'blog' as const, label: ui('Blog') },
+        ]"
+      />
+      <MarketingSelect
+        v-model="list.filter.status"
+        class="md:w-48"
+        :label="ui('Status')"
+        :options="[
+          { value: '' as const, label: ui('All statuses') },
+          ...Object.entries(statusLabels).map(([value, label]) => ({ value, label: ui(label) })),
+        ]"
+      />
+      <MarketingSelect
+        v-model="list.filter.topic"
+        class="md:w-48"
+        :label="ui('Topic')"
+        :options="[
+          { value: '' as const, label: ui('All topics') },
+          ...store.topics.value.map((t) => ({ value: t.key, label: t.short })),
+        ]"
+      />
+      <MarketingSelect
+        v-model="list.filter.language"
+        class="md:w-40"
+        :label="ui('Language')"
+        :options="[
+          { value: '' as const, label: ui('All languages') },
+          ...Object.entries(languageLabels).map(([value, label]) => ({ value, label: ui(label) })),
+        ]"
+      />
     </div>
     <div class="mt-4 flex justify-end">
       <Button

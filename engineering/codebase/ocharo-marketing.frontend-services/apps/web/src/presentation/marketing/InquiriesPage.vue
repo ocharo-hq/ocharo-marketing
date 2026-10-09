@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import MarketingSelect from '@ocharomarketing/connect/MarketingSelect.vue';
 import { requestFailureMessage } from '@ocharomarketing/connect/RequestFeedback';
 import { useErrorToast } from '../../application/shared/UseFeedback';
 import { useUiLocale } from '@ocharomarketing/connect/UseUiLocale';
@@ -245,30 +246,34 @@ onBeforeUnmount(() => {
         </label>
         <label class="block text-xs font-semibold"
           >{{ ui('Status') }}
-          <select
+          <MarketingSelect
             v-model="filter"
-            :aria-label="ui('Enquiry status')"
-            class="mt-2 block min-h-11 rounded-xl border border-border bg-background px-3 text-sm"
-          >
-            <option value="">{{ ui('All statuses') }}</option>
-            <option>{{ ui('new') }}</option>
-            <option>{{ ui('contacted') }}</option>
-            <option>{{ ui('qualified') }}</option>
-            <option>{{ ui('closed') }}</option>
-          </select>
+            class="mt-2 block"
+            :label="ui('Enquiry status')"
+            :options="[
+              { value: '' as const, label: ui('All statuses') },
+              { value: 'new' as const, label: ui('new') },
+              { value: 'contacted' as const, label: ui('contacted') },
+              { value: 'qualified' as const, label: ui('qualified') },
+              { value: 'closed' as const, label: ui('closed') },
+            ]"
+            :disabled="locked || dirty"
+          />
         </label>
         <label class="block text-xs font-semibold"
           >{{ ui('Follow-up') }}
-          <select
+          <MarketingSelect
             v-model="followUp"
-            :aria-label="ui('Follow-up filter')"
-            class="mt-2 block min-h-11 rounded-xl border border-border bg-background px-3 text-sm"
-          >
-            <option value="">{{ ui('All follow-ups') }}</option>
-            <option value="due">{{ ui('Due now') }}</option>
-            <option value="scheduled">{{ ui('Scheduled') }}</option>
-            <option value="unassigned">{{ ui('Unassigned') }}</option>
-          </select>
+            class="mt-2 block"
+            :label="ui('Follow-up filter')"
+            :options="[
+              { value: '' as const, label: ui('All follow-ups') },
+              { value: 'due' as const, label: ui('Due now') },
+              { value: 'scheduled' as const, label: ui('Scheduled') },
+              { value: 'unassigned' as const, label: ui('Unassigned') },
+            ]"
+            :disabled="locked || dirty"
+          />
         </label>
         <Button type="submit" :is-disabled="locked || dirty">{{ ui('Apply filters') }}</Button>
         <Button
@@ -340,15 +345,18 @@ onBeforeUnmount(() => {
         <fieldset :disabled="locked" class="grid gap-4 sm:grid-cols-2">
           <label class="block min-w-0 text-xs font-semibold"
             >{{ ui('Status') }}
-            <select
+            <MarketingSelect
               v-model="item.status"
-              class="mt-2 block min-h-11 w-full rounded-xl border border-border bg-background px-3 text-sm"
-            >
-              <option>{{ ui('new') }}</option>
-              <option>{{ ui('contacted') }}</option>
-              <option>{{ ui('qualified') }}</option>
-              <option>{{ ui('closed') }}</option>
-            </select>
+              class="mt-2 block w-full"
+              :label="ui('Status')"
+              :options="[
+                { value: 'new' as const, label: ui('new') },
+                { value: 'contacted' as const, label: ui('contacted') },
+                { value: 'qualified' as const, label: ui('qualified') },
+                { value: 'closed' as const, label: ui('closed') },
+              ]"
+              :disabled="locked"
+            />
           </label>
           <label class="block min-w-0 text-xs font-semibold"
             >{{ ui('Follow-up owner (name)') }}

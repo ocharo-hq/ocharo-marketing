@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import MarketingSelect from '@ocharomarketing/connect/MarketingSelect.vue';
 import { useUiLocale } from '@ocharomarketing/connect/UseUiLocale';
 import { onMounted, ref } from 'vue';
 import { Download, ExternalLink, Plus, Trash2, Upload } from 'lucide-vue-next';
@@ -71,10 +72,17 @@ onMounted(async () => {
           </div>
           <div>
             <label class="label" for="featured">{{ ui('Featured homepage story') }}</label>
-            <select id="featured" v-model="admin.settings.value.featuredSlug" class="field">
-              <option :value="null">{{ ui('Latest') }}</option>
-              <option v-for="s in stories.articles.value" :key="s.slug" :value="s.slug">{{ s.title }}</option>
-            </select>
+            <MarketingSelect
+              id="featured"
+              :model-value="admin.settings.value.featuredSlug ?? ''"
+              :label="ui('Featured homepage story')"
+              :options="[
+                { value: '' as const, label: ui('Latest') },
+                ...stories.articles.value.map((s) => ({ value: s.slug, label: s.title })),
+              ]"
+              :disabled="admin.busy.value || admin.loading.value || refreshing"
+              @update:model-value="admin.settings.value.featuredSlug = $event || null"
+            />
           </div>
         </div>
       </section>
@@ -164,10 +172,17 @@ onMounted(async () => {
             :key="slot.key"
           >
             <label class="label" :for="slot.key">{{ ui(slot.label) }}</label>
-            <select :id="slot.key" v-model="admin.settings.value[slot.key]" class="field">
-              <option :value="null">—</option>
-              <option v-for="m in admin.media.value" :key="m.sha256" :value="m.sha256">{{ m.fileName }}</option>
-            </select>
+            <MarketingSelect
+              :id="slot.key"
+              :model-value="admin.settings.value[slot.key] ?? ''"
+              :label="ui(slot.label)"
+              :options="[
+                { value: '' as const, label: '—' },
+                ...admin.media.value.map((m) => ({ value: m.sha256, label: m.fileName })),
+              ]"
+              :disabled="admin.busy.value || admin.loading.value || refreshing"
+              @update:model-value="admin.settings.value[slot.key] = $event || null"
+            />
             <img
               v-if="admin.settings.value[slot.key]"
               :src="store.links.media(admin.settings.value[slot.key]!)"
