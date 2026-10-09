@@ -13,6 +13,7 @@
   </ItemGroup>
 
   <ItemGroup>
+    <ProjectReference Include="../shared/Ocharo.Sso/Ocharo.Sso.csproj" />
     <ProjectReference Include="..\OcharoBlog.Application\OcharoBlog.Application.csproj" />
     <ProjectReference Include="..\OcharoBlog.Infrastructure\OcharoBlog.Infrastructure.csproj" />
     <ProjectReference Include="..\OcharoBlog.Persistence\OcharoBlog.Persistence.csproj" />

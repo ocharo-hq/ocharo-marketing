@@ -7,8 +7,9 @@ import LanguagePicker from '@ocharomarketing/connect/LanguagePicker.vue';
 import BuildVersion from '@ocharomarketing/connect/BuildVersion.vue';
 const appVersion = typeof __APP_VERSION__ === 'string' ? __APP_VERSION__ : 'dev';
 import ConnectDesk from '@ocharomarketing/connect/ConnectDesk.vue';
+import { integrationAccess } from '@ocharomarketing/connect';
 const connectPlatformUrl = import.meta.env.VITE_PLATFORM_URL ?? 'https://localhost:8264/';
-import { watchEffect, computed, onMounted } from 'vue';
+import { watchEffect, computed, watch, ref } from 'vue';
 import { RouterLink, RouterView, useRoute } from 'vue-router';
 import { ChevronRight, CirclePlus, ExternalLink, FileText, Globe, Layers, X } from 'lucide-vue-next';
 import { Icon } from '@wow-two-beta/ui-vue/foundation/icons';
@@ -38,7 +39,17 @@ watchEffect(
   },
   { flush: 'post' },
 );
-onMounted(() => store.loadTopics());
+const opened = ref(false);
+watch(
+  integrationAccess,
+  (active) => {
+    if (active && !opened.value) {
+      opened.value = true;
+      void store.loadTopics();
+    }
+  },
+  { immediate: true },
+);
 </script>
 
 <template>
@@ -110,7 +121,7 @@ onMounted(() => store.loadTopics());
           <span class="text-xs font-semibold">{{ ui(section) }}</span>
         </div>
         <LanguagePicker />
-        <RouterLink to="/stories/new" class="btn-primary"
+        <RouterLink v-if="integrationAccess" to="/stories/new" class="btn-primary"
           ><Icon :icon="CirclePlus" :size="16" />{{ ui('New story') }}</RouterLink
         >
       </header>
@@ -142,15 +153,17 @@ onMounted(() => store.loadTopics());
             <Icon :icon="X" :size="15" />
           </button>
         </div>
-        <AppErrorBoundary>
-          <RouterView v-slot="{ Component }"><component :is="Component" :key="route.fullPath" /></RouterView>
-          <template #fallback="{ reset }">
-            <section class="panel p-10 text-center">
-              <h1 class="font-editorial text-2xl">{{ ui('Unable to open this section.') }}</h1>
-              <button class="btn-primary mt-5" @click="reset">{{ ui('Retry') }}</button>
-            </section>
-          </template>
-        </AppErrorBoundary>
+        <fieldset v-if="opened" :disabled="!integrationAccess" class="min-w-0 border-0 p-0 m-0">
+          <AppErrorBoundary>
+            <RouterView v-slot="{ Component }"><component :is="Component" :key="route.fullPath" /></RouterView>
+            <template #fallback="{ reset }">
+              <section class="panel p-10 text-center">
+                <h1 class="font-editorial text-2xl">{{ ui('Unable to open this section.') }}</h1>
+                <button class="btn-primary mt-5" @click="reset">{{ ui('Retry') }}</button>
+              </section>
+            </template>
+          </AppErrorBoundary>
+        </fieldset>
       </main>
       <FeedbackToastHost :bus="feedbackBus" position="top-right" />
       <RouteAnnouncer />

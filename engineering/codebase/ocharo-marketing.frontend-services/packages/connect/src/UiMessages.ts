@@ -3,6 +3,15 @@ export type UiLocale = "uz" | "ru" | "en";
 export const uiMessages: Readonly<
   Record<string, Readonly<{ uz: string; ru: string }>>
 > = {
+  "Check your Ocharo connection": { uz: "Ocharo ulanishini tekshiring", ru: "Проверьте подключение к Ocharo" },
+  "Open app in a new tab": { uz: "Ilovani yangi oynada ochish", ru: "Открыть приложение в новой вкладке" },
+  "Open Ocharo Desk": { uz: "Ocharo Desk’ni ochish", ru: "Открыть Ocharo Desk" },
+  "Reconnection opens a new tab. Your unsaved edits stay here.": { uz: "Qayta ulanish yangi oynada ochiladi. Saqlanmagan o‘zgarishlaringiz shu yerda qoladi.", ru: "Подключение откроется в новой вкладке. Несохранённые изменения останутся здесь." },
+  "Signed in to Ocharo": { uz: "Ocharo hisobiga kirilgan", ru: "Вход в Ocharo выполнен" },
+  "Reconnect to Ocharo": { uz: "Ocharo hisobiga qayta ulaning", ru: "Подключитесь к Ocharo снова" },
+  "Use your Ocharo account across all apps.": { uz: "Barcha ilovalarda Ocharo hisobingizdan foydalaning.", ru: "Используйте аккаунт Ocharo во всех приложениях." },
+  "Reconnect": { uz: "Qayta ulanish", ru: "Подключиться снова" },
+  "Your Ocharo account changed. Reload this app before continuing.": { uz: "Ocharo hisobingiz o‘zgardi. Davom etishdan oldin ilovani qayta yuklang.", ru: "Аккаунт Ocharo изменился. Перезагрузите приложение перед продолжением." },
   'Preview unavailable': {uz:'Ko‘rinish mavjud emas',ru:'Предпросмотр недоступен'},
   'Retry preview': {uz:'Ko‘rinishni qayta yuklash',ru:'Повторить предпросмотр'},
   'Preview loading': {uz:'Ko‘rinish yuklanmoqda',ru:'Загрузка предпросмотра'},

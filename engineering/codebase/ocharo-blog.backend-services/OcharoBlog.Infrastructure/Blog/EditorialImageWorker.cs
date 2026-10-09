@@ -13,6 +13,9 @@ namespace OcharoBlog.Infrastructure.Blog;
 /// <summary>Server-to-server delegation; browser never receives worker secrets or chooses remote URLs.</summary>
 public sealed class EditorialImageWorker(IConfiguration config, IHttpContextAccessor accessor, IHttpClientFactory clients) : IEditorialImageWorker
 {
+    private bool SsoEnabled => config.GetValue<bool>("Identity:Sso:Enabled");
+    private string? Organization => config[SsoEnabled ? "Identity:Sso:OrganizationId" : "PlatformIntegration:OrganizationId"];
+
     public async Task<ImageWorkerStatus> GetStatusAsync(CancellationToken ct)
     {
         if (!Configured(out var origin) || Ticket() is not { } ticket) return new(false);
@@ -50,18 +53,18 @@ public sealed class EditorialImageWorker(IConfiguration config, IHttpContextAcce
 
     public async Task EnsureEditableAsync(MediaEditActor actor, CancellationToken ct)
     {
-        if ((config["PlatformIntegration:Mode"] ?? "local") == "local")
+        if (!SsoEnabled && (config["PlatformIntegration:Mode"] ?? "local") == "local")
         {
             if (actor != new MediaEditActor("local", "local-operator")) throw new BlogException("Untrusted image editor identity.", 401);
             return;
         }
         if (!Configured(out var origin) || Ticket() is not {} ticket
             || !Guid.TryParse(actor.OrganizationId, out var actorOrganization)
-            || actorOrganization != Guid.Parse(config["PlatformIntegration:OrganizationId"]!))
+            || actorOrganization != Guid.Parse(Organization!))
             throw new BlogException("Reconnect from Platform.", 401);
         try
         {
-            using var response = await clients.CreateClient("ocharo-platform-tickets").PostAsJsonAsync(origin!.TrimEnd('/')+"/api/integrations/introspect", new {token=ticket,audience="ocharo-marketing"}, ct);
+            using var response = await clients.CreateClient("ocharo-platform-tickets").PostAsJsonAsync(origin!.TrimEnd('/')+"/api/integrations/introspect", new {token=ticket,audience=SsoEnabled ? "ocharo-editorial" : "ocharo-marketing"}, ct);
             if (!response.IsSuccessStatusCode) throw new BlogException("Reconnect from Platform.", 401);
             using var json = JsonDocument.Parse(await ReadAsync(response.Content, 8192, ct)); var data=json.RootElement.GetProperty("data");
             if (!data.GetProperty("active").GetBoolean() || data.GetProperty("organizationId").GetString()!=actor.OrganizationId
@@ -76,13 +79,14 @@ public sealed class EditorialImageWorker(IConfiguration config, IHttpContextAcce
     private string? Ticket()
     {
         var http=accessor.HttpContext;
-        var value=http?.Request.Headers["X-Ocharo-Integration-Ticket"].FirstOrDefault()??http?.Request.Cookies["_ocharo_editorial_ticket"];
+        var value = SsoEnabled ? http?.Items["Ocharo.Sso.Ticket"] as string
+            : http?.Request.Headers["X-Ocharo-Integration-Ticket"].FirstOrDefault() ?? http?.Request.Cookies["_ocharo_editorial_ticket"];
         return value is {Length:>0 and <=4096} ? value : null;
     }
     private bool Configured(out string? origin)
     {
-        origin=config["PlatformIntegration:BaseUrl"];
-        return config["PlatformIntegration:Mode"]=="connected" && Guid.TryParse(config["PlatformIntegration:OrganizationId"],out _)
+        origin=config[SsoEnabled ? "Identity:Sso:DeskOrigin" : "PlatformIntegration:BaseUrl"];
+        return (SsoEnabled || config["PlatformIntegration:Mode"]=="connected") && Guid.TryParse(Organization,out var organization) && organization != Guid.Empty
             && Uri.TryCreate(origin,UriKind.Absolute,out var uri) && uri.Scheme=="https" && uri.UserInfo.Length==0 && uri.Query.Length==0 && uri.Fragment.Length==0;
     }
     private static HttpRequestMessage Request(HttpMethod method,string origin,string path,string ticket)

@@ -1,3 +1,4 @@
+using Ocharo.Sso;
 using System.Net.Http.Json;
 using System.Text.Json;
 using Microsoft.AspNetCore.Http;
@@ -10,6 +11,7 @@ public sealed class IntegrationBoundaryMiddleware(RequestDelegate next,IConfigur
 {
     private const string Cookie = "_ocharo_marketing_ticket";
     private const string Audience = "ocharo-marketing";
+    private bool SsoEnabled => configuration.GetValue<bool>("Identity:Sso:Enabled");
     private string Mode => configuration["PlatformIntegration:Mode"] ?? "local";
 
     public async Task InvokeAsync(HttpContext context)
@@ -19,8 +21,19 @@ public sealed class IntegrationBoundaryMiddleware(RequestDelegate next,IConfigur
         var writes=!HttpMethods.IsGet(context.Request.Method)&&!HttpMethods.IsHead(context.Request.Method)&&!HttpMethods.IsOptions(context.Request.Method);
         if(Mode!="local" && writes && !SameOrigin(context.Request))
         {await Reject(context,403,"Cross-origin writes are disabled.");return;}
+        if (SsoEnabled && (path == "/health" || path == "/api/system/status")) { await next(context); return; }
         if(path is "/api/integrations/session" or "/api/integrations/connect")
         {
+            if (SsoEnabled)
+            {
+                if (path != "/api/integrations/session" || !HttpMethods.IsGet(context.Request.Method))
+                { await Reject(context, 409, "Use Ocharo sign-in and sign-out for this application."); return; }
+                var current = VerifiedSsoSession(context);
+                await context.Response.WriteAsJsonAsync(new { mode = "sso", active = current is not null,
+                    configured = true, canEdit = current?.CanEdit ?? false, canApprove = current?.CanApprove ?? false,
+                    expiresAt = current?.ExpiresAt }, context.RequestAborted);
+                return;
+            }
             NoStore(context);
             if(path.EndsWith("connect",StringComparison.Ordinal)&&HttpMethods.IsDelete(context.Request.Method))
             {context.Response.Cookies.Delete(Cookie);context.Response.StatusCode=204;return;}
@@ -47,10 +60,18 @@ public sealed class IntegrationBoundaryMiddleware(RequestDelegate next,IConfigur
 
         if(!privateRoute){await next(context);return;}
         NoStore(context);
-        if(Mode=="local"){context.Items["Ocharo.CanApprove"]=true;await next(context);return;}
-        if(!context.Request.IsHttps){await Reject(context,403,"Connected access requires HTTPS.");return;}
-        if(!Configured){await Reject(context,503,"This Marketing instance needs its Platform URL and organization binding.");return;}
-        var principal=await ValidateAsync(context);
+        Session? principal;
+        if (SsoEnabled)
+        {
+            principal = VerifiedSsoSession(context);
+        }
+        else
+        {
+            if(Mode=="local"){context.Items["Ocharo.CanApprove"]=true;await next(context);return;}
+            if(!context.Request.IsHttps){await Reject(context,403,"Connected access requires HTTPS.");return;}
+            if(!Configured){await Reject(context,503,"This Marketing instance needs its Platform URL and organization binding.");return;}
+            principal = await ValidateAsync(context);
+        }
         if(principal is null){await Reject(context,401,"Connect a current Ocharo Platform ticket for this organization.");return;}
         // Automation settings can enable the background planner; fill immediately schedules approved drafts.
         var approvalPath=path.TrimEnd('/');
@@ -61,6 +82,15 @@ public sealed class IntegrationBoundaryMiddleware(RequestDelegate next,IConfigur
         context.Items["Ocharo.OrganizationId"]=principal.OrganizationId;
         context.Items["Ocharo.UserId"]=principal.UserId;
         await next(context);
+    }
+    private Session? VerifiedSsoSession(HttpContext context)
+    {
+        if (context.User.Identity?.AuthenticationType != SsoContext.AuthenticationType
+            || context.Items[SsoContext.ActorKey] is not SsoActor { Active: true } actor
+            || actor.ExpiresAt <= DateTimeOffset.UtcNow
+            || !Guid.TryParse(configuration["Identity:Sso:OrganizationId"], out var organization)
+            || organization == Guid.Empty || actor.OrganizationId != organization) return null;
+        return new Session(actor.OrganizationId.ToString("D"), actor.UserId, actor.CanEdit, actor.CanApprove, actor.ExpiresAt);
     }
     private bool Configured=>Mode=="connected"&&Guid.TryParse(configuration["PlatformIntegration:OrganizationId"],out _)
         &&Uri.TryCreate(configuration["PlatformIntegration:BaseUrl"],UriKind.Absolute,out var u)&&u.Scheme == "https" && u.UserInfo.Length == 0 && u.Query.Length == 0 && u.Fragment.Length == 0;

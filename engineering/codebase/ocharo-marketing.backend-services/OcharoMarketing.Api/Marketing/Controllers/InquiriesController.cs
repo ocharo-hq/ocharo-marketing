@@ -58,7 +58,7 @@ public sealed class InquiriesController(InquiryService service, IConfiguration c
       CancellationToken ct)
   {
     var actor = HttpContext.Items["Ocharo.UserId"] as string;
-    if ((configuration["PlatformIntegration:Mode"] ?? "local") != "local" && string.IsNullOrWhiteSpace(actor))
+    if ((configuration.GetValue<bool>("Identity:Sso:Enabled") || (configuration["PlatformIntegration:Mode"] ?? "local") != "local") && string.IsNullOrWhiteSpace(actor))
       throw new MarketingException("A current operator identity is required.", 401);
     return Ok(await service.UpdateAsync(
         id,

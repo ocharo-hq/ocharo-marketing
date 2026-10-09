@@ -58,6 +58,27 @@ public sealed class EditorialImageWorkerTests
         var invalid=Build((_,_)=>Task.FromResult(new HttpResponseMessage(HttpStatusCode.OK){Content=new StringContent(new string('x',4097))}));
         Assert.False((await invalid.GetStatusAsync(default)).Available);
     }
+    [Fact]
+    public async Task Sso_uses_server_ticket_and_editorial_audience_even_with_legacy_local_mode()
+    {
+        var config = new ConfigurationBuilder().AddInMemoryCollection(new Dictionary<string,string?> {
+            ["PlatformIntegration:Mode"] = "local", ["Identity:Sso:Enabled"] = "true",
+            ["Identity:Sso:DeskOrigin"] = "https://desk.test", ["Identity:Sso:OrganizationId"] = Org }).Build();
+        var context = new DefaultHttpContext();
+        context.Items["Ocharo.Sso.Ticket"] = "server-only-ticket";
+        context.Request.Headers["X-Ocharo-Integration-Ticket"] = "untrusted-browser-ticket";
+        var service = new EditorialImageWorker(config, new HttpContextAccessor { HttpContext=context }, new Factory(async (request, ct) => {
+            Assert.Equal("https://desk.test/api/integrations/introspect", request.RequestUri!.ToString());
+            var input = await request.Content!.ReadFromJsonAsync<System.Text.Json.JsonElement>(cancellationToken:ct);
+            Assert.Equal("server-only-ticket", input.GetProperty("token").GetString());
+            Assert.Equal("ocharo-editorial", input.GetProperty("audience").GetString());
+            return new HttpResponseMessage(HttpStatusCode.OK) { Content=JsonContent.Create(new { data=new { active=true, canEdit=true, userId="operator", organizationId=Org, expiresAt=DateTimeOffset.UtcNow.AddMinutes(2) } }) };
+        }));
+        await service.EnsureEditableAsync(new(Org, "operator"), default);
+        var denied = await Assert.ThrowsAsync<BlogException>(() => service.EnsureEditableAsync(new("local", "local-operator"), default));
+        Assert.Equal(401, denied.StatusCode);
+    }
+
     private static EditorialImageWorker Build(Func<HttpRequestMessage,CancellationToken,Task<HttpResponseMessage>> send,bool ticket=true,string mode="connected")
     {
         var config=new ConfigurationBuilder().AddInMemoryCollection(new Dictionary<string,string?>{

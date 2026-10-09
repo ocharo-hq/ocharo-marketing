@@ -14,6 +14,5 @@ const workspace = createMarketingWorkspace((path) => {
 app.provide(MarketingWorkspaceKey, workspace);
 app.use(marketingRouter);
 void marketingRouter.isReady().then(async () => {
-  await initializeIntegration();
-  app.mount('#root');
+  if (await initializeIntegration()) app.mount('#root');
 });

@@ -8,6 +8,7 @@
   </ItemGroup>
 
   <ItemGroup>
+    <ProjectReference Include="../shared/Ocharo.Sso/Ocharo.Sso.csproj" />
     <ProjectReference Include="..\OcharoMarketing.Application\OcharoMarketing.Application.csproj" />
     <ProjectReference Include="..\OcharoMarketing.Infrastructure\OcharoMarketing.Infrastructure.csproj" />
     <ProjectReference Include="..\OcharoMarketing.Persistence\OcharoMarketing.Persistence.csproj" />

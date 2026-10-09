@@ -1,3 +1,4 @@
+using Ocharo.Sso;
 using System.Reflection;
 using Microsoft.Data.Sqlite;
 using Microsoft.EntityFrameworkCore;
@@ -26,6 +27,7 @@ public static partial class HostConfiguration
     /// <summary>Registers the platform access-ticket client.</summary>
     private static WebApplicationBuilder AddIntegrationBoundary(this WebApplicationBuilder builder)
     {
+        builder.Services.AddOcharoSso(builder.Configuration, "editorial", "ocharo-editorial", requireBoundOrganization: true);
         builder.Services.AddHttpClient("ocharo-platform-tickets", client => client.Timeout = TimeSpan.FromSeconds(5))
             .ConfigurePrimaryHttpMessageHandler(() => new HttpClientHandler { AllowAutoRedirect = false });
         return builder;
@@ -172,6 +174,8 @@ public static partial class HostConfiguration
         app.UseHttpProblemDetails();
         app.UseMiddleware<BlogExceptionMiddleware>();
         app.UseMiddleware<LocalPilotBoundaryMiddleware>();
+        app.UseOcharoSso(http => http.Request.Path.StartsWithSegments("/api/public") || http.Request.Path == "/health" || http.Request.Path == "/api/system/status" || http.Request.Path == "/" || http.Request.Path.StartsWithSegments("/journal") || http.Request.Path.StartsWithSegments("/topics") || http.Request.Path.StartsWithSegments("/uz") || http.Request.Path.StartsWithSegments("/ru") || http.Request.Path.StartsWithSegments("/atlas") || http.Request.Path.StartsWithSegments("/wear") || http.Request.Path.StartsWithSegments("/catalogue") || http.Request.Path.StartsWithSegments("/media"),
+            resolveSession: http => http.Request.Path.StartsWithSegments("/media") || http.Request.Path.StartsWithSegments("/preview"));
         app.UseMiddleware<IntegrationBoundaryMiddleware>();
         if (app.Environment.IsDevelopment())
         {

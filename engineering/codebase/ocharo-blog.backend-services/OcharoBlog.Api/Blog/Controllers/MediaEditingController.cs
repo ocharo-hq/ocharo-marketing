@@ -44,7 +44,7 @@ public sealed class MediaEditingController(
       MediaEditRecipe recipe,
       CancellationToken ct)
   {
-    var actor = (config["PlatformIntegration:Mode"] ?? "local") == "local" ? new MediaEditActor("local", "local-operator") : HttpContext.Items["Ocharo.OrganizationId"] is string org && HttpContext.Items["Ocharo.UserId"] is string user ? new MediaEditActor(org, user) : throw new BlogException("Reconnect from Platform.", 401);
+    var actor = !config.GetValue<bool>("Identity:Sso:Enabled") && (config["PlatformIntegration:Mode"] ?? "local") == "local" ? new MediaEditActor("local", "local-operator") : HttpContext.Items["Ocharo.OrganizationId"] is string org && HttpContext.Items["Ocharo.UserId"] is string user ? new MediaEditActor(org, user) : throw new BlogException("Reconnect from Platform.", 401);
     var r = await editing.SaveAsync(
         sha,
         recipe,

@@ -1,3 +1,4 @@
+using Ocharo.Sso;
 using System.Reflection;
 using System.Threading.RateLimiting;
 using Microsoft.AspNetCore.RateLimiting;
@@ -51,6 +52,7 @@ public static partial class HostConfiguration
     /// <summary>Registers the platform access-ticket client.</summary>
     private static WebApplicationBuilder AddIntegrationBoundary(this WebApplicationBuilder builder)
     {
+        builder.Services.AddOcharoSso(builder.Configuration, "marketing", "ocharo-marketing", requireBoundOrganization: true);
         builder.Services.AddHttpClient("ocharo-platform-tickets", client => client.Timeout = TimeSpan.FromSeconds(5))
             .ConfigurePrimaryHttpMessageHandler(() => new HttpClientHandler { AllowAutoRedirect = false });
         return builder;
@@ -279,6 +281,8 @@ public static partial class HostConfiguration
         app.UseHttpProblemDetails();
         app.UseMiddleware<MarketingExceptionMiddleware>();
         app.UseMiddleware<LocalPilotBoundaryMiddleware>();
+        app.UseOcharoSso(http => http.Request.Path.StartsWithSegments("/api/public") || http.Request.Path == "/health" || http.Request.Path == "/api/system/status",
+            resolveSession: http => http.Request.Path.StartsWithSegments("/media") || http.Request.Path.StartsWithSegments("/preview"));
         app.UseMiddleware<IntegrationBoundaryMiddleware>();
         app.UseDefaultFiles();
         app.UseStaticFiles();

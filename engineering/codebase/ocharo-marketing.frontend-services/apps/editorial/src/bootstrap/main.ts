@@ -9,6 +9,5 @@ initializeUiLocale();
 const app = createApp(AppRoot);
 app.use(blogRouter);
 void blogRouter.isReady().then(async () => {
-  await initializeIntegration();
-  app.mount('#root');
+  if (await initializeIntegration()) app.mount('#root');
 });

@@ -1,3 +1,4 @@
+using Ocharo.Sso;
 using System.Net;
 using System.Net.Http.Json;
 using Microsoft.AspNetCore.Http;
@@ -47,6 +48,25 @@ public sealed class IntegrationBoundaryTests
     [Fact]
     public async Task Public_routes_remain_available_without_private_session()
     {var c=Context("/api/public/catalogue");await Boundary().InvokeAsync(c);Assert.Equal(204,c.Response.StatusCode);}
+    [Theory]
+    [InlineData(false, true, true, true, 401)]
+    [InlineData(true, false, true, true, 401)]
+    [InlineData(true, true, false, true, 403)]
+    [InlineData(true, true, true, false, 403)]
+    [InlineData(true, true, true, true, 204)]
+    public async Task Sso_preserves_organization_and_approval_authority_without_local_bypass(bool verified, bool sameOrg, bool edit, bool approve, int status)
+    {
+        var c = Context("/api/blog/articles/example/publish", ticket: true, method: "POST");
+        var actor = new SsoActor(true, "member", sameOrg ? Guid.Parse(Org) : Guid.NewGuid(), "member", edit, approve, DateTimeOffset.UtcNow.AddMinutes(5));
+        if (verified) { c.User = actor.Principal(); c.Items[SsoContext.ActorKey] = actor; }
+        var configuration = new ConfigurationBuilder().AddInMemoryCollection(new Dictionary<string,string?> {
+            ["PlatformIntegration:Mode"] = "local", ["Identity:Sso:Enabled"] = "true", ["Identity:Sso:OrganizationId"] = Org }).Build();
+        var boundary = new IntegrationBoundaryMiddleware(context => { context.Response.StatusCode=204; return Task.CompletedTask; }, configuration, new Factory(new Handler(new { })));
+        await boundary.InvokeAsync(c);
+        Assert.Equal(status, c.Response.StatusCode);
+        if (status == 204) Assert.Equal("member", c.Items["Ocharo.UserId"]);
+    }
+
     private static DefaultHttpContext Context(string path,bool ticket=false,string method="GET")
     {
         var c=new DefaultHttpContext{RequestServices=new ServiceCollection().AddLogging().BuildServiceProvider()};

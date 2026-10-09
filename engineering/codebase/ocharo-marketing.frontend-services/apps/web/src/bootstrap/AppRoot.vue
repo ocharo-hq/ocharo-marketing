@@ -7,6 +7,7 @@ import LanguagePicker from '@ocharomarketing/connect/LanguagePicker.vue';
 import BuildVersion from '@ocharomarketing/connect/BuildVersion.vue';
 const appVersion = typeof __APP_VERSION__ === 'string' ? __APP_VERSION__ : 'dev';
 import ConnectDesk from '@ocharomarketing/connect/ConnectDesk.vue';
+import { integrationAccess } from '@ocharomarketing/connect';
 const connectPlatformUrl = import.meta.env.VITE_PLATFORM_URL ?? 'https://localhost:8264/';
 import { watchEffect, computed, onMounted, onScopeDispose, watch } from 'vue';
 import { RouterView, useRoute } from 'vue-router';
@@ -74,16 +75,22 @@ function isActive(path: string) {
 /** Polls only pending jobs while preserving unsaved editor state. */
 function schedulePoll() {
   if (timer) clearTimeout(timer);
-  if (disposed || !desk.pendingJobs.value) return;
+  if (disposed || !integrationAccess.value || !desk.pendingJobs.value) return;
   timer = setTimeout(async () => {
     await desk.refresh(true);
     schedulePoll();
   }, 1600);
 }
 watch(desk.pendingJobs, schedulePoll);
-onMounted(async () => {
-  await desk.refresh();
-  schedulePoll();
+onMounted(() => {
+  watch(
+    integrationAccess,
+    async (active) => {
+      if (active && !workspace.value) await desk.refresh();
+      schedulePoll();
+    },
+    { immediate: true },
+  );
 });
 onScopeDispose(() => {
   disposed = true;
@@ -169,11 +176,11 @@ onScopeDispose(() => {
             variant="ghost"
             size="sm"
             :aria-label="ui('Refresh status')"
-            :is-disabled="desk.busy.value !== null || desk.loading.value"
+            :is-disabled="!integrationAccess || desk.busy.value !== null || desk.loading.value"
             :is-loading="desk.loading.value"
             @click="desk.refresh()"
             ><Icon :icon="RefreshCw" :size="16" class="mr-2" />{{ ui('Refresh') }}</Button
-          ><Button size="sm" @click="desk.navigate('/posts/new')"
+          ><Button size="sm" :is-disabled="!integrationAccess" @click="desk.navigate('/posts/new')"
             ><Icon :icon="CirclePlus" :size="16" class="mr-2" />{{ ui('New post') }}</Button
           >
         </div>
@@ -208,19 +215,21 @@ onScopeDispose(() => {
           </button>
         </div>
         <WorkspaceSkeleton v-if="desk.loading.value && !workspace" :path="route.path" />
-        <p v-if="!workspace && !desk.loading.value" class="query-label" role="status">
+        <p v-if="integrationAccess && !workspace && !desk.loading.value" class="query-label" role="status">
           {{ ui('Unable to connect to the workspace.') }}
         </p>
-        <AppErrorBoundary v-if="workspace"
-          ><RouterView v-slot="{ Component }"><component :is="Component" :key="route.fullPath" /></RouterView
-          ><template #fallback="{ reset }"
-            ><section class="rounded-2xl border border-border bg-card p-10 text-center">
-              <h1 class="font-editorial text-2xl">{{ ui('Unable to open this section.') }}</h1>
-              <p class="mt-4 text-sm text-muted-foreground">{{ ui('Your data is preserved. Try again.') }}</p>
-              <Button class="mt-5" @click="reset">{{ ui('Retry') }}</Button>
-            </section></template
-          ></AppErrorBoundary
-        >
+        <fieldset v-if="workspace" :disabled="!integrationAccess" class="min-w-0 border-0 p-0 m-0">
+          <AppErrorBoundary
+            ><RouterView v-slot="{ Component }"><component :is="Component" :key="route.fullPath" /></RouterView
+            ><template #fallback="{ reset }"
+              ><section class="rounded-2xl border border-border bg-card p-10 text-center">
+                <h1 class="font-editorial text-2xl">{{ ui('Unable to open this section.') }}</h1>
+                <p class="mt-4 text-sm text-muted-foreground">{{ ui('Your data is preserved. Try again.') }}</p>
+                <Button class="mt-5" @click="reset">{{ ui('Retry') }}</Button>
+              </section></template
+            ></AppErrorBoundary
+          >
+        </fieldset>
       </main>
       <FeedbackToastHost :bus="feedbackBus" position="top-right" />
       <RouteAnnouncer />

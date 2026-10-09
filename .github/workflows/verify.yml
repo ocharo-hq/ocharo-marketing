@@ -128,6 +128,7 @@ jobs:
           SOLUTION: ${{ matrix.solution }}
         # Neither solution currently declares NuGet lockfiles. SPA packaging is verified in image jobs.
         run: |
+          python3 shared/sync-sso.py --check
           dotnet restore "$SOLUTION"
           dotnet build "$SOLUTION" -c Release --no-restore -p:BuildSpa=false
       - name: Install card rendering browser and Linux dependencies
