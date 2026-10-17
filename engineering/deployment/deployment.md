@@ -1,6 +1,6 @@
 # Local Ocharo Marketing runtime
 
-*Last updated: 2026-09-27*
+*Last updated: 2026-10-17*
 
 ## Supported pilot
 
@@ -41,3 +41,13 @@ Draft revisions also preserve title, subtitle, fabric selection, scale and place
 Provider configuration is server-side under `Providers:OpenAi`, `Providers:Gemini`, `Providers:Telegram`, `Providers:X`, `Providers:Instagram`, and `Providers:WhatsApp`. All provider options default disabled. Store credentials in environment or local secret configuration, never tracked files. HTTP provider logging and redirects are disabled.
 
 Image and text preparation run only after explicit configuration and a user command. No live provider was invoked during implementation verification. Social adapters exist, but schedules remain manual planned entries in this pilot. `Marketing:EnableLivePublishing` defaults false and does not enable an unimplemented delivery worker. Configured credentials are not proof of provider connectivity or publication.
+
+## Wheelhouse
+
+Marketing has no `deploy.yml` and no `publish-docker-image.yml`, so Wheelhouse neither builds nor deploys it
+(`deploy: none` in the WoW2 catalog). Each blocker below must clear before a descriptor is added:
+
+- The Marketing API refuses startup outside Development; both it and the Blog API reject non-loopback requests.
+- Atlas, Wear, Blog and Catalogue are exported from a running Editorial (`scripts/build-public.py`), so CI cannot
+  build them from source; a deployable image serves published revisions at runtime instead.
+- Public launch of Blog and the public apps remains the owner's decision.

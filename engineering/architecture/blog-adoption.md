@@ -1,6 +1,6 @@
 # Blog source adoption
 
-*Updated: 2026-09-29*
+*Updated: 2026-10-17*
 
 Both existing Blog implementations now belong to Marketing. The thirty-story manuscript seed,
 revisioned editorial storage and public exports now converge in the adopted Editorial API.
@@ -48,8 +48,8 @@ until the owner's launch decision. Editorial research imports stay drafts.
 
 Marketing's deployment script replaces its API's entire `wwwroot`. Never deploy either Blog
 there. Blog's existing companion deployment script targets only its own `wwwroot/studio/`.
-`engineering/deployment/blog/deploy.source.yml` is an inactive source descriptor retained for
-future deployment integration; it is not registered in Marketing's active deployment descriptor.
+Marketing has no deployment descriptor yet; Blog joins the single `engineering/deployment/deploy.yml`
+when public deployment is decided ([deployment](../deployment/deployment.md#wheelhouse)).
 No donor CI or hosting automation is activated by this adoption.
 
 ## Verification

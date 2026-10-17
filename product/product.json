@@ -1,0 +1,6 @@
+{
+  "$schema": "../../../../../../conventions/design/identity/product.schema.json",
+  "manifest": 1,
+  "name": "Ocharo Marketing",
+  "description": "Ocharo's marketing desk: editorial publishing, public apps, campaign planning, distribution and lead capture."
+}
