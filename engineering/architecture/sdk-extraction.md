@@ -1,6 +1,6 @@
 # SDK extraction inventory
 
-*Last updated: 2026-09-27*
+*Last updated: 2026-10-18*
 
 ## Boundary
 
@@ -25,7 +25,7 @@ SDK extraction must include public exports, documentation, contract tests, depen
 
 ## Published UI compatibility gaps found by this consumer
 
-The frontend currently uses thin local wrappers around published `@wow-two-beta/ui-vue` 0.0.7 components. Button click and picker/file-input native attributes need declaration compatibility without replacing their runtime behavior. Record these as SDK declaration fixes during extraction; do not mistake a local wrapper for a published SDK upgrade. Consumer acceptance must include strict Vue typechecking, keyboard activation and disabled-state behavior.
+The frontend currently uses thin local wrappers around published `@wow-two-beta/fe` 0.0.22 components. Button click and picker/file-input native attributes need declaration compatibility without replacing their runtime behavior. Record these as SDK declaration fixes during extraction; do not mistake a local wrapper for a published SDK upgrade. Consumer acceptance must include strict Vue typechecking, keyboard activation and disabled-state behavior.
 
 ## Added consumer evidence
 

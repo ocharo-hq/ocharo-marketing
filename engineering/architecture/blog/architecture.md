@@ -1,6 +1,6 @@
 # ventures.ocharo-blog — Architecture
 
-*Last updated: 2026-09-28*
+*Last updated: 2026-10-18*
 
 ```mermaid
 flowchart LR
@@ -34,5 +34,5 @@ flowchart LR
 
 ## SDK usage and extraction candidates
 
-- Uses `WoW2.Sdk.Backend.Beta 10.0.59-beta` (blob storage, mediator registration) and `@wow-two-beta/ui-vue 0.0.7` (HTTP client, router with basename, error boundary, icons).
+- Uses `WoW2.Sdk.Beta.Be 10.0.68-beta` (blob storage, mediator registration) and `@wow-two-beta/fe 0.0.22` (HTTP client, router with basename, error boundary, icons).
 - Candidates for later extraction (shared with the Catalogue): revisioned document store, content-addressed media store, local-pilot boundary; blog-specific: scheduled-publication worker pattern, static-site export.
