@@ -1,8 +1,8 @@
 import { mount, flushPromises, type VueWrapper } from '@vue/test-utils';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
-import { ResultExtensions } from '@wow-two-beta/ui-vue/foundation/results';
+import { ResultExtensions } from '@wow-two-beta/fe/foundation/results';
 import CoverImageEditor from '../src/presentation/blog/components/CoverImageEditor.vue';
-import type { ImageEditRecipe } from '@wow-two-beta/ui-vue/domain/imageEditing';
+import type { ImageEditRecipe } from '@wow-two-beta/fe/domain/imageEditing';
 const api = vi.hoisted(() => ({ editingCapabilities: vi.fn(), previewMediaEdit: vi.fn(), applyMediaEdit: vi.fn() }));
 vi.mock('../src/integration/blog', () => ({ blogApi: api, describeFailure: () => 'Request failed.' }));
 const sha = 'a'.repeat(64),

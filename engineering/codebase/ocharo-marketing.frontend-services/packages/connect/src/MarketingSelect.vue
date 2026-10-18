@@ -6,7 +6,7 @@ import {
   SelectPickerValue,
   SelectPickerContent,
   SelectPickerItem,
-} from "@wow-two-beta/ui-vue/presentation/forms";
+} from "@wow-two-beta/fe/presentation/forms";
 import { useUiLocale } from "./UseUiLocale";
 
 /** Composes the SDK picker with Marketing labels; the SDK owns focus, keyboard and popup behavior. */

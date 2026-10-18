@@ -1,9 +1,9 @@
 import { defineComponent, ref } from 'vue';
 import { flushPromises, mount, type VueWrapper } from '@vue/test-utils';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
-import { ResultExtensions } from '@wow-two-beta/ui-vue/foundation/results';
-import { ApiFailureFactory } from '@wow-two-beta/ui-vue/foundation/http';
-import { ImageEditRecipeExtensions } from '@wow-two-beta/ui-vue/domain/imageEditing';
+import { ResultExtensions } from '@wow-two-beta/fe/foundation/results';
+import { ApiFailureFactory } from '@wow-two-beta/fe/foundation/http';
+import { ImageEditRecipeExtensions } from '@wow-two-beta/fe/domain/imageEditing';
 import { useMediaEditing } from '../src/application/blog/UseMediaEditing';
 import type { MediaView } from '../src/domain/blog/BlogModels';
 const api = vi.hoisted(() => ({ editingCapabilities: vi.fn(), previewMediaEdit: vi.fn(), applyMediaEdit: vi.fn() }));

@@ -2,7 +2,7 @@ import { onScopeDispose, reactive, ref, shallowRef, watch } from 'vue';
 import type { ArticleSummary } from '../../domain/blog/BlogModels';
 import { blogApi, describeFailure } from '../../integration/blog';
 import { useBlogStore } from './BlogStore';
-import { useRefresh } from '@wow-two-beta/ui-vue/query';
+import { useRefresh } from '@wow-two-beta/fe/query';
 
 /** Loads the story list for the current filters. */
 export function useArticleList() {

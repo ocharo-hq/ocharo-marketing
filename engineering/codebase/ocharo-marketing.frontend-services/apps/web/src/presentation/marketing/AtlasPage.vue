@@ -4,15 +4,15 @@ import SelectPickerTrigger from './compatibility/PickerTrigger.vue';
 import { computed, ref } from 'vue';
 import { ArrowRight, BookOpen, Download } from 'lucide-vue-next';
 
-import { downloadBlob } from '@wow-two-beta/ui-vue/foundation/files';
-import { Icon } from '@wow-two-beta/ui-vue/foundation/icons';
-import { Button } from '@wow-two-beta/ui-vue/presentation/actions';
+import { downloadBlob } from '@wow-two-beta/fe/foundation/files';
+import { Icon } from '@wow-two-beta/fe/foundation/icons';
+import { Button } from '@wow-two-beta/fe/presentation/actions';
 import {
   SelectPicker,
   SelectPickerContent,
   SelectPickerItem,
   SelectPickerValue,
-} from '@wow-two-beta/ui-vue/presentation/forms';
+} from '@wow-two-beta/fe/presentation/forms';
 
 import { useMarketingWorkspace } from '../../application/marketing';
 import { MarketingExtensions, type AssetModel } from '../../domain/marketing';

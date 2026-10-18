@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { useUiLocale } from '@ocharomarketing/connect/UseUiLocale';
 import { computed, ref, watch } from 'vue';
-import { MarkdownEditor } from '@wow-two-beta/ui-vue/presentation/forms';
+import { MarkdownEditor } from '@wow-two-beta/fe/presentation/forms';
 import type { ArticleSection } from '../../../domain/blog/BlogModels';
 import { formatSection, markdownParagraphs, maximumMarkdownCharacters } from '../../../domain/blog/SectionFormatting';
 import { joinParagraphs, splitLines, splitParagraphs } from '../../../domain/blog/BlogRules';

@@ -4,9 +4,9 @@ import SelectPickerTrigger from './compatibility/PickerTrigger.vue';
 import { computed, reactive, ref, watch } from 'vue';
 import { ArrowLeft, CalendarPlus, Check, Download, RotateCcw, Sparkles } from 'lucide-vue-next';
 
-import { downloadBlob } from '@wow-two-beta/ui-vue/foundation/files';
-import { Icon } from '@wow-two-beta/ui-vue/foundation/icons';
-import { Button } from '@wow-two-beta/ui-vue/presentation/actions';
+import { downloadBlob } from '@wow-two-beta/fe/foundation/files';
+import { Icon } from '@wow-two-beta/fe/foundation/icons';
+import { Button } from '@wow-two-beta/fe/presentation/actions';
 import {
   DateTimeInput,
   NumberInput,
@@ -17,7 +17,7 @@ import {
   TextAreaInput,
   TextInput,
   type DateTimeInputProps,
-} from '@wow-two-beta/ui-vue/presentation/forms';
+} from '@wow-two-beta/fe/presentation/forms';
 import {
   Modal,
   ModalContent,
@@ -25,8 +25,8 @@ import {
   ModalFooter,
   ModalHeader,
   ModalTitle,
-} from '@wow-two-beta/ui-vue/presentation/overlays';
-import { useNavigationBlocker } from '@wow-two-beta/ui-vue/router';
+} from '@wow-two-beta/fe/presentation/overlays';
+import { useNavigationBlocker } from '@wow-two-beta/fe/router';
 
 import { useMarketingWorkspace } from '../../application/marketing';
 import { MarketingExtensions, type DraftModel, type GenerationJobModel } from '../../domain/marketing';

@@ -2,8 +2,8 @@
 import { useErrorToast } from '../../application/shared/UseFeedback';
 import { useUiLocale } from '@ocharomarketing/connect/UseUiLocale';
 import { onBeforeUnmount, onMounted, ref } from 'vue';
-import { Button } from '@wow-two-beta/ui-vue/presentation/actions';
-import { SkeletonState } from '@wow-two-beta/ui-vue/presentation/feedback';
+import { Button } from '@wow-two-beta/fe/presentation/actions';
+import { SkeletonState } from '@wow-two-beta/fe/presentation/feedback';
 import { useMarketingWorkspace } from '../../application/marketing';
 import { type OperationsOverviewModel } from '../../domain/marketing';
 import { OperationsExtensions as ops } from '../../domain/marketing/OperationsExtensions';

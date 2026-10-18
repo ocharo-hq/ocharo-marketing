@@ -3,8 +3,8 @@ import type { ArticleInput } from '../src/domain/blog/BlogModels';
 import { createMemoryHistory, createRouter, RouterView, type Router } from 'vue-router';
 import { flushPromises, mount, type VueWrapper } from '@vue/test-utils';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
-import { ResultExtensions } from '@wow-two-beta/ui-vue/foundation/results';
-import type { ImageEditRecipe } from '@wow-two-beta/ui-vue/domain/imageEditing';
+import { ResultExtensions } from '@wow-two-beta/fe/foundation/results';
+import type { ImageEditRecipe } from '@wow-two-beta/fe/domain/imageEditing';
 import { emptyArticle } from '../src/domain/blog/BlogRules';
 import StoryEditorPage from '../src/presentation/blog/StoryEditorPage.vue';
 const mocks = vi.hoisted(() => ({

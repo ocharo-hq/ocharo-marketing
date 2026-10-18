@@ -1,3 +1,3 @@
 <script lang="ts">
-export { Button as default } from '@wow-two-beta/ui-vue/presentation/actions';
+export { Button as default } from '@wow-two-beta/fe/presentation/actions';
 </script>

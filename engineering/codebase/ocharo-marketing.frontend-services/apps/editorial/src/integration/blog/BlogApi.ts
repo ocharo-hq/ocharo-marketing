@@ -1,5 +1,5 @@
 import { requestFailureMessage } from '@ocharomarketing/connect/RequestFeedback';
-import type { ImageEditRecipe } from '@wow-two-beta/ui-vue/domain/imageEditing';
+import type { ImageEditRecipe } from '@wow-two-beta/fe/domain/imageEditing';
 import type { MediaEditingCapabilities, MediaEditPreview } from '../../domain/blog/MediaEditingModels';
 import { integrationFetch } from '@ocharomarketing/connect';
 import {
@@ -8,8 +8,8 @@ import {
   rawEnvelope,
   type ApiFailure,
   type ResponseEnvelope,
-} from '@wow-two-beta/ui-vue/foundation/http';
-import { ResultExtensions } from '@wow-two-beta/ui-vue/foundation/results';
+} from '@wow-two-beta/fe/foundation/http';
+import { ResultExtensions } from '@wow-two-beta/fe/foundation/results';
 import type {
   ArticleDetail,
   ArticleInput,

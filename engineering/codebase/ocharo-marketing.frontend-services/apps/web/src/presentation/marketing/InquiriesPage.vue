@@ -5,8 +5,8 @@ import { useErrorToast } from '../../application/shared/UseFeedback';
 import { useUiLocale } from '@ocharomarketing/connect/UseUiLocale';
 import { computed, onBeforeUnmount, onMounted, ref } from 'vue';
 import { integrationFetch } from '@ocharomarketing/connect';
-import { Button } from '@wow-two-beta/ui-vue/presentation/actions';
-import { SkeletonState } from '@wow-two-beta/ui-vue/presentation/feedback';
+import { Button } from '@wow-two-beta/fe/presentation/actions';
+import { SkeletonState } from '@wow-two-beta/fe/presentation/feedback';
 import OperationsUnsavedGuard from './OperationsUnsavedGuard.vue';
 const { t: ui, formatWhen } = useUiLocale();
 

@@ -2,7 +2,7 @@
 import { useUiLocale } from '@ocharomarketing/connect/UseUiLocale';
 import { ref, watch } from 'vue';
 import { Plus, Trash2 } from 'lucide-vue-next';
-import { Icon } from '@wow-two-beta/ui-vue/foundation/icons';
+import { Icon } from '@wow-two-beta/fe/foundation/icons';
 import { useBlogStore, useSiteAdmin } from '../../application/blog';
 import type { TopicDocument } from '../../domain/blog/BlogModels';
 const { t: ui } = useUiLocale();

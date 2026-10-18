@@ -4,8 +4,8 @@ import SelectPickerTrigger from './compatibility/PickerTrigger.vue';
 import { computed, ref } from 'vue';
 import { Sparkles } from 'lucide-vue-next';
 
-import { Icon } from '@wow-two-beta/ui-vue/foundation/icons';
-import { Button } from '@wow-two-beta/ui-vue/presentation/actions';
+import { Icon } from '@wow-two-beta/fe/foundation/icons';
+import { Button } from '@wow-two-beta/fe/presentation/actions';
 import {
   SelectPicker,
   SelectPickerContent,
@@ -13,7 +13,7 @@ import {
   SelectPickerValue,
   TextAreaInput,
   TextInput,
-} from '@wow-two-beta/ui-vue/presentation/forms';
+} from '@wow-two-beta/fe/presentation/forms';
 
 import { useMarketingWorkspace } from '../../application/marketing';
 import StatusIndicator from './StatusIndicator.vue';

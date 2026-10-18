@@ -1,4 +1,4 @@
-import { createAppRouter } from '@wow-two-beta/ui-vue/router';
+import { createAppRouter } from '@wow-two-beta/fe/router';
 
 /** Code-split Studio pages, served under /studio/ next to the public site. */
 export const blogRouter = createAppRouter(

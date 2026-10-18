@@ -8,9 +8,9 @@ beforeLocaleTest(() => {
 import { afterEach, describe, expect, it, vi } from 'vitest';
 import { mount, flushPromises } from '@vue/test-utils';
 import { shallowRef, ref } from 'vue';
-import { createAppRouter, RouterHistoryMode } from '@wow-two-beta/ui-vue/router';
-import { ResultExtensions } from '@wow-two-beta/ui-vue/foundation/results';
-import { ApiFailureFactory } from '@wow-two-beta/ui-vue/foundation/http';
+import { createAppRouter, RouterHistoryMode } from '@wow-two-beta/fe/router';
+import { ResultExtensions } from '@wow-two-beta/fe/foundation/results';
+import { ApiFailureFactory } from '@wow-two-beta/fe/foundation/http';
 import { MarketingWorkspaceKey, type MarketingWorkspace } from '../src/application/marketing';
 import type {
   ChannelStrategyModel,

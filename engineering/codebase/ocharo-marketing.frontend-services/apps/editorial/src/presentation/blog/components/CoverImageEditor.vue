@@ -1,8 +1,8 @@
 <script setup lang="ts">
 import { useUiLocale } from '@ocharomarketing/connect/UseUiLocale';
 import { computed, onScopeDispose, ref, watch } from 'vue';
-import { ImageEditor, type ImageEditRecipe } from '@wow-two-beta/ui-vue/presentation/forms';
-import { ImageEditRecipeExtensions } from '@wow-two-beta/ui-vue/domain/imageEditing';
+import { ImageEditor, type ImageEditRecipe } from '@wow-two-beta/fe/presentation/forms';
+import { ImageEditRecipeExtensions } from '@wow-two-beta/fe/domain/imageEditing';
 import { useMediaEditing } from '../../../application/blog/UseMediaEditing';
 import type { MediaView } from '../../../domain/blog/BlogModels';
 const { t: ui } = useUiLocale();

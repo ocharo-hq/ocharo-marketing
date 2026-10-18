@@ -1,7 +1,7 @@
 import { mount } from '@vue/test-utils';
 import { defineComponent, h, nextTick } from 'vue';
 import { describe, expect, it } from 'vitest';
-import { provideLocale } from '@wow-two-beta/ui-vue/foundation/i18n';
+import { provideLocale } from '@wow-two-beta/fe/foundation/i18n';
 import { useUiLocale } from '@ocharomarketing/connect/UseUiLocale';
 import SectionTextEditor from '../src/presentation/blog/components/SectionTextEditor.vue';
 import type { ArticleSection } from '../src/domain/blog/BlogModels';

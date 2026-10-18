@@ -1,8 +1,8 @@
 import { computed, ref } from 'vue';
 import { flushPromises, mount, type VueWrapper } from '@vue/test-utils';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
-import { ResultExtensions } from '@wow-two-beta/ui-vue/foundation/results';
-import { ApiFailureFactory } from '@wow-two-beta/ui-vue/foundation/http';
+import { ResultExtensions } from '@wow-two-beta/fe/foundation/results';
+import { ApiFailureFactory } from '@wow-two-beta/fe/foundation/http';
 import { MarketingWorkspaceKey, type MarketingWorkspace } from '../src/application/marketing';
 import type { ScheduleModel } from '../src/domain/marketing';
 import ObservedMetricsPanel from '../src/presentation/marketing/ObservedMetricsPanel.vue';

@@ -3,8 +3,8 @@ import { useErrorToast } from '../../application/shared/UseFeedback';
 import { useUiLocale } from '@ocharomarketing/connect/UseUiLocale';
 import { computed, onBeforeUnmount, ref, watch } from 'vue';
 import { FileSearch, ArrowUpRight, RefreshCw } from 'lucide-vue-next';
-import { Icon } from '@wow-two-beta/ui-vue/foundation/icons';
-import { Guid } from '@wow-two-beta/ui-vue/foundation/identifiers';
+import { Icon } from '@wow-two-beta/fe/foundation/icons';
+import { Guid } from '@wow-two-beta/fe/foundation/identifiers';
 import {
   CheckboxInput,
   TextAreaInput,
@@ -12,9 +12,9 @@ import {
   SelectPickerContent,
   SelectPickerItem,
   SelectPickerValue,
-} from '@wow-two-beta/ui-vue/presentation/forms';
+} from '@wow-two-beta/fe/presentation/forms';
 import SelectPickerTrigger from './compatibility/PickerTrigger.vue';
-import { Button } from '@wow-two-beta/ui-vue/presentation/actions';
+import { Button } from '@wow-two-beta/fe/presentation/actions';
 import StatusIndicator from './StatusIndicator.vue';
 import { useMarketingWorkspace } from '../../application/marketing';
 import { MarketingExtensions, type SourceAnalysisModel } from '../../domain/marketing';
@@ -191,7 +191,7 @@ function reuse() {
               class="mt-2 flex items-start gap-2"
               ><CheckboxInput
                 :model-value="selectedAssets.includes(asset.id)"
-                :disabled="analysisBusy || (!selectedAssets.includes(asset.id) && selectedAssets.length >= 3)"
+                :is-disabled="analysisBusy || (!selectedAssets.includes(asset.id) && selectedAssets.length >= 3)"
                 @update:model-value="(value) => toggle(asset.id, value)"
               /><span class="break-all text-[10px] leading-5">{{ asset.fileName }}</span></span
             ></label

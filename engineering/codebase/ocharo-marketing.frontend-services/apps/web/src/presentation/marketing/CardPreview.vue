@@ -17,11 +17,11 @@ export interface CardPreviewProps {
 <script setup lang="ts">
 import { requestFailureMessage } from '@ocharomarketing/connect/RequestFeedback';
 import { useErrorToast } from '../../application/shared/UseFeedback';
-import { Button } from '@wow-two-beta/ui-vue/presentation/actions';
+import { Button } from '@wow-two-beta/fe/presentation/actions';
 import { useUiLocale } from '@ocharomarketing/connect/UseUiLocale';
 import { computed, onScopeDispose, ref, useTemplateRef, watch } from 'vue';
 
-import { useResizeObserver } from '@wow-two-beta/ui-vue/foundation/observers';
+import { useResizeObserver } from '@wow-two-beta/fe/foundation/observers';
 
 import { useMarketingWorkspace } from '../../application/marketing';
 const { t: ui } = useUiLocale();

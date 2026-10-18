@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { useUiLocale } from '@ocharomarketing/connect/UseUiLocale';
 import { computed } from 'vue';
-import { useNavigationBlocker } from '@wow-two-beta/ui-vue/router';
+import { useNavigationBlocker } from '@wow-two-beta/fe/router';
 import {
   Modal,
   ModalContent,
@@ -9,8 +9,8 @@ import {
   ModalTitle,
   ModalDescription,
   ModalFooter,
-} from '@wow-two-beta/ui-vue/presentation/overlays';
-import { Button } from '@wow-two-beta/ui-vue/presentation/actions';
+} from '@wow-two-beta/fe/presentation/overlays';
+import { Button } from '@wow-two-beta/fe/presentation/actions';
 const { t: ui } = useUiLocale();
 
 const props = defineProps<{ dirty: boolean }>();

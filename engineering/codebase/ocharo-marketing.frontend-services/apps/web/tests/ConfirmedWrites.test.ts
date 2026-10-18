@@ -1,6 +1,6 @@
 import { afterEach, describe, expect, it, vi } from 'vitest';
-import { ResultExtensions } from '@wow-two-beta/ui-vue/foundation/results';
-import { ApiFailureFactory } from '@wow-two-beta/ui-vue/foundation/http';
+import { ResultExtensions } from '@wow-two-beta/fe/foundation/results';
+import { ApiFailureFactory } from '@wow-two-beta/fe/foundation/http';
 import { createMarketingWorkspace } from '../src/application/marketing/UseMarketingWorkspace';
 import { marketingApi } from '../src/integration/marketing';
 import type { WorkspaceModel, ScheduleModel } from '../src/domain/marketing';

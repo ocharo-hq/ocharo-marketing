@@ -3,10 +3,10 @@ import MarketingSelect from '@ocharomarketing/connect/MarketingSelect.vue';
 import { useUiLocale } from '@ocharomarketing/connect/UseUiLocale';
 import { onMounted, ref } from 'vue';
 import { Download, ExternalLink, Plus, Trash2, Upload } from 'lucide-vue-next';
-import { Icon } from '@wow-two-beta/ui-vue/foundation/icons';
+import { Icon } from '@wow-two-beta/fe/foundation/icons';
 import { useArticleList, useBlogStore, useSiteAdmin } from '../../application/blog';
-import { useRefresh } from '@wow-two-beta/ui-vue/query';
-import { Button } from '@wow-two-beta/ui-vue/presentation/actions';
+import { useRefresh } from '@wow-two-beta/fe/query';
+import { Button } from '@wow-two-beta/fe/presentation/actions';
 import EditorSkeleton from './components/EditorSkeleton.vue';
 const { t: ui } = useUiLocale();
 

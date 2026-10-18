@@ -8,8 +8,8 @@ beforeLocaleTest(() => {
 import { mount, flushPromises } from '@vue/test-utils';
 import { ref, shallowRef } from 'vue';
 import { describe, it, expect, vi, afterEach } from 'vitest';
-import { ResultExtensions } from '@wow-two-beta/ui-vue/foundation/results';
-import { ApiFailureFactory } from '@wow-two-beta/ui-vue/foundation/http';
+import { ResultExtensions } from '@wow-two-beta/fe/foundation/results';
+import { ApiFailureFactory } from '@wow-two-beta/fe/foundation/http';
 import { MarketingWorkspaceKey, type MarketingWorkspace } from '../src/application/marketing';
 import {
   DeliveryExtensions,

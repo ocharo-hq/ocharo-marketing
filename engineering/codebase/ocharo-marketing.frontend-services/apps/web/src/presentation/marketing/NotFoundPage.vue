@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { useUiLocale } from '@ocharomarketing/connect/UseUiLocale';
-import { Button } from '@wow-two-beta/ui-vue/presentation/actions';
+import { Button } from '@wow-two-beta/fe/presentation/actions';
 import { useMarketingWorkspace } from '../../application/marketing';
 const { t: ui } = useUiLocale();
 

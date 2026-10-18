@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { useUiLocale } from '@ocharomarketing/connect/UseUiLocale';
 import { computed, onBeforeUnmount, onMounted, ref } from 'vue';
-import { Button } from '@wow-two-beta/ui-vue/presentation/actions';
+import { Button } from '@wow-two-beta/fe/presentation/actions';
 import { useMarketingWorkspace } from '../../application/marketing';
 import type { ChannelStrategyModel, OperationsOverviewModel } from '../../domain/marketing';
 import { OperationsExtensions as ops } from '../../domain/marketing/OperationsExtensions';

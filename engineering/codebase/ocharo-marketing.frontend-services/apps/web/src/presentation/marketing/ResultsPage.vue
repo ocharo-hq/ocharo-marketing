@@ -2,8 +2,8 @@
 import { useUiLocale } from '@ocharomarketing/connect/UseUiLocale';
 import { computed } from 'vue';
 import { ArrowUpRight, BarChart3, Link2 } from 'lucide-vue-next';
-import { Icon } from '@wow-two-beta/ui-vue/foundation/icons';
-import { Button } from '@wow-two-beta/ui-vue/presentation/actions';
+import { Icon } from '@wow-two-beta/fe/foundation/icons';
+import { Button } from '@wow-two-beta/fe/presentation/actions';
 import { useMarketingWorkspace } from '../../application/marketing';
 import StatusIndicator from './StatusIndicator.vue';
 import ObservedMetricsPanel from './ObservedMetricsPanel.vue';

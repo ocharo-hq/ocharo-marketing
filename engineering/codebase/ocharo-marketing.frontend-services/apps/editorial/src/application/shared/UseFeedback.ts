@@ -1,5 +1,5 @@
 import { watch, type Ref } from 'vue';
-import { createFeedbackBus } from '@wow-two-beta/ui-vue/feedback';
+import { createFeedbackBus } from '@wow-two-beta/fe/feedback';
 import { useUiLocale } from '@ocharomarketing/connect/UseUiLocale';
 export const feedbackBus = createFeedbackBus();
 export function useErrorToast(error: Ref<string | null>) {

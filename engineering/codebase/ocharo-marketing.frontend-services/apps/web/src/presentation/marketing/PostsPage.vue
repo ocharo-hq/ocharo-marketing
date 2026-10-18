@@ -3,9 +3,9 @@ import { useUiLocale } from '@ocharomarketing/connect/UseUiLocale';
 import { computed, ref } from 'vue';
 import { ArrowUpRight, Plus, Search } from 'lucide-vue-next';
 
-import { Icon } from '@wow-two-beta/ui-vue/foundation/icons';
-import { Button } from '@wow-two-beta/ui-vue/presentation/actions';
-import { TextInput } from '@wow-two-beta/ui-vue/presentation/forms';
+import { Icon } from '@wow-two-beta/fe/foundation/icons';
+import { Button } from '@wow-two-beta/fe/presentation/actions';
+import { TextInput } from '@wow-two-beta/fe/presentation/forms';
 
 import { useMarketingWorkspace } from '../../application/marketing';
 import { MarketingExtensions } from '../../domain/marketing';

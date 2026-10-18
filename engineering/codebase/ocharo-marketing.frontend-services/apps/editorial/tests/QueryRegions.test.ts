@@ -1,8 +1,8 @@
 import { effectScope } from 'vue';
 import { flushPromises, mount, type VueWrapper } from '@vue/test-utils';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
-import { ResultExtensions } from '@wow-two-beta/ui-vue/foundation/results';
-import { ApiFailureFactory } from '@wow-two-beta/ui-vue/foundation/http';
+import { ResultExtensions } from '@wow-two-beta/fe/foundation/results';
+import { ApiFailureFactory } from '@wow-two-beta/fe/foundation/http';
 import { blogApi } from '../src/integration/blog';
 import { useArticleList } from '../src/application/blog/UseArticleList';
 import { useSiteAdmin } from '../src/application/blog/UseSiteAdmin';

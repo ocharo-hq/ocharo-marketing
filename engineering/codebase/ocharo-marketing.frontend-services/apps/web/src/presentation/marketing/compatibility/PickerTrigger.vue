@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { SelectPickerTrigger, type SelectPickerTriggerProps } from '@wow-two-beta/ui-vue/presentation/forms';
+import { SelectPickerTrigger, type SelectPickerTriggerProps } from '@wow-two-beta/fe/presentation/forms';
 /** SDK 0.0.9 still omits native accessible naming from this component declaration. */
 interface Props extends /* @vue-ignore */ SelectPickerTriggerProps {
   // eslint-disable-next-line vue/prop-name-casing -- Native attribute absent from the published declaration.

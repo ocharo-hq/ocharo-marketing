@@ -27,9 +27,9 @@ async function importResearch() {
 import { onMounted } from 'vue';
 import { RouterLink } from 'vue-router';
 import { Eye, ImageIcon, Search, ShoppingBag } from 'lucide-vue-next';
-import { Icon } from '@wow-two-beta/ui-vue/foundation/icons';
-import { Button } from '@wow-two-beta/ui-vue/presentation/actions';
-import { SkeletonState } from '@wow-two-beta/ui-vue/presentation/feedback';
+import { Icon } from '@wow-two-beta/fe/foundation/icons';
+import { Button } from '@wow-two-beta/fe/presentation/actions';
+import { SkeletonState } from '@wow-two-beta/fe/presentation/feedback';
 import { useArticleList, useBlogStore } from '../../application/blog';
 import { languageLabels, statusLabels, publicationPath } from '../../domain/blog/BlogRules';
 import StatusBadge from './components/StatusBadge.vue';

@@ -4,7 +4,7 @@ import CardPreview from '../src/presentation/marketing/CardPreview.vue';
 import { feedbackBus } from '../src/application/shared/UseFeedback';
 const { previewCard } = vi.hoisted(() => ({ previewCard: vi.fn() }));
 vi.mock('../src/application/marketing', () => ({ useMarketingWorkspace: () => ({ previewCard }) }));
-vi.mock('@wow-two-beta/ui-vue/foundation/observers', () => ({ useResizeObserver: vi.fn() }));
+vi.mock('@wow-two-beta/fe/foundation/observers', () => ({ useResizeObserver: vi.fn() }));
 const composition = { productId: 'piece-1', presetId: 'editorial', title: 'A piece', locale: 'en' };
 let wrapper: ReturnType<typeof mount>;
 beforeEach(() => {

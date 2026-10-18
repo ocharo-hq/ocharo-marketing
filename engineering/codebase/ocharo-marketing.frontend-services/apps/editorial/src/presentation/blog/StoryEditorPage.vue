@@ -19,9 +19,9 @@ import {
   Trash2,
   Undo2,
 } from 'lucide-vue-next';
-import { Icon } from '@wow-two-beta/ui-vue/foundation/icons';
-import { Button } from '@wow-two-beta/ui-vue/presentation/actions';
-import { useRefresh } from '@wow-two-beta/ui-vue/query';
+import { Icon } from '@wow-two-beta/fe/foundation/icons';
+import { Button } from '@wow-two-beta/fe/presentation/actions';
+import { useRefresh } from '@wow-two-beta/fe/query';
 import EditorSkeleton from './components/EditorSkeleton.vue';
 import { loadStoryOptions, useArticleEditor, useBlogStore } from '../../application/blog';
 import { languageLabels, publicationPath } from '../../domain/blog/BlogRules';

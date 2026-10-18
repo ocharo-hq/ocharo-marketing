@@ -1,8 +1,8 @@
 <script setup lang="ts">
-import { FeedbackToastHost } from '@wow-two-beta/ui-vue/presentation/feedback';
+import { FeedbackToastHost } from '@wow-two-beta/fe/presentation/feedback';
 import { feedbackBus, useErrorToast } from '../application/shared/UseFeedback';
 import { useUiLocale } from '@ocharomarketing/connect/UseUiLocale';
-import { provideLocale } from '@wow-two-beta/ui-vue/foundation/i18n';
+import { provideLocale } from '@wow-two-beta/fe/foundation/i18n';
 import LanguagePicker from '@ocharomarketing/connect/LanguagePicker.vue';
 import BuildVersion from '@ocharomarketing/connect/BuildVersion.vue';
 const appVersion = typeof __APP_VERSION__ === 'string' ? __APP_VERSION__ : 'dev';
@@ -12,8 +12,8 @@ const connectPlatformUrl = import.meta.env.VITE_PLATFORM_URL ?? 'https://localho
 import { watchEffect, computed, watch, ref } from 'vue';
 import { RouterLink, RouterView, useRoute } from 'vue-router';
 import { ChevronRight, CirclePlus, ExternalLink, FileText, Globe, Layers, X } from 'lucide-vue-next';
-import { Icon } from '@wow-two-beta/ui-vue/foundation/icons';
-import { AppErrorBoundary, RouteAnnouncer } from '@wow-two-beta/ui-vue/router';
+import { Icon } from '@wow-two-beta/fe/foundation/icons';
+import { AppErrorBoundary, RouteAnnouncer } from '@wow-two-beta/fe/router';
 import { useBlogStore } from '../application/blog';
 import { platformLinks } from './PlatformLinks';
 const { t: ui, uiLocale, sdkMessages } = useUiLocale();
@@ -165,7 +165,7 @@ watch(
           </AppErrorBoundary>
         </fieldset>
       </main>
-      <FeedbackToastHost :bus="feedbackBus" position="top-right" />
+      <FeedbackToastHost :bus="feedbackBus" />
       <RouteAnnouncer />
     </div>
   </div>

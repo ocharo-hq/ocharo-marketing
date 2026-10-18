@@ -2,8 +2,8 @@
 import { useUiLocale } from '@ocharomarketing/connect/UseUiLocale';
 import { computed, ref } from 'vue';
 import { CalendarDays, ChevronLeft, ChevronRight, Plus, X } from 'lucide-vue-next';
-import { Icon } from '@wow-two-beta/ui-vue/foundation/icons';
-import { Button } from '@wow-two-beta/ui-vue/presentation/actions';
+import { Icon } from '@wow-two-beta/fe/foundation/icons';
+import { Button } from '@wow-two-beta/fe/presentation/actions';
 import { useMarketingWorkspace } from '../../application/marketing';
 import { type ScheduleModel } from '../../domain/marketing';
 import StatusIndicator from './StatusIndicator.vue';

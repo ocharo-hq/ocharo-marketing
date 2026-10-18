@@ -1,8 +1,8 @@
 <script setup lang="ts">
-import { FeedbackToastHost } from '@wow-two-beta/ui-vue/presentation/feedback';
+import { FeedbackToastHost } from '@wow-two-beta/fe/presentation/feedback';
 import { feedbackBus, useErrorToast } from '../application/shared/UseFeedback';
 import { useUiLocale } from '@ocharomarketing/connect/UseUiLocale';
-import { provideLocale } from '@wow-two-beta/ui-vue/foundation/i18n';
+import { provideLocale } from '@wow-two-beta/fe/foundation/i18n';
 import LanguagePicker from '@ocharomarketing/connect/LanguagePicker.vue';
 import BuildVersion from '@ocharomarketing/connect/BuildVersion.vue';
 const appVersion = typeof __APP_VERSION__ === 'string' ? __APP_VERSION__ : 'dev';
@@ -25,9 +25,9 @@ import {
   X,
   Zap,
 } from 'lucide-vue-next';
-import { Icon } from '@wow-two-beta/ui-vue/foundation/icons';
-import { Button } from '@wow-two-beta/ui-vue/presentation/actions';
-import { AppErrorBoundary, RouteAnnouncer } from '@wow-two-beta/ui-vue/router';
+import { Icon } from '@wow-two-beta/fe/foundation/icons';
+import { Button } from '@wow-two-beta/fe/presentation/actions';
+import { AppErrorBoundary, RouteAnnouncer } from '@wow-two-beta/fe/router';
 import { useMarketingWorkspace } from '../application/marketing';
 import { platformLinks } from './PlatformLinks';
 import WorkspaceSkeleton from '../presentation/marketing/WorkspaceSkeleton.vue';
@@ -231,7 +231,7 @@ onScopeDispose(() => {
           >
         </fieldset>
       </main>
-      <FeedbackToastHost :bus="feedbackBus" position="top-right" />
+      <FeedbackToastHost :bus="feedbackBus" />
       <RouteAnnouncer />
     </div>
   </div>

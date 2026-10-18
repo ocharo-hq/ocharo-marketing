@@ -1,6 +1,6 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { mount, flushPromises } from '@vue/test-utils';
-import { createAppRouter, RouterHistoryMode } from '@wow-two-beta/ui-vue/router';
+import { createAppRouter, RouterHistoryMode } from '@wow-two-beta/fe/router';
 import { feedbackBus } from '../src/application/shared/UseFeedback';
 import InquiriesPage from '../src/presentation/marketing/InquiriesPage.vue';
 import { useUiLocale } from '@ocharomarketing/connect/UseUiLocale';

@@ -1,6 +1,6 @@
 import { describe, expect, it, vi } from 'vitest';
 import { createBlogApi } from '../src/integration/blog/BlogApi';
-import type { ImageEditRecipe } from '@wow-two-beta/ui-vue/domain/imageEditing';
+import type { ImageEditRecipe } from '@wow-two-beta/fe/domain/imageEditing';
 const sha = 'a'.repeat(64);
 const recipe: ImageEditRecipe = {
   crop: null,

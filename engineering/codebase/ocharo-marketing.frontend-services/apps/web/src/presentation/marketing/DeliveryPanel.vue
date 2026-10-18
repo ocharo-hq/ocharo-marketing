@@ -2,8 +2,8 @@
 import { useUiLocale } from '@ocharomarketing/connect/UseUiLocale';
 import { computed, ref } from 'vue';
 import { Send, ShieldCheck, RefreshCw } from 'lucide-vue-next';
-import { Icon } from '@wow-two-beta/ui-vue/foundation/icons';
-import { CheckboxInput } from '@wow-two-beta/ui-vue/presentation/forms';
+import { Icon } from '@wow-two-beta/fe/foundation/icons';
+import { CheckboxInput } from '@wow-two-beta/fe/presentation/forms';
 import {
   Modal,
   ModalContent,
@@ -11,8 +11,8 @@ import {
   ModalTitle,
   ModalDescription,
   ModalFooter,
-} from '@wow-two-beta/ui-vue/presentation/overlays';
-import { Button } from '@wow-two-beta/ui-vue/presentation/actions';
+} from '@wow-two-beta/fe/presentation/overlays';
+import { Button } from '@wow-two-beta/fe/presentation/actions';
 import StatusIndicator from './StatusIndicator.vue';
 import { useMarketingWorkspace, useSnapshotConfirmation } from '../../application/marketing';
 import {
@@ -246,7 +246,7 @@ async function cancel() {
           <label class="flex items-start gap-3 rounded-lg border border-border p-4 text-sm leading-6"
             ><CheckboxInput
               v-model="confirmation.acknowledged.value"
-              :disabled="confirmation.invalidated.value || desk.busy.value !== null"
+              :is-disabled="confirmation.invalidated.value || desk.busy.value !== null"
             /><span>{{
               ui('I authorize sending this post and its images to the shown account at the scheduled time.')
             }}</span></label

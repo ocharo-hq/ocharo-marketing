@@ -1,8 +1,8 @@
 import { requestFailureMessage } from '@ocharomarketing/connect/RequestFeedback';
 import { computed, inject, ref, shallowRef, type InjectionKey } from 'vue';
 
-import type { ApiFailure } from '@wow-two-beta/ui-vue/foundation/http';
-import { type Result } from '@wow-two-beta/ui-vue/foundation/results';
+import type { ApiFailure } from '@wow-two-beta/fe/foundation/http';
+import { type Result } from '@wow-two-beta/fe/foundation/results';
 
 import type {
   ChannelStrategyModel,

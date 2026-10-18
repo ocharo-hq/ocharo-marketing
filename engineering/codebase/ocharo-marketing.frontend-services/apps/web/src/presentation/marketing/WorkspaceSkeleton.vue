@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { computed } from 'vue';
-import { SkeletonState } from '@wow-two-beta/ui-vue/presentation/feedback';
+import { SkeletonState } from '@wow-two-beta/fe/presentation/feedback';
 import { useUiLocale } from '@ocharomarketing/connect/UseUiLocale';
 const props = defineProps<{ path: string }>();
 const { t: ui } = useUiLocale();

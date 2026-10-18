@@ -1,5 +1,5 @@
-import { ApiFailureFactory, type ApiFailure } from '@wow-two-beta/ui-vue/foundation/http';
-import { ResultExtensions, type Result } from '@wow-two-beta/ui-vue/foundation/results';
+import { ApiFailureFactory, type ApiFailure } from '@wow-two-beta/fe/foundation/http';
+import { ResultExtensions, type Result } from '@wow-two-beta/fe/foundation/results';
 
 /** @internal A field validator used only at the wire boundary. */
 type Guard = (value: unknown) => boolean;

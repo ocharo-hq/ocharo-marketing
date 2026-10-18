@@ -2,7 +2,7 @@
 import { useUiLocale } from '@ocharomarketing/connect/UseUiLocale';
 import { computed } from 'vue';
 
-import { Badge } from '@wow-two-beta/ui-vue/presentation/display';
+import { Badge } from '@wow-two-beta/fe/presentation/display';
 
 import { MarketingExtensions } from '../../domain/marketing';
 const { t: ui } = useUiLocale();

@@ -7,7 +7,7 @@ import { ref } from 'vue';
 import { RouterLink } from 'vue-router';
 import { useMarketingWorkspace } from '../../application/marketing';
 import { integrationFetch } from '@ocharomarketing/connect';
-import { Button } from '@wow-two-beta/ui-vue/presentation/actions';
+import { Button } from '@wow-two-beta/fe/presentation/actions';
 const { t: ui } = useUiLocale();
 
 const desk = useMarketingWorkspace(),

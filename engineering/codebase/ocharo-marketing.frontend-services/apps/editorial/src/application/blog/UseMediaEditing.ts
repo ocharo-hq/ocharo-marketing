@@ -1,5 +1,5 @@
 import { computed, onScopeDispose, ref, shallowRef, watch } from 'vue';
-import { ImageEditRecipeExtensions, type ImageEditRecipe } from '@wow-two-beta/ui-vue/domain/imageEditing';
+import { ImageEditRecipeExtensions, type ImageEditRecipe } from '@wow-two-beta/fe/domain/imageEditing';
 import type { MediaView } from '../../domain/blog/BlogModels';
 import type { MediaEditingCapabilities } from '../../domain/blog/MediaEditingModels';
 import { blogApi, describeFailure } from '../../integration/blog';

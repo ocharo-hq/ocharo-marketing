@@ -1,4 +1,4 @@
-import { createAppRouter } from '@wow-two-beta/ui-vue/router';
+import { createAppRouter } from '@wow-two-beta/fe/router';
 /** Composes code-split, directly addressable marketing pages. */
 export const marketingRouter = createAppRouter(
   [

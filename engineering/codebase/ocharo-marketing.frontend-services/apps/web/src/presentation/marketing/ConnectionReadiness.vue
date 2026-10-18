@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { useUiLocale } from '@ocharomarketing/connect/UseUiLocale';
 import { computed } from 'vue';
-import { Button } from '@wow-two-beta/ui-vue/presentation/actions';
+import { Button } from '@wow-two-beta/fe/presentation/actions';
 import StatusIndicator from './StatusIndicator.vue';
 import { useMarketingWorkspace } from '../../application/marketing';
 import { type ConnectionModel } from '../../domain/marketing';

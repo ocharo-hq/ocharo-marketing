@@ -1,5 +1,5 @@
 import { computed, ref, watch } from 'vue';
-import { Guid } from '@wow-two-beta/ui-vue/foundation/identifiers';
+import { Guid } from '@wow-two-beta/fe/foundation/identifiers';
 
 /** Binds explicit operator confirmation to one unchanged review snapshot. */
 export function useSnapshotConfirmation(currentKey: () => string | null, isEligible: () => boolean) {

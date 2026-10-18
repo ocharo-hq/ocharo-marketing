@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { SkeletonState } from '@wow-two-beta/ui-vue/presentation/feedback';
+import { SkeletonState } from '@wow-two-beta/fe/presentation/feedback';
 import { useUiLocale } from '@ocharomarketing/connect/UseUiLocale';
 withDefaults(defineProps<{ kind?: 'story' | 'settings' }>(), { kind: 'story' });
 const { t: ui } = useUiLocale();

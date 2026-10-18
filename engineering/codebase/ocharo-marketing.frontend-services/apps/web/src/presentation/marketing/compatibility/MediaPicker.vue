@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { FilePicker, type FilePickerProps } from '@wow-two-beta/ui-vue/presentation/forms';
+import { FilePicker, type FilePickerProps } from '@wow-two-beta/fe/presentation/forms';
 /** SDK 0.0.9 still omits the native accept attribute from its component declaration. */
 interface Props extends /* @vue-ignore */ FilePickerProps {
   accept?: string;
