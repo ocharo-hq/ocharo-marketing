@@ -1,7 +1,7 @@
 using Microsoft.EntityFrameworkCore;
 using OcharoMarketing.Persistence;
-using WoW.Two.Sdk.Backend.Beta.Data.Migrations.Bespoke;
-using WoW.Two.Sdk.Backend.Beta.Testing.Data.EntityFrameworkCore;
+using WoW.Two.Sdk.Beta.Be.Data.Migrations.Bespoke;
+using WoW.Two.Sdk.Beta.Be.Testing.Data.EntityFrameworkCore;
 
 namespace OcharoMarketing.Tests.Marketing;
 

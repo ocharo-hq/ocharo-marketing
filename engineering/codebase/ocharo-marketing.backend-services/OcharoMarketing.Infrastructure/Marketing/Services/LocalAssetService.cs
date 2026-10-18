@@ -6,7 +6,7 @@ using OcharoMarketing.Application.Marketing;
 using OcharoMarketing.Application.Marketing.Models;
 using OcharoMarketing.Application.Marketing.Repositories;
 using OcharoMarketing.Application.Marketing.Services;
-using WoW.Two.Sdk.Backend.Beta.Storage.Core;
+using WoW.Two.Sdk.Beta.Be.Storage.Core;
 
 namespace OcharoMarketing.Infrastructure.Marketing.Services;
 

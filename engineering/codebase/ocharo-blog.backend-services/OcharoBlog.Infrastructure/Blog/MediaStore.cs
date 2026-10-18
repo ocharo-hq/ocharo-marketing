@@ -5,9 +5,9 @@ using OcharoBlog.Application.Blog;
 using OcharoBlog.Application.Blog.Repositories;
 using OcharoBlog.Application.Blog.Services;
 using OcharoBlog.Domain.Blog;
-using WoW.Two.Sdk.Backend.Beta.Media.BackgroundRemoval;
-using WoW.Two.Sdk.Backend.Beta.Media.Images;
-using WoW.Two.Sdk.Backend.Beta.Storage.Core;
+using WoW.Two.Sdk.Beta.Be.Media.BackgroundRemoval;
+using WoW.Two.Sdk.Beta.Be.Media.Images;
+using WoW.Two.Sdk.Beta.Be.Storage.Core;
 
 namespace OcharoBlog.Infrastructure.Blog;
 

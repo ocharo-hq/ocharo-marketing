@@ -11,7 +11,7 @@ using OcharoMarketing.Infrastructure.Marketing.Services;
 using OcharoMarketing.Infrastructure.Providers;
 using OcharoMarketing.Persistence;
 using OcharoMarketing.Persistence.Marketing.Repositories;
-using WoW.Two.Sdk.Backend.Beta.Storage.FileSystem;
+using WoW.Two.Sdk.Beta.Be.Storage.FileSystem;
 using Xunit;
 
 namespace OcharoMarketing.Tests.Marketing;

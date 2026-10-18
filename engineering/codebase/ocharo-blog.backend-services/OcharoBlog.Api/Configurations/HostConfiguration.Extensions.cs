@@ -14,11 +14,11 @@ using OcharoBlog.Infrastructure.Blog;
 using OcharoBlog.Infrastructure.Time;
 using OcharoBlog.Persistence;
 using OcharoBlog.Persistence.Blog;
-using WoW.Two.Sdk.Backend.Beta.Media.Images;
-using WoW.Two.Sdk.Backend.Beta.Mediator;
-using WoW.Two.Sdk.Backend.Beta.Storage.Core;
-using WoW.Two.Sdk.Backend.Beta.Storage.FileSystem;
-using WoW.Two.Sdk.Backend.Beta.Web.ProblemDetails;
+using WoW.Two.Sdk.Beta.Be.Media.Images;
+using WoW.Two.Sdk.Beta.Be.Mediator;
+using WoW.Two.Sdk.Beta.Be.Storage.Core;
+using WoW.Two.Sdk.Beta.Be.Storage.FileSystem;
+using WoW.Two.Sdk.Beta.Be.Web.ProblemDetails;
 
 namespace OcharoBlog.Api.Configurations;
 

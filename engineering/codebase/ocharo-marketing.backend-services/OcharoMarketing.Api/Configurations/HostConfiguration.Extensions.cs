@@ -27,10 +27,10 @@ using OcharoMarketing.Persistence;
 using OcharoMarketing.Persistence.Inquiries;
 using OcharoMarketing.Persistence.Marketing.Repositories;
 using OcharoMarketing.Persistence.Scanning;
-using WoW.Two.Sdk.Backend.Beta.Data.Migrations.Ef;
-using WoW.Two.Sdk.Backend.Beta.Mediator;
-using WoW.Two.Sdk.Backend.Beta.Storage.FileSystem;
-using WoW.Two.Sdk.Backend.Beta.Web.ProblemDetails;
+using WoW.Two.Sdk.Beta.Be.Data.Migrations.Ef;
+using WoW.Two.Sdk.Beta.Be.Mediator;
+using WoW.Two.Sdk.Beta.Be.Storage.FileSystem;
+using WoW.Two.Sdk.Beta.Be.Web.ProblemDetails;
 
 namespace OcharoMarketing.Api.Configurations;
 

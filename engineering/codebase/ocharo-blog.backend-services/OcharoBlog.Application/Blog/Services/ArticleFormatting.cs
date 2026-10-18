@@ -4,7 +4,7 @@ using Markdig.Syntax;
 using Markdig.Syntax.Inlines;
 using Microsoft.Extensions.Options;
 using OcharoBlog.Domain.Blog;
-using WoW.Two.Sdk.Backend.Beta.Media.Markdown;
+using WoW.Two.Sdk.Beta.Be.Media.Markdown;
 
 namespace OcharoBlog.Application.Blog.Services;
 
