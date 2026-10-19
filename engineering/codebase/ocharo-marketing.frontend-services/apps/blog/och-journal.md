@@ -1,6 +1,6 @@
 # Ocharo Blog — separate blog
 
-*Last updated: 2026-09-27 12:15 AM*
+*Last updated: 2026-10-19*
 
 ## Status
 
@@ -10,7 +10,7 @@
 - Thirty-five HTML pages: homepage, archive, three topic pages, thirty articles.
 - Three agents drafted audience batches; the parent reviewed, polished, integrated, and verified the complete library.
 - Current local preview: `http://127.0.0.1:8774/`; owned server session `7555` remains running.
-- Editorial analysis and all thirty manuscript links: [editorial report](../../../../../../../../../../../../../../fam/mft-10x-ws/context/domains/external/work/ventures/ocharo/research/och-res-editorial-posts-2026-09.md).
+- Editorial analysis and all thirty manuscript links: [editorial report](../../../../../../../../../../../../../../../../fam/mft-10x-ws/context/domains/external/work/ventures/ocharo/research/och-res-editorial-posts-2026-09.md).
 - Platform integration and the Studio merge remain deferred by the user.
 - Local preview only. No cloud deployment, source push, account upload, or public release was performed.
 
@@ -100,5 +100,5 @@ The build covers reading and navigation; it adds no subscriptions, comments, acc
 ## Deferred analysis
 
 Platform/app ownership, Brand Workspace integration, and any Studio merge remain deferred.
-The [previous implementation analysis](../../../../../../../../../../../../../../fam/mft-10x-ws/context/domains/external/work/ventures/ocharo/platform/och-platform-blog-implementation.md)
+The [previous implementation analysis](../../../../../../../../../../../../../../../../fam/mft-10x-ws/context/domains/external/work/ventures/ocharo/platform/och-platform-blog-implementation.md)
 remains a proposal, rather than the architecture of this static journal.

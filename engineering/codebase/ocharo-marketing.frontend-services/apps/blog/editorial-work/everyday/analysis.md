@@ -1,6 +1,6 @@
 # Ocharo Journal — everyday choosing and Pieces editorial batch
 
-*Last updated: 2026-09-27 12:03 AM*
+*Last updated: 2026-10-19*
 
 ## Status
 
@@ -19,7 +19,7 @@ The existing [Pieces manuscript](../../och-content.mjs) begins with the nimcha a
 
 The new batch begins with questions readers can recognize in their own use of clothes: the favourite that never leaves its hanger, the trousers that only work while standing, the gift chosen on incomplete information, or the outfit that conflicts with its outer layer. Garments become objects to inspect and use. The reader can complete the exercise without buying from Ocharo.
 
-The [earlier reference study](../../../../../../../../../../../../../../../../fam/mft-10x-ws/context/domains/external/work/ventures/ocharo/research/och-res-blog-styles-2026-09.md) establishes three audiences and a preference for Lenny-inspired editorial structure. This batch serves garment buyers and boutique readers. It widens the Pieces route beyond a catalogue introduction while leaving textile history and fashion-image interpretation to the other editorial routes.
+The [earlier reference study](../../../../../../../../../../../../../../../../../../fam/mft-10x-ws/context/domains/external/work/ventures/ocharo/research/och-res-blog-styles-2026-09.md) establishes three audiences and a preference for Lenny-inspired editorial structure. This batch serves garment buyers and boutique readers. It widens the Pieces route beyond a catalogue introduction while leaving textile history and fashion-image interpretation to the other editorial routes.
 
 ## The ten angles
 
@@ -63,7 +63,7 @@ The prose names an opening, hem, collar, sleeve, bag strap, or movement. Advice 
 - User feedback in the active request: the layout is good; content is dry and reads like product advertising; analyze and write thirty posts using agents.
 - Current local manuscript: [och-content.mjs](../../och-content.mjs).
 - Current local editing guide: [och-journal.md](../../och-journal.md).
-- Current local reference research: [och-res-blog-styles-2026-09.md](../../../../../../../../../../../../../../../../fam/mft-10x-ws/context/domains/external/work/ventures/ocharo/research/och-res-blog-styles-2026-09.md).
+- Current local reference research: [och-res-blog-styles-2026-09.md](../../../../../../../../../../../../../../../../../../fam/mft-10x-ws/context/domains/external/work/ventures/ocharo/research/och-res-blog-styles-2026-09.md).
 
 ### External source use
 

@@ -2,7 +2,7 @@
 
 > Historical research snapshot. Repository paths, line references and proposals describe the original inspection; current ownership and entrypoints are in [Blog adoption](../../../../../../architecture/blog-adoption.md).
 
-*Last updated: 2026-09-29 12:42 PM GMT+5*
+*Last updated: 2026-10-19*
 
 ## Scope and recommendation
 
@@ -12,15 +12,15 @@ The user will create Maftuna's new GitHub organisation. This report proposes pro
 
 **Recommended base topology: three product repositories** — the reusable Brand Workspace platform; one Ocharo public-web repository containing the four distinct public apps; and the separately owned Studio repository. This respects both a generic multi-brand platform and Ocharo's specific public publishing products. The simpler two-repository alternative remains viable when one team wants all platform and public surfaces released under one product owner.
 
-This is a **base**, not an exhaustive organisation repository count. The completed [organization synthesis](../../../../../../../../../../../../../../../../fam/mft-10x-ws/context/domains/external/work/ventures/ocharo/platform/och-platform-organization-repositories.md) adds the verified Motion repository and optional later asset-library extraction, plus engineering/organization support repositories. It also incorporates the latest direction for contextual document ownership and shared assets. The current independently running Marketing, Catalogue, Blog and Brand implementations remain intact until an explicit transition is chosen.
+This is a **base**, not an exhaustive organisation repository count. The completed [organization synthesis](../../../../../../../../../../../../../../../../../../fam/mft-10x-ws/context/domains/external/work/ventures/ocharo/platform/och-platform-organization-repositories.md) adds the verified Motion repository and optional later asset-library extraction, plus engineering/organization support repositories. It also incorporates the latest direction for contextual document ownership and shared assets. The current independently running Marketing, Catalogue, Blog and Brand implementations remain intact until an explicit transition is chosen.
 
 ## Sources and accepted boundaries
 
-- [Current platform direction](../../../../../../../../../../../../../../../../fam/mft-10x-ws/context/domains/external/work/ventures/ocharo/platform/och-platform.md) accepts Brand Workspace's Brand module as the canonical identity owner and retains Studio separately.
-- [September 29 repository-boundary review](../../../../../../../../../../../../../../../../fam/mft-10x-ws/context/domains/external/work/ventures/ocharo/platform/och-platform-repository-integration-sweep.md) proposes two long-term product repositories; consolidation remains unadopted. This report evaluates an additional public-web boundary after the user explicitly selected four public apps.
+- [Current platform direction](../../../../../../../../../../../../../../../../../../fam/mft-10x-ws/context/domains/external/work/ventures/ocharo/platform/och-platform.md) accepts Brand Workspace's Brand module as the canonical identity owner and retains Studio separately.
+- [September 29 repository-boundary review](../../../../../../../../../../../../../../../../../../fam/mft-10x-ws/context/domains/external/work/ventures/ocharo/platform/och-platform-repository-integration-sweep.md) proposes two long-term product repositories; consolidation remains unadopted. This report evaluates an additional public-web boundary after the user explicitly selected four public apps.
 - [Current Brand Workspace source audit](och-brand-workspace-structure-audit-2026-09.md) distinguishes implemented preparation/document editing from missing editorial/public-delivery capabilities. It is not repeated here.
-- [Business capability map](../../../../../../../../../../../../../../../../fam/mft-10x-ws/context/domains/external/work/ventures/ocharo/platform/och-platform-capabilities.md) and [platform analysis](../../../../../../../../../../../../../../../../fam/mft-10x-ws/context/domains/external/work/ventures/ocharo/platform/och-platform-analysis.md) describe merchant, order, production and service opportunities as hypotheses, not adopted software workflows.
-- [Editorial/content plan](../../../../../../../../../../../../../../../../fam/mft-10x-ws/context/domains/external/work/ventures/ocharo/research/och-res-uzbek-textile-editorial-2026-09.md) provides the four-vector content and brand-routing baseline.
+- [Business capability map](../../../../../../../../../../../../../../../../../../fam/mft-10x-ws/context/domains/external/work/ventures/ocharo/platform/och-platform-capabilities.md) and [platform analysis](../../../../../../../../../../../../../../../../../../fam/mft-10x-ws/context/domains/external/work/ventures/ocharo/platform/och-platform-analysis.md) describe merchant, order, production and service opportunities as hypotheses, not adopted software workflows.
+- [Editorial/content plan](../../../../../../../../../../../../../../../../../../fam/mft-10x-ws/context/domains/external/work/ventures/ocharo/research/och-res-uzbek-textile-editorial-2026-09.md) provides the four-vector content and brand-routing baseline.
 
 The accepted Brand Workspace identity owner does not mean its currently minimal Brand record already provides the standalone Brand app's release/kit capabilities. Reconcile and reuse that implementation when authorised. Likewise, the current Catalogue app retains operational product-data authority pending explicit cutover; a target Catalogue module does not silently inherit its records now.
 

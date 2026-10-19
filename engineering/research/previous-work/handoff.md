@@ -1,11 +1,11 @@
 # Build handoff
 
-*Last updated: 2026-09-29*
+*Last updated: 2026-10-19*
 
 ## Consolidation hold — 2026-09-29
 
 The user requested a saved handoff and no further editing until consolidation resumes.
-The current checkout is `/Users/max/Projects/10x-ws/workbench/career/engineering/wow-two/wow-two-ws/workbench/ocharo-hq/ocharo-ws/workbench/ventures.ocharo-marketing`; branch `main`, HEAD `f4ef34d407555171e6e7a145afb45fed8097d81f`.
+The current checkout is `/Users/max/Projects/10x-ws/workbench/career/engineering/wow-two/wow-two-ws/workbench/mfts-projects/ventures/ocharo-hq/ocharo-ws/workbench/ventures.ocharo-marketing`; branch `main`, HEAD `f4ef34d407555171e6e7a145afb45fed8097d81f`.
 The [central chat handoff](../../../../../docs/handoffs/ocharo-marketing-01a0a058-f53a-7a10-94ad-51c642845c30.md) owns the consolidation snapshot.
 
 - Existing dirty relocation/reference edits and the [next-build analysis](../next-build-analysis.md) remain saved in place.

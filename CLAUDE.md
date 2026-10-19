@@ -27,8 +27,8 @@ engineering/             ← the HOW
     └── ocharo-marketing.frontend-services/   ← private pnpm workspace; Vue app in apps/web/
 ```
 
-Workspace guidance: [Ocharo](../../CLAUDE.md) and [WoW2](../../../../../CLAUDE.md).
-Conventions: [WoW2 convention index](../../../../../conventions/conventions.md).
+Workspace guidance: [Ocharo](../../CLAUDE.md) and [WoW2](../../../../../../../CLAUDE.md).
+Conventions: [WoW2 convention index](../../../../../../../conventions/conventions.md).
 
 ## Canonical planning
 

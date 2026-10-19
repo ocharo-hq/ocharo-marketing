@@ -22,7 +22,7 @@ engineering/             ← the HOW
 ```
 
 Workspace guidance: [Ocharo](../../CLAUDE.md) and [WoW2](../../../../../CLAUDE.md).
-Conventions: [WoW2 convention index](../../../../../conventions/conventions.md).
+Conventions: [WoW2 convention index](../../../../../../../../../../conventions/conventions.md).
 
 ## Local rules
 

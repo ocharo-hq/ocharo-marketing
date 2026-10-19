@@ -2,7 +2,7 @@
 
 > Historical research snapshot. Repository paths, line references and proposals describe the original inspection; current ownership and entrypoints are in [Blog adoption](../../../../../../architecture/blog-adoption.md).
 
-*Last updated: 2026-09-29 12:40 PM (GMT+5)*
+*Last updated: 2026-10-19*
 
 ## Status and recommendation
 
@@ -10,7 +10,7 @@ Independent design proposal responding to the clarified scope: **four genuinely 
 
 Recommend one independently deployable repository per public application under the future organization. Shared technical contracts should make the applications cooperate while allowing different screen structures and visual styles. This is an architecture recommendation, not a claim that four new GitHub repositories already exist or that existing histories must be discarded.
 
-**Synthesis outcome:** this report preserves the independent-repository alternative. The [parent repository plan](../../../../../../../../../../../../../../../../fam/mft-10x-ws/context/domains/external/work/ventures/ocharo/platform/och-platform-organization-repositories.md) recommends four separately built and deployed apps in one `ocharo-web` repository, retaining distinct designs while sharing consumer contracts. The application separation is confirmed; the final repository topology remains a proposal.
+**Synthesis outcome:** this report preserves the independent-repository alternative. The [parent repository plan](../../../../../../../../../../../../../../../../../../fam/mft-10x-ws/context/domains/external/work/ventures/ocharo/platform/och-platform-organization-repositories.md) recommends four separately built and deployed apps in one `ocharo-web` repository, retaining distinct designs while sharing consumer contracts. The application separation is confirmed; the final repository topology remains a proposal.
 
 ## Four applications
 

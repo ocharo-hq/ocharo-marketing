@@ -2,7 +2,7 @@
 
 > Historical research snapshot. Repository paths, line references and proposals describe the original inspection; current ownership and entrypoints are in [Blog adoption](../../../../../../architecture/blog-adoption.md).
 
-*Last updated: 2026-09-29 11:43 AM GMT+5*
+*Last updated: 2026-10-19*
 
 ## Status and recommendation
 
@@ -18,17 +18,17 @@ Recommend Instagram as the current public brand destination because the business
 
 | Evidence reviewed | What it establishes | What it does not establish |
 |---|---|---|
-| [Brand guidelines](../../../../../../../../../../../../../../../../fam/mft-10x-ws/context/domains/external/work/ventures/ocharo/och-brand-guidelines.md) | Display spelling is Ocharo; literal handles remain `ocharostile` and `Ocharo_Style` | Permission to rename accounts or to replace existing identities |
+| [Brand guidelines](../../../../../../../../../../../../../../../../../../fam/mft-10x-ws/context/domains/external/work/ventures/ocharo/och-brand-guidelines.md) | Display spelling is Ocharo; literal handles remain `ocharostile` and `Ocharo_Style` | Permission to rename accounts or to replace existing identities |
 | [Current blog generator](../../och-build.mjs), header and footer | Public preview identity is Ocharo Blog; footer links to `https://www.instagram.com/ocharostile/` and `https://t.me/Ocharo_Style` | Public deployment, live account access or conversion tracking |
 | [Current blog notes](../../och-journal.md) | Article contact panels were removed following feedback; stories end with reading value and related stories | A requirement to reintroduce sales panels into every post |
-| [Business planning](../../../../../../../../../../../../../../../../fam/mft-10x-ws/context/domains/external/work/ventures/ocharo/och-planning.md), Move 4 and Points 4–5 | Instagram is proposed as the living catalogue; Telegram merchant-channel choice remains open | Approval of the proposed cadence, language order or private channel |
-| [Platform inventory, updated September 28](../../../../../../../../../../../../../../../../fam/mft-10x-ws/context/domains/external/work/ventures/ocharo/platform/och-platform.md) | Local records now describe separate Catalogue, Marketing, Blog, Brand and Studio apps; Blog was seeded from this static source | Current runtime health, public release or a requirement to merge the apps |
+| [Business planning](../../../../../../../../../../../../../../../../../../fam/mft-10x-ws/context/domains/external/work/ventures/ocharo/och-planning.md), Move 4 and Points 4–5 | Instagram is proposed as the living catalogue; Telegram merchant-channel choice remains open | Approval of the proposed cadence, language order or private channel |
+| [Platform inventory, updated September 28](../../../../../../../../../../../../../../../../../../fam/mft-10x-ws/context/domains/external/work/ventures/ocharo/platform/och-platform.md) | Local records now describe separate Catalogue, Marketing, Blog, Brand and Studio apps; Blog was seeded from this static source | Current runtime health, public release or a requirement to merge the apps |
 
 The platform inventory is newer than the standalone preview notes. The static Blog is a source and preview; it is no longer sufficient evidence for every capability of the separate Blog app. The owning app repositories were not re-audited in this research.
 
 ### Recorded app inventory and shared identity
 
-The September 28 [platform inventory](../../../../../../../../../../../../../../../../fam/mft-10x-ws/context/domains/external/work/ventures/ocharo/platform/och-platform.md) records these independently owned local apps:
+The September 28 [platform inventory](../../../../../../../../../../../../../../../../../../fam/mft-10x-ws/context/domains/external/work/ventures/ocharo/platform/och-platform.md) records these independently owned local apps:
 
 | App | Recorded repository | Recorded integration relevant to this editorial work |
 |---|---|---|
@@ -38,7 +38,7 @@ The September 28 [platform inventory](../../../../../../../../../../../../../../
 | Ocharo Brand | `ventures.ocharo-brand` | Public identity kit, stable logo URLs and CSS tokens are recorded as consumed by Catalogue print sheets and Blog |
 | Ocharo Studio | `ventures.ocharo-studio` | Independent garment creation; no new branding adoption inferred here |
 
-The newer inventory records a separate Ocharo Brand app by user choice. It supersedes the earlier [identity analysis](../../../../../../../../../../../../../../../../fam/mft-10x-ws/context/domains/external/work/ventures/ocharo/platform/och-platform-brand-identity-and-events.md) recommendation to keep Brand inside Brand Workspace. Consequently, a future accepted name or destination change belongs in the relevant shared identity release and in each participating app's adoption flow; this report must not create another source of active brand names. The reusable Brand Workspace product remains a separate neutral platform, not the public name of the Ocharo content collection.
+The newer inventory records a separate Ocharo Brand app by user choice. It supersedes the earlier [identity analysis](../../../../../../../../../../../../../../../../../../fam/mft-10x-ws/context/domains/external/work/ventures/ocharo/platform/och-platform-brand-identity-and-events.md) recommendation to keep Brand inside Brand Workspace. Consequently, a future accepted name or destination change belongs in the relevant shared identity release and in each participating app's adoption flow; this report must not create another source of active brand names. The reusable Brand Workspace product remains a separate neutral platform, not the public name of the Ocharo content collection.
 
 Central branding does not require every consumer to share one visible app name. Ocharo Blog, Catalogue and Studio can retain descriptive product names while sharing the Ocharo wordmark, typography, colour tokens and official destinations. A future editorial series title can remain content metadata until explicitly promoted to a separate publication identity.
 

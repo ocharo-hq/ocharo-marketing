@@ -1,6 +1,6 @@
 # Ocharo Blog — cultural fabric and history research
 
-*Last updated: 2026-09-28 10:18 AM*
+*Last updated: 2026-10-19*
 
 Research checked: 2026-09-28. Audience: international readers and prospective buyers. Scope: editorial research, not a product provenance certificate.
 
@@ -16,9 +16,9 @@ These are different records with different purposes:
 
 | Record | What it establishes | Editorial limit |
 |---|---|---|
-| [`och-planning.md`](../../../../../../../../../../../../../../../../fam/mft-10x-ws/context/domains/external/work/ventures/ocharo/och-planning.md) | Commercial catalogue v22: **29 priced models with approved images**. | A priced model and photograph do not establish the supplier, loom, fibre composition, dye, or motif name of a particular fabric lot. |
-| [`och-catalogue.md`](../../../../../../../../../../../../../../../../fam/mft-10x-ws/context/domains/external/work/ventures/ocharo/och-catalogue.md) | A separate **design/swatch register** combining cloth, motif, and colourway IDs. It explicitly marks six motif names unconfirmed: `M01`, `M08`, `M09`, `M10`, `M11`, `M13`. | Its swatches and palette names are working design references, not material tests or current-product provenance. Even a name marked “settled” there should not become a universal symbol definition. |
-| [`och-context.md`](../../../../../../../../../../../../../../../../fam/mft-10x-ws/context/domains/external/work/ventures/ocharo/och-context.md) | The business describes national dress in adras, khan-atlas, and velvet ikat; material is bought at Chorsu; Maftuna cuts; off-site `tikuvchi`s sew; European partnership is a stated aim. | It does not identify the origin or making method of any specific current cloth, nor supply consented accounts from makers or suppliers. |
+| [`och-planning.md`](../../../../../../../../../../../../../../../../../../fam/mft-10x-ws/context/domains/external/work/ventures/ocharo/och-planning.md) | Commercial catalogue v22: **29 priced models with approved images**. | A priced model and photograph do not establish the supplier, loom, fibre composition, dye, or motif name of a particular fabric lot. |
+| [`och-catalogue.md`](../../../../../../../../../../../../../../../../../../fam/mft-10x-ws/context/domains/external/work/ventures/ocharo/och-catalogue.md) | A separate **design/swatch register** combining cloth, motif, and colourway IDs. It explicitly marks six motif names unconfirmed: `M01`, `M08`, `M09`, `M10`, `M11`, `M13`. | Its swatches and palette names are working design references, not material tests or current-product provenance. Even a name marked “settled” there should not become a universal symbol definition. |
+| [`och-context.md`](../../../../../../../../../../../../../../../../../../fam/mft-10x-ws/context/domains/external/work/ventures/ocharo/och-context.md) | The business describes national dress in adras, khan-atlas, and velvet ikat; material is bought at Chorsu; Maftuna cuts; off-site `tikuvchi`s sew; European partnership is a stated aim. | It does not identify the origin or making method of any specific current cloth, nor supply consented accounts from makers or suppliers. |
 | [`editorial-work/cloth`](../../editorial-work/cloth) | Ten existing reader-oriented cloth articles cover ikat edges, pattern timing, fibre names, seams, museum labels, care, and handmade language. | The proposed series below advances toward named historical objects and contemporary Ocharo reporting, rather than repeating technique primers. |
 
 The workspace's `C02` adras recipe describes silk warp and cotton weft; [UNESCO's Tajik atlas/adras entry](https://ich.unesco.org/en/RL/traditional-knowledge-and-skills-of-production-of-the-atlas-and-adras-fabrics-01484) confirms silk plus cotton for that named tradition without establishing every commercial adras's exact warp/weft. The [Cleveland Bukhara pardah](https://www.clevelandart.org/art/2006.152) has silk warp and cotton weft **for that museum object**. A lot-specific material label needs lot-specific evidence.
