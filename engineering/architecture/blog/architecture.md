@@ -1,6 +1,6 @@
 # ventures.ocharo-blog — Architecture
 
-*Last updated: 2026-10-18*
+*Last updated: 2026-10-19*
 
 ```mermaid
 flowchart LR
@@ -34,5 +34,6 @@ flowchart LR
 
 ## SDK usage and extraction candidates
 
-- Uses `WoW2.Sdk.Beta.Be 10.0.68-beta` (blob storage, mediator registration) and `@wow-two-beta/fe 0.0.22` (HTTP client, router with basename, error boundary, icons).
+- Uses `WoW2.Sdk.Beta.Be 10.0.71-beta` (settings files, local-run check, blob storage, mediator registration) and `@wow-two-beta/fe 0.0.23` (HTTP client, router with basename, error boundary, icons, session-expiry notice).
+- The host reads `appsettings.Target.json` and, on a local run with `LOCAL_SETTINGS=true`, `appsettings.Local.json` through the SDK's `AddSettingsFiles`; the OpenAPI document maps only on a local run (`IsLocalRun`), never on a Development host with `DEPLOY_ENVIRONMENT`.
 - Candidates for later extraction (shared with the Catalogue): revisioned document store, content-addressed media store, local-pilot boundary; blog-specific: scheduled-publication worker pattern, static-site export.

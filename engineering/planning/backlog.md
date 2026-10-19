@@ -1,6 +1,6 @@
 # Backlog
 
-*Last updated: 2026-10-01*
+*Last updated: 2026-10-19*
 
 ## Features
 
@@ -25,6 +25,27 @@ Active work belongs to [v0.1](version-track/v0.1/v0.1.md). The [delivery/metrics
 | 5 | Provide hosted access for Maftuna/SMM | Authenticated operators, backups, protected assets, deployment evidence |
 | 6 | Extract reusable SDK capability vectors | Complete inventory, package verification, consumer adoption |
 | 7 | Decide merge or independent generalized product | Observed use and maintenance boundary |
+
+## SDK gaps
+
+Found while adopting `@wow-two-beta/fe` 0.0.23 and `WoW2.Sdk.Beta.Be` 10.0.71-beta (2026-10-19). Each is a fix for
+the SDK, not a product workaround; the narrow product adapters stay until a published release closes the gap.
+
+| Gap | Product adapter | Closes when |
+|---|---|---|
+| `FilePickerProps` omits the native `accept` attribute; strict Vue templates reject it | `apps/web/.../compatibility/MediaPicker.vue` | The SDK declares `accept`; delete the adapter |
+| `SelectPickerTriggerProps` omits `aria-label`; strict Vue templates reject it | `apps/web/.../compatibility/PickerTrigger.vue` | The SDK declares native accessible naming; delete the adapter |
+| `MarkdownEditor` prints its view-mode identifiers with no locale key | Editorial's translated selector hides the SDK one (`SectionTextEditor.vue`) | The SDK localizes view-mode labels |
+
+## Session expiry adoption
+
+Marketing and Editorial sign in through Desk SSO with secure HttpOnly cookies, an in-memory CSRF token and an
+identity-change reload rule (`packages/connect/src/session.ts`); they do not use the SDK auth bridge. Adopted narrowly:
+a 401 is quiet (no error toast), and each expiry of a signed-in session publishes the SDK's one neutral
+`feedbackSessionExpiry` notice. Kept product behavior: expiry never navigates, so unsaved editors survive, and
+Reconnect opens Desk sign-in in a new tab with the return path captured at expiry. `signInRedirect` and `useReturnTo`
+are not adopted because the server sign-in route restores the return path. Full bridge adoption needs a cookie-session
+strategy with CSRF, the identity-change rule and the legacy ticket fallback; it is a separate auth change.
 
 ## Retained source follow-ups
 

@@ -1,5 +1,7 @@
 # ventures.ocharo-marketing — Frontend Development Guidelines
 
+*Last updated: 2026-10-19*
+
 Defer to `wow-two-ws/conventions/development/frontend/`.
 
 ## Workspace
@@ -10,6 +12,7 @@ Defer to `wow-two-ws/conventions/development/frontend/`.
 - Shared packages use `packages/*` only when there is shared code; no runtime federation is configured.
 - App source uses `bootstrap`, `presentation`, `application`, `domain`, and `integration` layers.
 - The marketing API returns camelCase domain DTOs and safe ProblemDetails failures; integration helpers validate and preserve the useful error detail.
+- A 401 never becomes an error toast. The first 401 or signed-out status read of a signed-in session publishes the SDK's one neutral `feedbackSessionExpiry` notice through `subscribeIntegrationExpired` (`packages/connect`); the page and its unsaved edits stay, and Reconnect opens Desk sign-in in a new tab returning to the page where the session expired.
 - Contract source: `engineering/architecture/marketing-contract.md`. Provider flags, configured accounts and observed metrics are server-owned.
 
 ## Commands
