@@ -9,18 +9,28 @@ Which domain hosts the Ocharo brand site and, later, the four public apps
 
 - ✅ Availability checked by RDAP / registry whois, `2026-10-19`
 - ✅ Prices read from Porkbun's public pricing API, `2026-10-19`
-- ✅ Spelling decided by the user, `2026-10-19`: the domain follows `Ocharo` → option B
-- ✅ Both names re-checked free, `2026-10-19` 11:02 UTC
-- ⬜ Purchase `ocharoatelier.com` — user checkout
-- ⬜ Purchase `ocharo.uz` — user checkout
-- ⬜ DNS and hosting — after purchase
+- ✅ Spelling decided by the user, `2026-10-19`: the domain follows `Ocharo`
+- ✅ Main domain decided by the user, `2026-10-19`: `ocharo.co` (supersedes `ocharoatelier.com`)
+- ✅ `ocharo.co` and `ocharo.uz` re-checked free, `2026-10-19`
+- ⬜ Purchase `ocharo.co` — user checkout at Cloudflare
+- ⬜ Purchase `ocharo.uz` — user checkout at aHOST
+- ⬜ DNS, `ocharo.uz` → `ocharo.co` 301, hosting — after purchase
 
 ## Decision
 
 | Domain | Role | Registrar | Price |
 |---|---|---|---|
-| `ocharoatelier.com` | Primary — brand site root, app subdomains | Cloudflare Registrar (at cost; DNS + Pages + R2 in one account) or Porkbun | $10.46/yr flat at Cloudflare; $11.08/yr at Porkbun |
-| `ocharo.uz` | Local + defensive → 301 to the primary | aHOST ([cart](https://clients.ahost.uz/cart.php?a=add&domain=register&language=russian)) or another [cctld.uz registrar](https://cctld.uz/reg/?lang=eng) | 27,000 so'm/yr at aHOST, read `2026-10-19` |
+| `ocharo.co` | Main — brand site root, app subdomains | Cloudflare Registrar (at cost; DNS + Pages + R2 in one account) | $30.00/yr flat at Cloudflare, read `2026-10-19` |
+| `ocharo.uz` | Defensive only → 301 to `ocharo.co` | aHOST ([cart](https://clients.ahost.uz/cart.php?a=add&domain=register&language=russian)) or another [cctld.uz registrar](https://cctld.uz/reg/?lang=eng) | 27,000 so'm/yr at aHOST, read `2026-10-19` |
+
+Why international over `.uz` for the main domain (user preference, `2026-10-19`):
+
+- `.uz` is run by the state registry UZINFOCOM; disputes go to Uzbek courts. `.co` follows ICANN's UDRP.
+- Cloudflare and Porkbun do not sell `.uz`, so it cannot share the DNS/hosting account.
+- Google treats `.co` as generic but geotargets `.uz` to Uzbekistan.
+
+Known cost of `.co`: visitors who type `ocharo.com` from memory land on GoDaddy's parked page.
+A broker attempt on `ocharo.com` stays a later option.
 
 The Instagram handle `@ocharostile` is unchanged by this decision. Whether the business record's
 `och-t-005` closes on `Ocharo` stays with the business workspace.
@@ -85,11 +95,11 @@ Generic-ccTLD list: [Google Search Central](https://developers.google.com/search
 | Option | Primary | Companions | Year 1 | Fits |
 |---|---|---|---|---|
 | A — handle parity | `ocharostile.com` | `ocharostyle.com` → redirect | ~$22 | Public name stays `Ocharostile` |
-| B — wordmark parity (chosen) | `ocharoatelier.com` | `ocharo.uz` → redirect | ~$13 | Public name becomes `Ocharo`; "atelier" signals craft to Europeans |
+| B — wordmark parity | `ocharoatelier.com` | `ocharo.uz` → redirect | ~$13 | Public name becomes `Ocharo`; "atelier" signals craft to Europeans |
 | C — short vanity | `ocharo.style` | `ocharostile.com` → redirect | ~$18, then ~$46/yr | Wants the shortest URL; accepts a weaker TLD |
+| D — short international (chosen) | `ocharo.co` | `ocharo.uz` → redirect | ~$32 | Shortest generic name; see § Decision |
 
-Recommendation: decide the spelling first. With `Ocharo` → B. With `Ocharostile` → A.
-Either way, register `ocharo.uz` as a cheap defensive/local redirect.
+Superseded: the user first chose B, then asked for shorter names and chose D.
 
 ## Purchase path
 
@@ -105,7 +115,7 @@ Either way, register `ocharo.uz` as a cheap defensive/local redirect.
 
 ## Subdomain plan
 
-Root = brand concept site. `atlas.`, `wear.`, `blog.`, `catalogue.` host the four public apps,
+Root `ocharo.co` = brand concept site. `atlas.`, `wear.`, `blog.`, `catalogue.` host the four public apps,
 keeping them separately styled and deployed as `docs/architecture.md` (workspace) requires.
 
 ## Sources
