@@ -48,6 +48,29 @@ Also free: `ocharo.design`, `.house`, `.art`, `.net`, `.io`, `.clothing`, `.bout
 Promo first-year prices on new gTLDs (`.store`, `.shop`, `.style`, `.studio`) renew at 4–17×;
 budget the renewal column.
 
+## Short names, `2026-10-19`
+
+Every `ocharo.*` checked is free except `ocharo.com` (registry whois/RDAP). Porkbun prices, sorted by renewal:
+
+| Domain | Length | 1st year | Renewal / yr | Note |
+|---|---|---|---|---|
+| `ocharo.uz` | 9 | 27,000 so'm (aHOST) | 27,000 so'm | Origin signal; Google geotargets it to Uzbekistan |
+| `ocharo.me` | 9 | $17.27 | $17.27 | Google treats as generic |
+| `ocharo.co` | 9 | $15.76 | $31.20 | Google treats as generic; reads as `.com`, so typos leak to the parked `ocharo.com` |
+| `ocharo.tv` | 9 | $26.26 | $26.26 | Google treats as generic |
+| `ocharo.io` / `.ai` / `.to` / `.am` / `.la` | 9 | $28–83 | $36–83 | Tech/vanity; `.ai` has a 2-year minimum |
+| `ocharo.org` / `.net` | 10 | $7.98 / $12.52 | $11.84 / $12.52 | Non-profit / generic connotation |
+| `ocharo.art` | 10 | $3.60 | $21.11 | Craft/art signal |
+| `ocharo.app` / `.page` | 10–11 | $8.75 / $10.81 | $14.93 / $10.81 | HTTPS-only TLDs; product connotation |
+| `ocharo.studio` | 13 | $11.84 | $41.71 | Atelier signal |
+| `ocharo.fashion` | 14 | $26.26 | $26.26 | Explicit category |
+
+Also free and low-trust: `.xyz`, `.cc`, `.vip`, `.club`, `.one`, `.biz`, `.info`, `.online`, `.site`.
+`ocharo.us` needs a US nexus. Free `.com` prefixes: `byocharo.com` (12), `getocharo.com`,
+`myocharo.com`, `ocharohq.com`, `ocharouz.com` (13), `theocharo.com` (13).
+
+Generic-ccTLD list: [Google Search Central](https://developers.google.com/search/docs/specialty/international/managing-multi-regional-sites).
+
 ## Reading
 
 - A `.com` is the trust default for the European/tourist audience the site targets.
