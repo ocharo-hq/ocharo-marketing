@@ -26,6 +26,13 @@ export const integrationAccess = computed(
     integrationMode.value === "legacy" ||
     integrationSession.value?.active === true,
 );
+/** The app path a reconnect returns to, captured when the signed-in session expired. */
+export const integrationReturnPath = ref<string | null>(null);
+/** Describes one expiry of a signed-in session, in the shape of the SDK's `subscribeExpired` event. */
+export interface IntegrationExpiry {
+  readonly returnUrl: string;
+}
+const expiryListeners = new Set<(expiry: IntegrationExpiry) => void>();
 let csrfToken: string | null = null;
 let identity: string | null = null;
 let generation = 0;
@@ -72,8 +79,28 @@ function expire(message: string) {
     };
   integrationError.value = message;
 }
+/** Runs once per signed-in session: the transition from active to signed out, never a later 401. */
+function announceExpiry(wasActive: boolean) {
+  if (!wasActive || integrationSession.value?.active) return;
+  const returnUrl = window.location.pathname + window.location.search;
+  integrationReturnPath.value = returnUrl;
+  for (const listener of [...expiryListeners]) listener({ returnUrl });
+}
+/**
+ * Calls `listener` once each time a signed-in session expires — its first 401 or a status read that finds it
+ * signed out. The app stays on its page so unsaved edits survive; the reconnect link returns to `returnUrl`.
+ */
+export function subscribeIntegrationExpired(
+  listener: (expiry: IntegrationExpiry) => void,
+): () => void {
+  expiryListeners.add(listener);
+  return () => {
+    expiryListeners.delete(listener);
+  };
+}
 async function readSession() {
   const version = generation;
+  let wasActive = false;
   integrationChecking.value = true;
   try {
     const response = await fetch("/api/sso/session", {
@@ -98,6 +125,7 @@ async function readSession() {
       if (integrationIdentityChanged.value) return;
       identity ??= nextIdentity;
       csrfToken = session.authenticated ? session.csrfToken! : null;
+      wasActive = integrationSession.value?.active === true;
       integrationSession.value = {
         mode: "sso",
         configured: true,
@@ -130,9 +158,11 @@ async function readSession() {
       }
       csrfToken = null;
       integrationMode.value = "legacy";
+      wasActive = integrationSession.value?.active === true;
       integrationSession.value = value as unknown as IntegrationSession;
     }
     integrationError.value = "";
+    announceExpiry(wasActive);
   } catch {
     if (version === generation) expire(unavailable);
   } finally {
@@ -223,6 +253,10 @@ export const integrationFetch: typeof fetch = async (input, init) => {
     credentials: "same-origin",
     ...(protectedWrite ? { redirect: "error" } : {}),
   });
-  if (response.status === 401) expire(expired);
+  if (response.status === 401) {
+    const wasActive = integrationSession.value?.active === true;
+    expire(expired);
+    announceExpiry(wasActive);
+  }
   return response;
 };

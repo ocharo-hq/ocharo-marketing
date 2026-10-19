@@ -123,7 +123,7 @@ function updateList(value: string): void {
 </template>
 
 <style scoped>
-/* SDK 0.0.12 exposes controlled view, but its mode enum labels have no locale hook. */
+/* SDK 0.0.23 exposes controlled view, but its mode enum labels have no locale hook. */
 .section-text-editor :deep(.localized-markdown [role='radiogroup']) {
   display: none;
 }

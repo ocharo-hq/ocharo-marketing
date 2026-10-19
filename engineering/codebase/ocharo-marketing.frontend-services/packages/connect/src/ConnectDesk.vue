@@ -8,12 +8,16 @@ import {
   integrationMode,
   integrationChecking,
   integrationIdentityChanged,
+  integrationReturnPath,
   ssoLoginUrl,
 } from "./session";
 const { t: ui } = useUiLocale();
 
 const props = defineProps<{ platformUrl: string }>();
-const loginUrl = computed(() => ssoLoginUrl());
+// Returns to the page where the session expired, captured before any later navigation.
+const loginUrl = computed(() =>
+  ssoLoginUrl(integrationReturnPath.value ?? undefined),
+);
 function refreshOnFocus() {
   if (integrationMode.value !== "unknown") void refreshIntegration();
 }

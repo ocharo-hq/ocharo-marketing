@@ -161,6 +161,48 @@ describe('Ocharo shared sign-in', () => {
     expect(assign).not.toHaveBeenCalled();
   });
 
+  it('announces one expiry per signed-in session with the page to return to', async () => {
+    fetcher
+      .mockResolvedValueOnce(success(authenticated))
+      .mockResolvedValueOnce(new Response(null, { status: 401 }))
+      .mockResolvedValueOnce(new Response(null, { status: 401 }));
+    window.history.replaceState({}, '', '/studio/stories/story-1?tab=copy');
+    const session = await load();
+    const expired = vi.fn();
+    session.subscribeIntegrationExpired(expired);
+    await session.initializeIntegration();
+    expect(expired).not.toHaveBeenCalled();
+    await session.integrationFetch('/api/drafts', { method: 'POST' });
+    await session.integrationFetch('/api/drafts');
+    expect(expired).toHaveBeenCalledExactlyOnceWith({ returnUrl: '/studio/stories/story-1?tab=copy' });
+    expect(session.integrationReturnPath.value).toBe('/studio/stories/story-1?tab=copy');
+  });
+
+  it('announces a status read that finds the session signed out, but not an anonymous first visit', async () => {
+    fetcher
+      .mockResolvedValueOnce(success(authenticated))
+      .mockResolvedValueOnce(success({ enabled: true, authenticated: false }))
+      .mockResolvedValueOnce(success({ enabled: true, authenticated: false }));
+    const session = await load();
+    const expired = vi.fn();
+    const unsubscribe = session.subscribeIntegrationExpired(expired);
+    await session.initializeIntegration();
+    await session.refreshIntegration();
+    await session.refreshIntegration();
+    expect(expired).toHaveBeenCalledTimes(1);
+    expect(session.integrationAccess.value).toBe(false);
+    unsubscribe();
+
+    vi.resetModules();
+    fetcher.mockReset().mockResolvedValueOnce(success({ enabled: true, authenticated: false }));
+    vi.spyOn(window.location, 'assign').mockImplementation(() => {});
+    const fresh = await load();
+    const anonymous = vi.fn();
+    fresh.subscribeIntegrationExpired(anonymous);
+    expect(await fresh.initializeIntegration()).toBe(false);
+    expect(anonymous).not.toHaveBeenCalled();
+  });
+
   it('does not resurrect a session from an older status read after a 401', async () => {
     let resolveStatus!: (response: Response) => void;
     fetcher

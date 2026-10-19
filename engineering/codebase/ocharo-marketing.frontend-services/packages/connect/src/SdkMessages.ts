@@ -65,6 +65,7 @@ const sdkSources: Record<string, string> = {
   "TimePicker.placeholder": "Pick a time",
   "NumberInput.incrementLabel": "Increase",
   "NumberInput.decrementLabel": "Decrease",
+  "ToastHost.notifications": "Notifications",
 };
 export function sdkMessageDictionary(locale: UiLocale): Record<string, string> {
   return Object.fromEntries(

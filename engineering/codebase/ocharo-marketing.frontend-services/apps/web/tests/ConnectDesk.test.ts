@@ -6,6 +6,7 @@ import {
   integrationMode,
   integrationSession,
   integrationIdentityChanged,
+  integrationReturnPath,
   refreshIntegration,
 } from '../../../packages/connect/src/session';
 
@@ -17,8 +18,9 @@ vi.mock('../../../packages/connect/src/session', async () => {
     integrationIdentityChanged: ref(false),
     integrationSession: ref(null),
     integrationChecking: ref(false),
+    integrationReturnPath: ref(null),
     refreshIntegration: vi.fn(),
-    ssoLoginUrl: () => '/api/sso/login?returnUrl=%2F',
+    ssoLoginUrl: (path = '/') => `/api/sso/login?returnUrl=${encodeURIComponent(path)}`,
   };
 });
 const disposers: (() => void)[] = [];
@@ -27,6 +29,7 @@ beforeEach(() => {
   integrationError.value = '';
   integrationIdentityChanged.value = false;
   integrationSession.value = { mode: 'sso', active: false, configured: true };
+  integrationReturnPath.value = null;
   vi.mocked(refreshIntegration).mockReset();
 });
 afterEach(() => {
@@ -46,6 +49,11 @@ it('reconnects in a separate tab without discarding the current editor', () => {
   expect(link.attributes('rel')).toContain('noopener');
   expect(wrapper.text()).toContain('Your unsaved edits stay here');
   expect(wrapper.text()).not.toContain('Open Connected apps in Platform');
+});
+it('reconnects to the page where the session expired', () => {
+  integrationReturnPath.value = '/posts/draft-1?tab=copy';
+  const wrapper = render();
+  expect(wrapper.get('a').attributes('href')).toBe('/api/sso/login?returnUrl=%2Fposts%2Fdraft-1%3Ftab%3Dcopy');
 });
 it('does not present manual connection fallback or retry automatically when SSO status is unknown', () => {
   vi.useFakeTimers();

@@ -3780,6 +3780,14 @@ export const uiMessages: Readonly<
     uz: "Sana tanlang",
     ru: "Выберите дату",
   },
+  Notifications: {
+    uz: "Bildirishnomalar",
+    ru: "Уведомления",
+  },
+  "Signed out — sign in again": {
+    uz: "Hisobdan chiqildi — qayta kiring",
+    ru: "Вы вышли из аккаунта — войдите снова",
+  },
   "Pick a time": {
     uz: "Vaqt tanlang",
     ru: "Выберите время",
