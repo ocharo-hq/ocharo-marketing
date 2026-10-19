@@ -1,6 +1,6 @@
 # Ocharo Marketing — what to build next
 
-*Last updated: 2026-09-29*
+*Last updated: 2026-10-19*
 
 ## Recommendation
 
@@ -23,7 +23,7 @@ It updates the assessment against the September 28 platform integrations. No app
 | Delivery | Telegram/X orchestration; separate Instagram/WhatsApp brokers | A broker is not a complete operator delivery workflow |
 | Results | Bounded, account-owned X observations and receipt reconciliation | Add manual/Instagram evidence; do not replace the existing measurement model |
 
-The current implementation evidence is in [r0.1](previous-work/rough-track/r0.1/r0.1.md) and
+The current implementation evidence is in r0.1 and
 [handoff](previous-work/handoff.md). Their older verification sections describe earlier increments.
 This analysis inspected source; it did not rerun test suites or establish current provider connectivity.
 

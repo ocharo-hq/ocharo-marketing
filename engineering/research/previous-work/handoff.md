@@ -22,7 +22,7 @@ must not be treated as current observations; use the central handoff and recheck
 
 ## Prior pilot scope
 
-Ocharo Marketing is an independent temporary venture for Maftuna, outside Brand Workspace. The local pilot's planned implementation is complete and verified; developer/Maftuna review and selected external setup remain. The build heartbeat `continue-ocharo-marketing-build` is **PAUSED**, confirmed through the automation tool and saved state. Do not resume an unchanged build loop or duplicate finished lanes. See [review guide](review-guide.md), [exact remaining actions](external-setup.md), [contract](../../architecture/marketing-contract.md) and [r0.1](rough-track/r0.1/r0.1.md).
+Ocharo Marketing is an independent temporary venture for Maftuna, outside Brand Workspace. The local pilot's planned implementation is complete and verified; developer/Maftuna review and selected external setup remain. The build heartbeat `continue-ocharo-marketing-build` is **PAUSED**, confirmed through the automation tool and saved state. Do not resume an unchanged build loop or duplicate finished lanes. See [review guide](review-guide.md), [exact remaining actions](external-setup.md), [contract](../../architecture/marketing-contract.md) and r0.1.
 
 ## Platform integration increment — 2026-09-28
 

@@ -4,7 +4,7 @@
 
 ## Boundary
 
-The user requested reusable wow-two components and brokers, extracted after the app proves them. Current work keeps these boundaries product-local and separate. Nothing here claims a published SDK package. Rough-track completion/review precedes extraction, and a full capability vector inventory follows the first consumer slice.
+The user requested reusable wow-two components and brokers, extracted after the app proves them. Current work keeps these boundaries product-local and separate. Nothing here claims a published SDK package. Version-track completion/review precedes extraction, and a full capability vector inventory follows the first consumer slice.
 
 | Candidate | Reusable scope | Product-owned scope | Extraction evidence |
 |---|---|---|---|
