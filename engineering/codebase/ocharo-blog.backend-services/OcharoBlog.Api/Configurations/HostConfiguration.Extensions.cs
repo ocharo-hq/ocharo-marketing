@@ -14,6 +14,7 @@ using OcharoBlog.Infrastructure.Blog;
 using OcharoBlog.Infrastructure.Time;
 using OcharoBlog.Persistence;
 using OcharoBlog.Persistence.Blog;
+using WoW.Two.Sdk.Beta.Be.Foundation.Configuration;
 using WoW.Two.Sdk.Beta.Be.Media.Images;
 using WoW.Two.Sdk.Beta.Be.Mediator;
 using WoW.Two.Sdk.Beta.Be.Storage.Core;
@@ -177,7 +178,7 @@ public static partial class HostConfiguration
         app.UseOcharoSso(http => http.Request.Path.StartsWithSegments("/api/public") || http.Request.Path == "/health" || http.Request.Path == "/api/system/status" || http.Request.Path == "/" || http.Request.Path.StartsWithSegments("/journal") || http.Request.Path.StartsWithSegments("/topics") || http.Request.Path.StartsWithSegments("/uz") || http.Request.Path.StartsWithSegments("/ru") || http.Request.Path.StartsWithSegments("/atlas") || http.Request.Path.StartsWithSegments("/wear") || http.Request.Path.StartsWithSegments("/catalogue") || http.Request.Path.StartsWithSegments("/media"),
             resolveSession: http => http.Request.Path.StartsWithSegments("/media") || http.Request.Path.StartsWithSegments("/preview"));
         app.UseMiddleware<IntegrationBoundaryMiddleware>();
-        if (app.Environment.IsDevelopment())
+        if (app.Environment.IsLocalRun(app.Configuration))
         {
             app.MapOpenApi();
         }

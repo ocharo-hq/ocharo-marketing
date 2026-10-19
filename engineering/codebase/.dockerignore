@@ -13,6 +13,11 @@
 **/App_Data/
 **/wwwroot/*
 
+# Machine-local and deployed-target settings never enter an image; a release mounts the target's file
+**/appsettings.Local.json
+**/appsettings.Target.json
+**/appsettings.Machine.json
+
 # Locally-deployed SPA — the spa stage rebuilds it from source
 ocharo-marketing.backend-services/OcharoMarketing.Api/wwwroot/
 

@@ -28,6 +28,7 @@ using OcharoMarketing.Persistence.Inquiries;
 using OcharoMarketing.Persistence.Marketing.Repositories;
 using OcharoMarketing.Persistence.Scanning;
 using WoW.Two.Sdk.Beta.Be.Data.Migrations.Ef;
+using WoW.Two.Sdk.Beta.Be.Foundation.Configuration;
 using WoW.Two.Sdk.Beta.Be.Mediator;
 using WoW.Two.Sdk.Beta.Be.Storage.FileSystem;
 using WoW.Two.Sdk.Beta.Be.Web.ProblemDetails;
@@ -39,10 +40,11 @@ public static partial class HostConfiguration
     /// <summary>Configures the local pilot startup boundary.</summary>
     private static WebApplicationBuilder AddPilotBoundary(this WebApplicationBuilder builder)
     {
-        if (!builder.Environment.IsDevelopment() || !builder.Configuration.GetValue("Marketing:LocalPilot", true))
+        // A deployed host may run as Development too (DEPLOY_ENVIRONMENT set), so only a local run qualifies.
+        if (!builder.IsLocalRun() || !builder.Configuration.GetValue("Marketing:LocalPilot", true))
         {
             throw new InvalidOperationException(
-                "This pilot requires Development and local-only access. " +
+                "This pilot requires a local Development run and local-only access. " +
                 "Remote hosting requires authenticated deployment configuration.");
         }
 

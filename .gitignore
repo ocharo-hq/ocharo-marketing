@@ -11,6 +11,8 @@ node_modules/
 *.db-shm
 *.db-wal
 **/appsettings.Local.json
+**/appsettings.Target.json
+**/appsettings.Machine.json
 .env
 
 # SPA build copied into the .NET host by `pnpm run deploy` (regenerable)
