@@ -35,6 +35,42 @@ A broker attempt on `ocharo.com` stays a later option.
 The Instagram handle `@ocharostile` is unchanged by this decision. Whether the business record's
 `och-t-005` closes on `Ocharo` stays with the business workspace.
 
+## Purchase links
+
+Saved `2026-10-19`; the user buys later. Re-check availability on the day of purchase.
+
+| Domain | Link | Price read `2026-10-19` |
+|---|---|---|
+| `ocharo.co` | [Cloudflare Registrar search](https://www.cloudflare.com/domains/search?q=ocharo.co) | $30.00/yr |
+| `ocharo.uz` | [aHOST .uz cart](https://clients.ahost.uz/cart.php?a=add&domain=register&language=russian) | 27,000 so'm/yr |
+| `ocharostile.com` | [Cloudflare Registrar search](https://www.cloudflare.com/domains/search?q=ocharostile.com) | $10.46/yr |
+| `ocharostyle.com` | [Cloudflare Registrar search](https://www.cloudflare.com/domains/search?q=ocharostyle.com) | $10.46/yr |
+
+## Redirect domains
+
+Defensive registration — owning the names people are likely to type and 301-forwarding them to
+the main domain — is standard brand practice (Google, for example, holds `gooogle.com`). For a
+brand with little search traffic, its value sits in a handful of names; a long tail of typo
+domains adds renewal cost without visits.
+
+| Tier | Domain | Why | Cost / yr |
+|---|---|---|---|
+| Buy | `ocharo.uz` | Local name; keeps a squatter off the country domain | 27,000 so'm |
+| Buy | `ocharostile.com` | Exact Instagram handle `@ocharostile` — the most-seen brand string today | $10.46 |
+| Optional | `ocharostyle.com` | The stile/style misread of the handle | $10.46 |
+| Watch | `ocharo.com` | The `.com` visitors type from memory. Taken; renewed `2026-04-16`, expires `2027-04-15` — an active owner, so a backorder has low odds | Broker / backorder |
+| Skip | `ocharo.studio`, `.fashion`, `.me`, `.art`; typo `.co` names (`ocharro.co`, `ochoro.co`) | No inbound traffic to capture; each adds $17–42/yr | — |
+
+Buy + optional ≈ $21 + 27,000 so'm per year on top of `ocharo.co`.
+
+A registered trademark protects the name more than extra domains do: it is what ICANN's UDRP
+needs to recover a squatted domain later. It does not reach `ocharo.com`, registered in 2011
+before the brand existed.
+
+Mechanics: every redirect domain uses Cloudflare nameservers (set at aHOST for `ocharo.uz`) and one
+Cloudflare Bulk Redirect rule → `https://ocharo.co`, preserving path and query string.
+No site or hosting per redirect domain.
+
 ## Availability, `2026-10-19`
 
 | Domain | State | Porkbun 1st year | Renewal / yr |
