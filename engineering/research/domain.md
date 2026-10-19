@@ -12,7 +12,8 @@ Which domain hosts the Ocharo brand site and, later, the four public apps
 - ✅ Spelling decided by the user, `2026-10-19`: the domain follows `Ocharo`
 - ✅ Main domain decided by the user, `2026-10-19`: `ocharo.co` (supersedes `ocharoatelier.com`)
 - ✅ `ocharo.co` and `ocharo.uz` re-checked free, `2026-10-19`
-- ⬜ Purchase `ocharo.co` — user checkout at Cloudflare
+- ✅ `ocharo.co` bought by the user — registry: Cloudflare, created `2026-10-19T11:32Z`,
+  expires `2027-10-19`, `clientTransferProhibited`, nameservers `wally` / `lewis.ns.cloudflare.com`
 - ⬜ Purchase `ocharo.uz` — user checkout at aHOST
 - ⬜ DNS, `ocharo.uz` → `ocharo.co` 301, hosting — after purchase
 
@@ -37,7 +38,7 @@ The Instagram handle `@ocharostile` is unchanged by this decision. Whether the b
 
 ## Purchase links
 
-Saved `2026-10-19`; the user buys later. Re-check availability on the day of purchase.
+Saved `2026-10-19`. `ocharo.co` is bought; re-check the others on the day of purchase.
 
 | Domain | Link | Price read `2026-10-19` |
 |---|---|---|
