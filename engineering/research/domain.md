@@ -19,7 +19,7 @@ Which domain hosts the Ocharo brand site and, later, the four public apps
 
 | Domain | Role | Registrar | Price |
 |---|---|---|---|
-| `ocharoatelier.com` | Primary — brand site root, app subdomains | Cloudflare Registrar (at cost; DNS + Pages + R2 in one account) or Porkbun | $11.08/yr at Porkbun; Cloudflare at wholesale cost |
+| `ocharoatelier.com` | Primary — brand site root, app subdomains | Cloudflare Registrar (at cost; DNS + Pages + R2 in one account) or Porkbun | $10.46/yr flat at Cloudflare; $11.08/yr at Porkbun |
 | `ocharo.uz` | Local + defensive → 301 to the primary | aHOST ([cart](https://clients.ahost.uz/cart.php?a=add&domain=register&language=russian)) or another [cctld.uz registrar](https://cctld.uz/reg/?lang=eng) | 27,000 so'm/yr at aHOST, read `2026-10-19` |
 
 The Instagram handle `@ocharostile` is unchanged by this decision. Whether the business record's
