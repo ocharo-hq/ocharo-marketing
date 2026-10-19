@@ -9,8 +9,21 @@ Which domain hosts the Ocharo brand site and, later, the four public apps
 
 - ✅ Availability checked by RDAP / registry whois, `2026-10-19`
 - ✅ Prices read from Porkbun's public pricing API, `2026-10-19`
-- ⬜ Public spelling decision — `Ocharo` vs `Ocharostile` (`och-t-005` in the business workspace)
-- ⬜ Purchase, DNS and hosting — after the spelling decision
+- ✅ Spelling decided by the user, `2026-10-19`: the domain follows `Ocharo` → option B
+- ✅ Both names re-checked free, `2026-10-19` 11:02 UTC
+- ⬜ Purchase `ocharoatelier.com` — user checkout
+- ⬜ Purchase `ocharo.uz` — user checkout
+- ⬜ DNS and hosting — after purchase
+
+## Decision
+
+| Domain | Role | Registrar | Price |
+|---|---|---|---|
+| `ocharoatelier.com` | Primary — brand site root, app subdomains | Cloudflare Registrar (at cost; DNS + Pages + R2 in one account) or Porkbun | $11.08/yr at Porkbun; Cloudflare at wholesale cost |
+| `ocharo.uz` | Local + defensive → 301 to the primary | aHOST ([cart](https://clients.ahost.uz/cart.php?a=add&domain=register&language=russian)) or another [cctld.uz registrar](https://cctld.uz/reg/?lang=eng) | 27,000 so'm/yr at aHOST, read `2026-10-19` |
+
+The Instagram handle `@ocharostile` is unchanged by this decision. Whether the business record's
+`och-t-005` closes on `Ocharo` stays with the business workspace.
 
 ## Availability, `2026-10-19`
 
@@ -21,7 +34,7 @@ Which domain hosts the Ocharo brand site and, later, the four public apps
 | `ocharostyle.com` | Free — the likely misspelling | $11.08 | $11.08 |
 | `ocharoatelier.com` | Free | $11.08 | $11.08 |
 | `wearocharo.com` | Free | $11.08 | $11.08 |
-| `ocharo.uz` | Free (`whois.cctld.uz`: not found) | ~$28 cheapest international registrar (aggregator, Jul 2026) | ~$28 |
+| `ocharo.uz` | Free (`whois.cctld.uz`: not found) | 27,000 so'm at aHOST; ~$28 at international resellers | 27,000 so'm |
 | `ocharo.style` | Free | $7.21 | $34.50 |
 | `ocharo.studio` | Free | $11.84 | $41.71 |
 | `ocharo.fashion` | Free | $26.26 | $26.26 |
@@ -49,7 +62,7 @@ budget the renewal column.
 | Option | Primary | Companions | Year 1 | Fits |
 |---|---|---|---|---|
 | A — handle parity | `ocharostile.com` | `ocharostyle.com` → redirect | ~$22 | Public name stays `Ocharostile` |
-| B — wordmark parity | `ocharoatelier.com` | `ocharo.uz` → redirect | ~$39 | Public name becomes `Ocharo`; "atelier" signals craft to Europeans |
+| B — wordmark parity (chosen) | `ocharoatelier.com` | `ocharo.uz` → redirect | ~$13 | Public name becomes `Ocharo`; "atelier" signals craft to Europeans |
 | C — short vanity | `ocharo.style` | `ocharostile.com` → redirect | ~$18, then ~$46/yr | Wants the shortest URL; accepts a weaker TLD |
 
 Recommendation: decide the spelling first. With `Ocharo` → B. With `Ocharostile` → A.
@@ -59,7 +72,8 @@ Either way, register `ocharo.uz` as a cheap defensive/local redirect.
 
 1. Registrar: Cloudflare Registrar (sells at wholesale cost, 400+ TLDs, DNS stays on Cloudflare,
    which also hosts the static site) or Porkbun (prices above, free WHOIS privacy).
-   `.uz` needs a registrar that sells `.uz`; neither of these is confirmed to.
+   `.uz` goes through a local registrar — aHOST charges 27,000 so'm/yr and pays in so'm,
+   far below the ~$28 international resellers charge.
 2. Payment: an internationally enabled Visa/Mastercard. Domestic Humo/Uzcard cards are not
    expected to work on foreign registrars — verify at checkout.
 3. Registrant: Maftuna or her `YaTT` as the owner of record, with an email she controls.
