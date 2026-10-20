@@ -16,7 +16,7 @@ export interface CardPreviewProps {
 
 <script setup lang="ts">
 import { requestFailureMessage } from '@ocharomarketing/connect/RequestFeedback';
-import { useErrorToast } from '../../application/shared/UseFeedback';
+import { useErrorToast } from '@ocharomarketing/connect/Feedback';
 import { Button } from '@wow-two-beta/fe/presentation/actions';
 import { useUiLocale } from '@ocharomarketing/connect/UseUiLocale';
 import { computed, onScopeDispose, ref, useTemplateRef, watch } from 'vue';

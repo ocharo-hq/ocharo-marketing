@@ -3,8 +3,33 @@ import { Agent } from 'node:https';
 import { readFileSync } from 'node:fs';
 import tailwindcss from '@tailwindcss/vite';
 import vue from '@vitejs/plugin-vue';
-import { defineConfig } from 'vite';
+import { defineConfig, type Plugin } from 'vite';
 import mkcert from 'vite-plugin-mkcert';
+import { colorModeScript } from '@wow-two-beta/fe/foundation/primitives';
+import { ThemeStorageKey } from './src/bootstrap/theme';
+
+/** Where the Studio is served, beside the public site the API renders. */
+const Base = '/studio/';
+
+/**
+ * Serves and emits `/studio/theme.js`: the SDK's pre-paint colour script, so a dark Editorial never flashes light
+ * first. Plugin middleware sees the full path, ahead of Vite's own base handling.
+ */
+function themeScript(): Plugin {
+  const source = colorModeScript({ storageKey: ThemeStorageKey });
+  return {
+    name: 'ocharo-editorial-theme-script',
+    configureServer(server) {
+      server.middlewares.use(`${Base}theme.js`, (_request, response) => {
+        response.setHeader('Content-Type', 'text/javascript');
+        response.end(source);
+      });
+    },
+    generateBundle() {
+      this.emitFile({ type: 'asset', fileName: 'theme.js', source });
+    },
+  };
+}
 
 /** Keeps development proxy overrides on verified HTTPS endpoints. */
 function httpsTarget(value: string): string {
@@ -26,8 +51,8 @@ export default defineConfig(({ command }) => {
         process.env.APP_VERSION && process.env.APP_VERSION !== '0.0.0' ? process.env.APP_VERSION : 'dev',
       ),
     },
-    base: '/studio/',
-    plugins: [vue(), tailwindcss(), ...(command === 'serve' && !tls ? [mkcert()] : [])],
+    base: Base,
+    plugins: [vue(), tailwindcss(), themeScript(), ...(command === 'serve' && !tls ? [mkcert()] : [])],
     build: { outDir: 'dist', emptyOutDir: true, target: 'es2022' },
     server: {
       host: 'localhost',

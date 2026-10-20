@@ -236,6 +236,104 @@ describe('Ocharo shared sign-in', () => {
     expect(fetcher).toHaveBeenCalledTimes(2);
   });
 
+  it('exposes the signed-in account and keeps only a plain HTTPS Desk origin as its address', async () => {
+    fetcher
+      .mockResolvedValueOnce(success({ ...authenticated, accountUrl: 'https://desk.example.test/' }))
+      .mockResolvedValueOnce(success({ ...authenticated, accountUrl: 'https://desk.example.test/?next=//evil' }));
+    const session = await load();
+    await session.initializeIntegration();
+    expect(session.integrationAccount.value).toEqual({
+      userId: 'operator-1',
+      accountUrl: 'https://desk.example.test/',
+    });
+    await session.refreshIntegration();
+    expect(session.integrationAccount.value).toEqual({ userId: 'operator-1', accountUrl: null });
+  });
+
+  it('signs out with the CSRF token and reads signed out without an expiry notice', async () => {
+    fetcher
+      .mockResolvedValueOnce(success(authenticated))
+      .mockResolvedValueOnce(new Response(null, { status: 204 }))
+      .mockResolvedValueOnce(success({ enabled: true, authenticated: false }));
+    window.history.replaceState({}, '', '/posts?view=drafts');
+    const session = await load();
+    const expired = vi.fn();
+    session.subscribeIntegrationExpired(expired);
+    await session.initializeIntegration();
+
+    expect(await session.signOutIntegration()).toEqual({ ok: true });
+    const [url, options] = fetcher.mock.calls[1]!;
+    expect(url).toBe('/api/sso/logout');
+    expect(options).toMatchObject({ method: 'POST', credentials: 'same-origin', redirect: 'error' });
+    expect(new Headers(options?.headers).get('X-CSRF-Token')).toBe('memory-only-token');
+    expect(session.integrationAccess.value).toBe(false);
+    expect(session.integrationAccount.value).toBeNull();
+    expect(session.integrationError.value).toBe('');
+    expect(session.integrationReturnPath.value).toBe('/posts?view=drafts');
+    await session.refreshIntegration();
+    expect(expired).not.toHaveBeenCalled();
+    await expect(session.integrationFetch('/api/drafts', { method: 'POST' })).rejects.toThrow('Sign in again');
+  });
+
+  it('does not resurrect a session from a status read that started before sign-out', async () => {
+    let resolveStatus!: (response: Response) => void;
+    fetcher
+      .mockResolvedValueOnce(success(authenticated))
+      .mockImplementationOnce(
+        () =>
+          new Promise((resolve) => {
+            resolveStatus = resolve;
+          }),
+      )
+      .mockResolvedValueOnce(new Response(null, { status: 204 }));
+    const session = await load();
+    await session.initializeIntegration();
+    const refresh = session.refreshIntegration();
+    await session.signOutIntegration();
+    resolveStatus(success(authenticated));
+    await refresh;
+    expect(session.integrationAccess.value).toBe(false);
+  });
+
+  it.each([
+    [400, 'This tab could not confirm its Ocharo sign-in. Reload the app, then sign out.'],
+    [503, 'Ocharo Desk could not end this sign-in. Your work stays here; try again shortly.'],
+    [500, 'Could not sign out. Try again.'],
+  ])('keeps the session and returns display-safe feedback when sign-out answers %i', async (status, message) => {
+    fetcher
+      .mockResolvedValueOnce(success(authenticated))
+      .mockResolvedValueOnce(Response.json({ code: 'sso_unavailable', detail: 'raw' }, { status }));
+    const session = await load();
+    await session.initializeIntegration();
+    expect(await session.signOutIntegration()).toEqual({ ok: false, message });
+    expect(session.integrationAccess.value).toBe(true);
+    expect(session.integrationSigningOut.value).toBe(false);
+  });
+
+  it('treats a sign-out that finds the sign-in already ended as signed out, through the expiry flow', async () => {
+    fetcher.mockResolvedValueOnce(success(authenticated)).mockResolvedValueOnce(new Response(null, { status: 401 }));
+    const session = await load();
+    const expired = vi.fn();
+    session.subscribeIntegrationExpired(expired);
+    await session.initializeIntegration();
+    expect(await session.signOutIntegration()).toEqual({ ok: true });
+    expect(session.integrationAccess.value).toBe(false);
+    expect(expired).toHaveBeenCalledTimes(1);
+  });
+
+  it('offers no sign-out outside an active Ocharo session', async () => {
+    const legacy = { mode: 'local', active: true, configured: true, canEdit: true };
+    fetcher.mockImplementation(async (url) =>
+      url === '/api/sso/session'
+        ? success({ enabled: false, authenticated: false })
+        : new Response(JSON.stringify(legacy)),
+    );
+    const session = await load();
+    await session.initializeIntegration();
+    expect(await session.signOutIntegration()).toEqual({ ok: false, message: 'Could not sign out. Try again.' });
+    expect(fetcher.mock.calls.map((call) => call[0])).not.toContain('/api/sso/logout');
+  });
+
   it.each(['//foreign.example', '/api/session', '/API/sso', '/a%2fb', '/a\\b', '/path\nnext'])(
     'rejects unsafe return path %s',
     async (path) => {

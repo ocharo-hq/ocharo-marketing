@@ -2,7 +2,6 @@ import { mount, flushPromises, type VueWrapper } from '@vue/test-utils';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { nextTick } from 'vue';
 import MarketingSelect from '@ocharomarketing/connect/MarketingSelect.vue';
-import LanguagePicker from '@ocharomarketing/connect/LanguagePicker.vue';
 import { useUiLocale } from '@ocharomarketing/connect/UseUiLocale';
 
 const mounted: VueWrapper[] = [];
@@ -77,17 +76,16 @@ describe('Marketing SDK dropdown', () => {
     await wrapper.setProps({ options: [{ value: 'b', label: 'Beta' }] });
     expect(input.checkValidity()).toBe(false);
   });
-  it('opens the language menu and dismisses without changing locale', async () => {
-    const wrapper = mount(LanguagePicker, { attachTo: document.body });
-    mounted.push(wrapper);
-    const trigger = wrapper.get('button[aria-label="Interface language"]');
+  it('opens its listbox and dismisses with Escape without choosing a value', async () => {
+    const wrapper = picker();
+    const trigger = wrapper.get('button[aria-label="Example"]');
     (trigger.element as HTMLButtonElement).focus();
     await trigger.trigger('click');
     await settle();
     expect(document.querySelector('[role="listbox"]')).not.toBeNull();
     document.dispatchEvent(new KeyboardEvent('keydown', { key: 'Escape', bubbles: true }));
     await settle();
-    expect(useUiLocale().uiLocale.value).toBe('en');
+    expect(wrapper.emitted('update:modelValue')).toBeUndefined();
   });
 });
 

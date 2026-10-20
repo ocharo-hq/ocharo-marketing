@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import MarketingSelect from '@ocharomarketing/connect/MarketingSelect.vue';
-import { useErrorToast } from '../../application/shared/UseFeedback';
+import { useErrorToast } from '@ocharomarketing/connect/Feedback';
 import { useUiLocale } from '@ocharomarketing/connect/UseUiLocale';
 import { computed, onMounted, ref, watch } from 'vue';
 import { BookOpen, CalendarClock, Plus, RefreshCw, Sparkles, Trash2, Zap } from 'lucide-vue-next';

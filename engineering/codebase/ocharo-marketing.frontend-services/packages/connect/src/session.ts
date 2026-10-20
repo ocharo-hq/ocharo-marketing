@@ -15,6 +15,15 @@ interface SsoSession {
   canEdit?: boolean;
   canApprove?: boolean;
   csrfToken?: string;
+  accountUrl?: unknown;
+}
+/**
+ * Who is signed in through Ocharo Desk, as far as the session says: Desk sends no name or email yet, so the frame
+ * names the session, not the person. `accountUrl` is Desk's own origin, where the operator manages the account.
+ */
+export interface IntegrationAccount {
+  readonly userId: string;
+  readonly accountUrl: string | null;
 }
 export const integrationSession = ref<IntegrationSession | null>(null);
 export const integrationError = ref("");
@@ -26,8 +35,12 @@ export const integrationAccess = computed(
     integrationMode.value === "legacy" ||
     integrationSession.value?.active === true,
 );
-/** The app path a reconnect returns to, captured when the signed-in session expired. */
+/** The app path a reconnect returns to, captured when the signed-in session expired or was signed out. */
 export const integrationReturnPath = ref<string | null>(null);
+/** The signed-in Ocharo account, while an SSO session is active; `null` otherwise. */
+export const integrationAccount = ref<IntegrationAccount | null>(null);
+/** True while `signOutIntegration` waits for the server. */
+export const integrationSigningOut = ref(false);
 /** Describes one expiry of a signed-in session, in the shape of the SDK's `subscribeExpired` event. */
 export interface IntegrationExpiry {
   readonly returnUrl: string;
@@ -41,6 +54,11 @@ const unavailable =
   "Connection status is unavailable. Your unsaved work stays here.";
 const expired =
   "Your connection expired. Reconnect from Platform; your unsaved work stays here.";
+const signOutFailed = "Could not sign out. Try again.";
+const signOutNeedsReload =
+  "This tab could not confirm its Ocharo sign-in. Reload the app, then sign out.";
+const signOutUnavailable =
+  "Ocharo Desk could not end this sign-in. Your work stays here; try again shortly.";
 
 function record(value: unknown): Record<string, unknown> | null {
   return value !== null && typeof value === "object" && !Array.isArray(value)
@@ -67,9 +85,26 @@ function decodeSso(value: unknown): SsoSession {
     throw new Error(unavailable);
   return data as unknown as SsoSession;
 }
+/** Accepts Desk's account address only as a plain HTTPS origin, the shape the server sends. */
+function safeAccountUrl(value: unknown): string | null {
+  try {
+    const url = new URL(String(value));
+    return url.protocol === "https:" &&
+      !url.username &&
+      !url.password &&
+      !url.search &&
+      !url.hash &&
+      url.pathname === "/"
+      ? url.href
+      : null;
+  } catch {
+    return null;
+  }
+}
 function expire(message: string) {
   generation++;
   csrfToken = null;
+  integrationAccount.value = null;
   if (integrationSession.value)
     integrationSession.value = {
       ...integrationSession.value,
@@ -125,6 +160,12 @@ async function readSession() {
       if (integrationIdentityChanged.value) return;
       identity ??= nextIdentity;
       csrfToken = session.authenticated ? session.csrfToken! : null;
+      integrationAccount.value = session.authenticated
+        ? {
+            userId: session.userId!,
+            accountUrl: safeAccountUrl(session.accountUrl),
+          }
+        : null;
       wasActive = integrationSession.value?.active === true;
       integrationSession.value = {
         mode: "sso",
@@ -157,6 +198,7 @@ async function readSession() {
         return;
       }
       csrfToken = null;
+      integrationAccount.value = null;
       integrationMode.value = "legacy";
       wasActive = integrationSession.value?.active === true;
       integrationSession.value = value as unknown as IntegrationSession;
@@ -260,3 +302,54 @@ export const integrationFetch: typeof fetch = async (input, init) => {
   }
   return response;
 };
+/** The outcome of `signOutIntegration`: `message` is a display-safe English source for the operator. */
+export type IntegrationSignOut =
+  | { readonly ok: true }
+  | { readonly ok: false; readonly message: string };
+/**
+ * Ends this app's Desk grant with `POST /api/sso/logout` and the in-memory CSRF token. On 204 the session reads signed
+ * out without an expiry notice; the page, its fieldset-disabled editors and the reconnect link stay. A 401 means the
+ * sign-in had already ended (the expiry flow reports it). A 400 or 503 leaves the session as it was.
+ */
+export async function signOutIntegration(): Promise<IntegrationSignOut> {
+  if (integrationSigningOut.value) return { ok: false, message: "" };
+  if (integrationMode.value !== "sso" || !integrationSession.value?.active)
+    return { ok: false, message: signOutFailed };
+  integrationSigningOut.value = true;
+  try {
+    const response = await integrationFetch("/api/sso/logout", {
+      method: "POST",
+      cache: "no-store",
+    });
+    if (response.ok) {
+      generation++;
+      csrfToken = null;
+      integrationAccount.value = null;
+      integrationReturnPath.value =
+        window.location.pathname + window.location.search;
+      if (integrationSession.value)
+        integrationSession.value = {
+          ...integrationSession.value,
+          active: false,
+          canEdit: false,
+          canApprove: false,
+        };
+      integrationError.value = "";
+      return { ok: true };
+    }
+    if (response.status === 401) return { ok: true };
+    return {
+      ok: false,
+      message:
+        response.status === 400 || response.status === 403
+          ? signOutNeedsReload
+          : response.status === 503
+            ? signOutUnavailable
+            : signOutFailed,
+    };
+  } catch {
+    return { ok: false, message: signOutFailed };
+  } finally {
+    integrationSigningOut.value = false;
+  }
+}

@@ -2,8 +2,7 @@ import { afterEach, describe, expect, it, vi } from 'vitest';
 import { NoticeTone } from '@wow-two-beta/fe/feedback';
 import { requestFailureMessage } from '../../../packages/connect/src/RequestFeedback';
 import { useUiLocale } from '../../../packages/connect/src/UseUiLocale';
-import * as marketing from '../src/application/shared/UseFeedback';
-import * as editorial from '../../editorial/src/application/shared/UseFeedback';
+import { feedbackBus, sessionExpiryNotice } from '@ocharomarketing/connect/Feedback';
 
 afterEach(() => {
   useUiLocale().setUiLocale('en');
@@ -16,13 +15,11 @@ describe('session expiry feedback', () => {
     expect(requestFailureMessage({ code: 'http', status: 500 })).not.toBe('');
   });
 
-  it.each([
-    ['Marketing', marketing],
-    ['Editorial', editorial],
-  ] as const)('%s publishes one neutral sign-out notice in the operator language', (_, feedback) => {
-    const notify = vi.spyOn(feedback.feedbackBus, 'notify');
+  // Marketing and Editorial share this feedback module; each app bundle owns its own bus instance.
+  it('publishes one neutral sign-out notice in the operator language', () => {
+    const notify = vi.spyOn(feedbackBus, 'notify');
     useUiLocale().setUiLocale('ru');
-    feedback.sessionExpiryNotice()();
+    sessionExpiryNotice()();
     expect(notify).toHaveBeenCalledExactlyOnceWith(
       expect.objectContaining({
         id: 'session-expired',

@@ -66,12 +66,43 @@ const sdkSources: Record<string, string> = {
   "NumberInput.incrementLabel": "Increase",
   "NumberInput.decrementLabel": "Decrease",
   "ToastHost.notifications": "Notifications",
+  "AppShell.skipToContent": "Skip to main content",
+};
+/**
+ * The SDK account menu in Desk's wording, so every Ocharo app names its rows alike. English is the SDK's default text;
+ * `{name}` stays for the SDK to fill.
+ */
+const accountMenuMessages: Record<string, Readonly<Record<UiLocale, string>>> = {
+  "AccountMenu.menuLabel": { en: "Account", uz: "Hisob", ru: "Учётная запись" },
+  "AccountMenu.triggerLabel": {
+    en: "Account menu for {name}",
+    uz: "{name} hisob menyusi",
+    ru: "Меню учётной записи {name}",
+  },
+  "AccountMenu.anonymousTriggerLabel": {
+    en: "Account menu",
+    uz: "Hisob menyusi",
+    ru: "Меню учётной записи",
+  },
+  "AccountMenu.appearanceLabel": { en: "Appearance", uz: "Ko‘rinish", ru: "Оформление" },
+  "AccountMenu.systemModeLabel": { en: "System", uz: "Tizim", ru: "Системная" },
+  "AccountMenu.lightModeLabel": { en: "Light", uz: "Yorug‘", ru: "Светлая" },
+  "AccountMenu.darkModeLabel": { en: "Dark", uz: "Qorong‘i", ru: "Тёмная" },
+  "AccountMenu.languageLabel": { en: "Language", uz: "Til", ru: "Язык" },
+  "AccountMenu.organizationLabel": { en: "Organization", uz: "Tashkilot", ru: "Организация" },
+  "AccountMenu.versionsLabel": { en: "Versions", uz: "Versiyalar", ru: "Версии" },
+  "AccountMenu.signOutLabel": { en: "Sign out", uz: "Chiqish", ru: "Выйти" },
 };
 export function sdkMessageDictionary(locale: UiLocale): Record<string, string> {
-  return Object.fromEntries(
-    Object.entries(sdkSources).map(([key, source]) => [
-      key,
-      translateUi(source, locale),
-    ]),
-  );
+  return {
+    ...Object.fromEntries(
+      Object.entries(sdkSources).map(([key, source]) => [
+        key,
+        translateUi(source, locale),
+      ]),
+    ),
+    ...Object.fromEntries(
+      Object.entries(accountMenuMessages).map(([key, value]) => [key, value[locale]]),
+    ),
+  };
 }

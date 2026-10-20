@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import MarketingSelect from '@ocharomarketing/connect/MarketingSelect.vue';
+import { trackUnsavedWork } from '@ocharomarketing/connect/UnsavedWork';
 import { useUiLocale } from '@ocharomarketing/connect/UseUiLocale';
 import { computed, onBeforeUnmount, onMounted, ref } from 'vue';
 import { onBeforeRouteLeave, RouterLink, useRoute, useRouter } from 'vue-router';
@@ -96,6 +97,8 @@ onBeforeUnmount(() => window.removeEventListener('beforeunload', warn));
 onBeforeRouteLeave(
   () => !unsavedChanges.value || window.confirm(ui('Saqlanmagan o‘zgarishlar bor. Chiqib ketilsinmi?')),
 );
+// The frame holds sign-out while these guards would warn, and while a save is in flight.
+trackUnsavedWork(() => unsavedChanges.value || editor.busy.value);
 
 async function save() {
   if (imageBusy.value || pendingImageEdits.value || editor.busy.value) return;
@@ -190,7 +193,7 @@ function addProduct() {
     >
   </div>
   <EditorSkeleton v-if="editor.loading.value && !editor.draft.value" />
-  <section v-if="editor.draft.value" :aria-busy="editor.loading.value || refreshing" class="pb-28">
+  <section v-if="editor.draft.value" :aria-busy="editor.loading.value || refreshing">
     <fieldset :disabled="editor.busy.value || editor.loading.value || refreshing" class="min-w-0 border-0 p-0">
       <RouterLink to="/" class="btn-ghost -ml-3 mb-3"
         ><Icon :icon="ArrowLeft" :size="15" />{{ ui('Stories') }}</RouterLink
@@ -627,7 +630,7 @@ function addProduct() {
                     <li
                       v-for="(pid, index) in editor.draft.value.productIds"
                       :key="pid"
-                      class="chip bg-secondary text-secondary-foreground"
+                      class="chip bg-muted text-muted-foreground"
                     >
                       {{ editor.products.value.find((p) => p.id === pid)?.name ?? pid }}
                       <button
@@ -678,7 +681,7 @@ function addProduct() {
           </section>
         </div>
 
-        <aside class="space-y-6 2xl:sticky 2xl:top-24 2xl:self-start">
+        <aside class="space-y-6 2xl:sticky 2xl:top-6 2xl:self-start">
           <section class="panel" aria-labelledby="publishing">
             <h2 id="publishing" class="font-editorial text-2xl">{{ ui('Publication') }}</h2>
             <p
@@ -826,8 +829,9 @@ function addProduct() {
         </aside>
       </div>
 
-      <div class="fixed inset-x-0 bottom-0 z-30 border-t border-border bg-card/95 backdrop-blur lg:left-60">
-        <div class="mx-auto flex max-w-[1600px] flex-wrap items-center gap-3 px-5 py-3 sm:px-8 xl:px-10">
+      <!-- Sticks to the bottom of the frame's scrolling main region, above the phone's bottom bar. -->
+      <div class="sticky bottom-0 z-30 mt-6 rounded-xl border border-border bg-card/95 backdrop-blur">
+        <div class="flex flex-wrap items-center gap-3 px-4 py-3 sm:px-5">
           <span :class="['text-sm', unsavedChanges ? 'font-semibold text-warning' : 'text-muted-foreground']">{{
             unsavedChanges ? ui('Unsaved changes') : ui('All changes saved')
           }}</span>

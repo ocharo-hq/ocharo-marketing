@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import MarketingSelect from '@ocharomarketing/connect/MarketingSelect.vue';
 import { requestFailureMessage } from '@ocharomarketing/connect/RequestFeedback';
-import { useErrorToast } from '../../application/shared/UseFeedback';
+import { useErrorToast } from '@ocharomarketing/connect/Feedback';
 import { useUiLocale } from '@ocharomarketing/connect/UseUiLocale';
 import { ref } from 'vue';
 import { RouterLink } from 'vue-router';
@@ -62,7 +62,7 @@ async function submit() {
       <label class="block min-w-0 text-xs font-semibold"
         >{{ ui('Studio review JSON')
         }}<input
-          class="mt-2 block min-h-11 w-full min-w-0 rounded-xl border border-border bg-background px-3 py-2.5 text-sm text-foreground outline-none focus:ring-2 focus:ring-ring file:mr-3 file:rounded-lg file:border-0 file:bg-secondary file:px-3 file:py-2 file:text-xs file:font-semibold"
+          class="mt-2 block min-h-11 w-full min-w-0 rounded-xl border border-border bg-background px-3 py-2.5 text-sm text-foreground outline-none focus:ring-2 focus:ring-ring file:mr-3 file:rounded-lg file:border-0 file:bg-muted file:px-3 file:py-2 file:text-xs file:font-semibold"
           type="file"
           accept=".json"
           required
@@ -70,7 +70,7 @@ async function submit() {
       ><label class="block min-w-0 text-xs font-semibold"
         >{{ ui('Matching PNG')
         }}<input
-          class="mt-2 block min-h-11 w-full min-w-0 rounded-xl border border-border bg-background px-3 py-2.5 text-sm text-foreground outline-none focus:ring-2 focus:ring-ring file:mr-3 file:rounded-lg file:border-0 file:bg-secondary file:px-3 file:py-2 file:text-xs file:font-semibold"
+          class="mt-2 block min-h-11 w-full min-w-0 rounded-xl border border-border bg-background px-3 py-2.5 text-sm text-foreground outline-none focus:ring-2 focus:ring-ring file:mr-3 file:rounded-lg file:border-0 file:bg-muted file:px-3 file:py-2 file:text-xs file:font-semibold"
           type="file"
           accept="image/png"
           required

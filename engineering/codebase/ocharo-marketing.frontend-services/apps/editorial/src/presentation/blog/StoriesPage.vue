@@ -149,7 +149,7 @@ onMounted(() => list.load());
                   >{{ a.title }}</RouterLink
                 >
                 <p class="mt-1 truncate text-xs text-muted-foreground">
-                  <span class="chip mr-1 bg-secondary text-secondary-foreground">{{ a.language.toUpperCase() }}</span
+                  <span class="chip mr-1 bg-muted text-muted-foreground">{{ a.language.toUpperCase() }}</span
                   >{{ publicationPath(a) }}
                 </p>
               </td>

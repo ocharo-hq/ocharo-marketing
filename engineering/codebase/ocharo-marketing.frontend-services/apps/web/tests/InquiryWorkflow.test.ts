@@ -1,7 +1,7 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { mount, flushPromises } from '@vue/test-utils';
 import { createAppRouter, RouterHistoryMode } from '@wow-two-beta/fe/router';
-import { feedbackBus } from '../src/application/shared/UseFeedback';
+import { feedbackBus } from '@ocharomarketing/connect/Feedback';
 import InquiriesPage from '../src/presentation/marketing/InquiriesPage.vue';
 import { useUiLocale } from '@ocharomarketing/connect/UseUiLocale';
 const { request } = vi.hoisted(() => ({ request: vi.fn<typeof fetch>() }));

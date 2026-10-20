@@ -6,15 +6,20 @@
   "exports": {
     ".": "./src/session.ts",
     "./ConnectDesk.vue": "./src/ConnectDesk.vue",
-    "./BuildVersion.vue": "./src/BuildVersion.vue",
     "./UseUiLocale": "./src/UseUiLocale.ts",
     "./UiMessages": "./src/UiMessages.ts",
     "./RequestFeedback": "./src/RequestFeedback.ts",
-    "./LanguagePicker.vue": "./src/LanguagePicker.vue",
-    "./MarketingSelect.vue": "./src/MarketingSelect.vue"
+    "./MarketingSelect.vue": "./src/MarketingSelect.vue",
+    "./Feedback": "./src/Feedback.ts",
+    "./OcharoApps": "./src/OcharoApps.ts",
+    "./OcharoAppsConfig": "./src/OcharoAppsConfig.ts",
+    "./ServiceVersion": "./src/ServiceVersion.ts",
+    "./UnsavedWork": "./src/UnsavedWork.ts",
+    "./OcharoFrame.css": "./src/OcharoFrame.css"
   },
   "dependencies": {
     "vue": "^3.5.13",
-    "@wow-two-beta/fe": "0.0.23"
+    "@wow-two-beta/fe": "0.0.28",
+    "lucide-vue-next": "^0.460.0"
   }
 }

@@ -1,7 +1,7 @@
 import { mount, flushPromises } from '@vue/test-utils';
 import { afterEach, beforeEach, expect, it, vi } from 'vitest';
 import CardPreview from '../src/presentation/marketing/CardPreview.vue';
-import { feedbackBus } from '../src/application/shared/UseFeedback';
+import { feedbackBus } from '@ocharomarketing/connect/Feedback';
 const { previewCard } = vi.hoisted(() => ({ previewCard: vi.fn() }));
 vi.mock('../src/application/marketing', () => ({ useMarketingWorkspace: () => ({ previewCard }) }));
 vi.mock('@wow-two-beta/fe/foundation/observers', () => ({ useResizeObserver: vi.fn() }));

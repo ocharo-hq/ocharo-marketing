@@ -1,4 +1,4 @@
-import { feedbackBus } from '../src/application/shared/UseFeedback';
+import { feedbackBus } from '@ocharomarketing/connect/Feedback';
 import { useUiLocale } from '@ocharomarketing/connect/UseUiLocale';
 import { beforeEach as beforeLocaleTest } from 'vitest';
 beforeLocaleTest(() => {

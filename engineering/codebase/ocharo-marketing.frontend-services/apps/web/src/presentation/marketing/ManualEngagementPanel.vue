@@ -2,7 +2,7 @@
 import MarketingSelect from '@ocharomarketing/connect/MarketingSelect.vue';
 import { requestFailureMessage } from '@ocharomarketing/connect/RequestFeedback';
 import { SkeletonState } from '@wow-two-beta/fe/presentation/feedback';
-import { useErrorToast } from '../../application/shared/UseFeedback';
+import { useErrorToast } from '@ocharomarketing/connect/Feedback';
 import { useUiLocale } from '@ocharomarketing/connect/UseUiLocale';
 import { computed, onBeforeUnmount, onMounted, reactive, ref } from 'vue';
 import { Button } from '@wow-two-beta/fe/presentation/actions';

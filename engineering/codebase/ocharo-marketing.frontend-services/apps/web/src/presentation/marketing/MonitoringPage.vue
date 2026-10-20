@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { useErrorToast } from '../../application/shared/UseFeedback';
+import { useErrorToast } from '@ocharomarketing/connect/Feedback';
 import { useUiLocale } from '@ocharomarketing/connect/UseUiLocale';
 import { onBeforeUnmount, onMounted, ref } from 'vue';
 import { Button } from '@wow-two-beta/fe/presentation/actions';

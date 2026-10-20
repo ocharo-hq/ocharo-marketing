@@ -3,8 +3,27 @@ import { Agent } from 'node:https';
 import { readFileSync } from 'node:fs';
 import tailwindcss from '@tailwindcss/vite';
 import vue from '@vitejs/plugin-vue';
-import { defineConfig } from 'vite';
+import { defineConfig, type Plugin } from 'vite';
 import mkcert from 'vite-plugin-mkcert';
+import { colorModeScript } from '@wow-two-beta/fe/foundation/primitives';
+import { ThemeStorageKey } from './src/bootstrap/theme';
+
+/** Serves and emits `/theme.js`: the SDK's pre-paint colour script, so a dark Marketing never flashes light first. */
+function themeScript(): Plugin {
+  const source = colorModeScript({ storageKey: ThemeStorageKey });
+  return {
+    name: 'ocharo-marketing-theme-script',
+    configureServer(server) {
+      server.middlewares.use('/theme.js', (_request, response) => {
+        response.setHeader('Content-Type', 'text/javascript');
+        response.end(source);
+      });
+    },
+    generateBundle() {
+      this.emitFile({ type: 'asset', fileName: 'theme.js', source });
+    },
+  };
+}
 
 /** Keeps development proxy overrides on verified HTTPS endpoints. */
 function httpsTarget(value: string): string {
@@ -27,7 +46,7 @@ export default defineConfig(({ command }) => {
       ),
     },
     base: '/',
-    plugins: [vue(), tailwindcss(), ...(command === 'serve' && !tls ? [mkcert()] : [])],
+    plugins: [vue(), tailwindcss(), themeScript(), ...(command === 'serve' && !tls ? [mkcert()] : [])],
     build: { outDir: 'dist', emptyOutDir: true, target: 'es2022' },
     server: {
       host: 'localhost',

@@ -2,6 +2,15 @@ import { computed, readonly, ref } from "vue";
 import { translateUi, type UiLocale } from "./UiMessages";
 export type { UiLocale } from "./UiMessages";
 export const operatorLocaleKey = "ocharo.operator.locale";
+/** The interface languages, each named in its own language, as the account menu lists them. */
+export const interfaceLanguages: readonly {
+  readonly value: UiLocale;
+  readonly label: string;
+}[] = [
+  { value: "uz", label: "O‘zbekcha" },
+  { value: "ru", label: "Русский" },
+  { value: "en", label: "English" },
+];
 const currentLocale = ref<UiLocale>("en");
 const localeNames = { en: "en-GB", uz: "uz-Latn-UZ", ru: "ru-RU" } as const;
 const uzMonths = [

@@ -1,3 +1,4 @@
+import { frameUiMessages } from "./FrameUiMessages";
 /** English source messages for Ocharo operator chrome. Authored content is never passed here. */
 export type UiLocale = "uz" | "ru" | "en";
 export const uiMessages: Readonly<
@@ -3960,6 +3961,7 @@ export const uiMessages: Readonly<
     uz: "{revision}-versiya tiklandi.",
     ru: "Версия {revision} восстановлена.",
   },
+  ...frameUiMessages,
 };
 /** Legacy API and workflow messages are normalized without rewriting saved documents. */
 const aliases: Readonly<Record<string, string>> = {

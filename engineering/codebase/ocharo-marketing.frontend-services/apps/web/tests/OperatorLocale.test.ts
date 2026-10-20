@@ -1,8 +1,14 @@
-import { mount } from '@vue/test-utils';
-import { nextTick } from 'vue';
-import { beforeEach, describe, expect, it, vi } from 'vitest';
-import LanguagePicker from '@ocharomarketing/connect/LanguagePicker.vue';
-import { initializeUiLocale, operatorLocaleKey, useUiLocale } from '@ocharomarketing/connect/UseUiLocale';
+import { flushPromises, mount } from '@vue/test-utils';
+import { defineComponent, h, nextTick } from 'vue';
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
+import { provideLocale } from '@wow-two-beta/fe/foundation/i18n';
+import { AccountMenu } from '@wow-two-beta/fe/presentation/nav';
+import {
+  initializeUiLocale,
+  interfaceLanguages,
+  operatorLocaleKey,
+  useUiLocale,
+} from '@ocharomarketing/connect/UseUiLocale';
 import { translateUi, uiMessages } from '@ocharomarketing/connect/UiMessages';
 import StatusIndicator from '../src/presentation/marketing/StatusIndicator.vue';
 const locale = useUiLocale();
@@ -10,21 +16,50 @@ beforeEach(() => {
   localStorage.clear();
   locale.setUiLocale('en');
 });
+afterEach(() => {
+  document.body.innerHTML = '';
+});
+
+/** The frame's language rows: the SDK account menu over the operator locale, as both AppLayouts bind it. */
+const LanguageRows = defineComponent({
+  setup() {
+    const { uiLocale, setUiLocale, sdkMessages } = useUiLocale();
+    provideLocale(uiLocale, sdkMessages);
+    return () =>
+      h(AccountMenu, {
+        locales: interfaceLanguages,
+        locale: uiLocale.value,
+        showAppearance: false,
+        'onUpdate:locale': setUiLocale,
+      });
+  },
+});
+
+/** Opens the account menu and picks the language row named by its `lang`. */
+async function pickLanguage(wrapper: ReturnType<typeof mount>, value: string) {
+  await wrapper.get('button[aria-haspopup="menu"]').trigger('click');
+  await flushPromises();
+  document.querySelector<HTMLElement>(`[role="menuitemradio"][lang="${value}"]`)!.click();
+  await flushPromises();
+}
+
 describe('operator locale', () => {
   it('persists a visible language choice and updates existing workflow labels', async () => {
-    const picker = mount(LanguagePicker),
+    const menu = mount(LanguageRows, { attachTo: document.body }),
       status = mount(StatusIndicator, { props: { status: 'draft' } });
     expect(status.text()).toBe('Draft');
-    picker.getComponent({ name: 'MarketingSelect' }).vm.$emit('update:modelValue', 'ru');
-    await nextTick();
+    await pickLanguage(menu, 'ru');
     expect(localStorage.getItem(operatorLocaleKey)).toBe('ru');
     expect(document.documentElement.lang).toBe('ru');
     expect(status.text()).toBe('Черновик');
-    expect(picker.get('button[aria-haspopup="listbox"]').attributes('aria-label')).toBe('Язык интерфейса');
-    picker.getComponent({ name: 'MarketingSelect' }).vm.$emit('update:modelValue', 'uz');
+    await menu.get('button[aria-haspopup="menu"]').trigger('click');
+    await flushPromises();
+    expect(document.querySelector('[data-account-menu-languages]')?.textContent).toContain('Язык');
+    expect(document.querySelector('[role="menuitemradio"][lang="ru"]')?.getAttribute('aria-checked')).toBe('true');
+    document.querySelector<HTMLElement>('[role="menuitemradio"][lang="uz"]')!.click();
     await nextTick();
     expect(status.text()).toBe('Qoralama');
-    picker.unmount();
+    menu.unmount();
     status.unmount();
   });
   it('restores a supported saved choice and rejects unsupported values', () => {

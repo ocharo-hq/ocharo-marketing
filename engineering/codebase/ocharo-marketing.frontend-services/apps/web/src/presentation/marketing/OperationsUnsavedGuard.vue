@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import { trackUnsavedWork } from '@ocharomarketing/connect/UnsavedWork';
 import { useUiLocale } from '@ocharomarketing/connect/UseUiLocale';
 import { computed } from 'vue';
 import { useNavigationBlocker } from '@wow-two-beta/fe/router';
@@ -15,6 +16,8 @@ const { t: ui } = useUiLocale();
 
 const props = defineProps<{ dirty: boolean }>();
 const blocker = useNavigationBlocker(computed(() => props.dirty));
+// The frame holds sign-out on the same state the navigation guard blocks on.
+trackUnsavedWork(() => props.dirty);
 </script>
 <template>
   <Modal

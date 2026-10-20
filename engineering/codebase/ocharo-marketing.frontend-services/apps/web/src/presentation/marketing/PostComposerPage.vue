@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import { trackUnsavedWork } from '@ocharomarketing/connect/UnsavedWork';
 import { useUiLocale } from '@ocharomarketing/connect/UseUiLocale';
 import SelectPickerTrigger from './compatibility/PickerTrigger.vue';
 import { computed, reactive, ref, watch } from 'vue';
@@ -121,8 +122,9 @@ const canUseOutput = computed(
     renderedSignature.value === compositionSignature.value &&
     renderJob.value.outputAssetIds.length > 0,
 );
-/** Unsaved work participates in the SDK navigation blocker. */
+/** Unsaved work participates in the SDK navigation blocker, and holds the frame's sign-out. */
 const blocker = useNavigationBlocker(dirty);
+trackUnsavedWork(dirty);
 
 /** Invalidates old artwork when a displayed card field changes. */
 watch(

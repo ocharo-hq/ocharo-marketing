@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { useErrorToast } from '../../application/shared/UseFeedback';
+import { useErrorToast } from '@ocharomarketing/connect/Feedback';
 import { useUiLocale } from '@ocharomarketing/connect/UseUiLocale';
 import { computed, onBeforeUnmount, ref, watch } from 'vue';
 import { FileSearch, ArrowUpRight, RefreshCw } from 'lucide-vue-next';

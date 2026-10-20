@@ -164,7 +164,7 @@ onBeforeUnmount(() => {
       </div>
       <form
         v-if="editing"
-        class="order-first space-y-4 rounded-2xl border border-border bg-card p-5 xl:sticky xl:top-24 xl:order-last"
+        class="order-first space-y-4 rounded-2xl border border-border bg-card p-5 xl:sticky xl:top-6 xl:order-last"
         @submit.prevent="save"
       >
         <h2 class="font-editorial text-2xl">{{ ops.channels[editing.channel] }} {{ ui('plan') }}</h2>

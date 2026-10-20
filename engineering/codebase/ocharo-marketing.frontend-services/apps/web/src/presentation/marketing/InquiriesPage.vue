@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import MarketingSelect from '@ocharomarketing/connect/MarketingSelect.vue';
 import { requestFailureMessage } from '@ocharomarketing/connect/RequestFeedback';
-import { useErrorToast } from '../../application/shared/UseFeedback';
+import { useErrorToast } from '@ocharomarketing/connect/Feedback';
 import { useUiLocale } from '@ocharomarketing/connect/UseUiLocale';
 import { computed, onBeforeUnmount, onMounted, ref } from 'vue';
 import { integrationFetch } from '@ocharomarketing/connect';
