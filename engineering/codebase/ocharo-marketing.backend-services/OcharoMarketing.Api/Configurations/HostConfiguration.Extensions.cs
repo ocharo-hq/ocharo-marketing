@@ -4,6 +4,7 @@ using System.Threading.RateLimiting;
 using Microsoft.AspNetCore.RateLimiting;
 using Microsoft.EntityFrameworkCore;
 using OcharoMarketing.Api.Marketing;
+using OcharoMarketing.Api.RuntimeConfig.Settings;
 using OcharoMarketing.Application;
 using OcharoMarketing.Application.Cards.Brokers;
 using OcharoMarketing.Application.Cards.Services;
@@ -29,6 +30,7 @@ using OcharoMarketing.Persistence.Marketing.Repositories;
 using OcharoMarketing.Persistence.Scanning;
 using WoW.Two.Sdk.Beta.Be.Data.Migrations.Ef;
 using WoW.Two.Sdk.Beta.Be.Foundation.Configuration;
+using WoW.Two.Sdk.Beta.Be.Foundation.Options;
 using WoW.Two.Sdk.Beta.Be.Mediator;
 using WoW.Two.Sdk.Beta.Be.Storage.FileSystem;
 using WoW.Two.Sdk.Beta.Be.Web.ProblemDetails;
@@ -268,6 +270,22 @@ public static partial class HostConfiguration
         return builder;
     }
 
+    /// <summary>Registers the public runtime settings the SPA reads at startup: the Ocharo app and site addresses.</summary>
+    private static WebApplicationBuilder AddRuntimeConfig(this WebApplicationBuilder builder)
+    {
+        // Every address is optional, and a malformed one is left out rather than failing the host over a menu link.
+        builder.Services.AddValidatedSettings<OcharoAppsSettings>(builder.Configuration, OcharoAppsSettings.SectionName, _ => { });
+        return builder;
+    }
+
+    /// <summary>Warns once about each configured app address the runtime config leaves out.</summary>
+    private static void WarnAboutRejectedRuntimeConfig(this WebApplication app)
+    {
+        var rejected = app.Services.GetRequiredService<OcharoAppsSettings>().RejectedSettings();
+        if (rejected.Count > 0)
+            app.Logger.LogWarning("Runtime config leaves out {Settings}: each must be a plain HTTPS address.", string.Join(", ", rejected));
+    }
+
     /// <summary>Registers HTTP problem details, controllers and OpenAPI.</summary>
     private static WebApplicationBuilder AddControllers(this WebApplicationBuilder builder)
     {
@@ -283,7 +301,8 @@ public static partial class HostConfiguration
         app.UseHttpProblemDetails();
         app.UseMiddleware<MarketingExceptionMiddleware>();
         app.UseMiddleware<LocalPilotBoundaryMiddleware>();
-        app.UseOcharoSso(http => http.Request.Path.StartsWithSegments("/api/public") || http.Request.Path == "/health" || http.Request.Path == "/api/system/status",
+        // Health, status and the public runtime settings answer before sign-in, as the integration boundary allows.
+        app.UseOcharoSso(http => http.Request.Path.StartsWithSegments("/api/public") || TechnicalRoutes.IsPublic(http.Request),
             resolveSession: http => http.Request.Path.StartsWithSegments("/media") || http.Request.Path.StartsWithSegments("/preview"));
         app.UseMiddleware<IntegrationBoundaryMiddleware>();
         app.UseDefaultFiles();
@@ -295,6 +314,7 @@ public static partial class HostConfiguration
     /// <summary>Configures controller, status, API error and SPA endpoints.</summary>
     private static WebApplication MapEndpoints(this WebApplication app)
     {
+        app.WarnAboutRejectedRuntimeConfig();
         app.MapControllers();
         app.MapGet("/health", () => Results.Ok(new
         {

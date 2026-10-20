@@ -21,9 +21,8 @@ public sealed class IntegrationBoundaryMiddleware(RequestDelegate next,IConfigur
         var writes=!HttpMethods.IsGet(context.Request.Method)&&!HttpMethods.IsHead(context.Request.Method)&&!HttpMethods.IsOptions(context.Request.Method);
         if(Mode!="local" && writes && !SameOrigin(context.Request))
         {await Reject(context,403,"Cross-origin writes are disabled.");return;}
-        // Technical status is public in every integration mode; business APIs remain fail-closed.
-        if ((HttpMethods.IsGet(context.Request.Method) || HttpMethods.IsHead(context.Request.Method))
-            && path.TrimEnd('/') is "/health" or "/api/system/status")
+        // Technical status and public runtime settings are public in every integration mode; business APIs remain fail-closed.
+        if (TechnicalRoutes.IsPublic(context.Request))
         {
             await next(context);
             return;

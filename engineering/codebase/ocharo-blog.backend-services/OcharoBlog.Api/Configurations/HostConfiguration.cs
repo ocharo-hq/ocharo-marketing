@@ -20,6 +20,7 @@ public static partial class HostConfiguration
             .AddBrand()
             .AddSites()
             .AddMediator()
+            .AddRuntimeConfig()
             .AddControllers();
 
         return builder;

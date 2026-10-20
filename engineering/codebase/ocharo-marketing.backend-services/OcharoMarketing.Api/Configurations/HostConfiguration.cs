@@ -29,6 +29,7 @@ public static partial class HostConfiguration
             .AddInstagram()
             .AddWhatsApp()
             .AddMediator()
+            .AddRuntimeConfig()
             .AddControllers();
 
         return builder;

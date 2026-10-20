@@ -4,6 +4,7 @@ using Microsoft.Data.Sqlite;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Options;
 using OcharoBlog.Api.Blog;
+using OcharoBlog.Api.RuntimeConfig.Settings;
 using OcharoBlog.Application;
 using OcharoBlog.Application.Abstractions;
 using OcharoBlog.Application.Blog.Repositories;
@@ -15,6 +16,7 @@ using OcharoBlog.Infrastructure.Time;
 using OcharoBlog.Persistence;
 using OcharoBlog.Persistence.Blog;
 using WoW.Two.Sdk.Beta.Be.Foundation.Configuration;
+using WoW.Two.Sdk.Beta.Be.Foundation.Options;
 using WoW.Two.Sdk.Beta.Be.Media.Images;
 using WoW.Two.Sdk.Beta.Be.Mediator;
 using WoW.Two.Sdk.Beta.Be.Storage.Core;
@@ -150,6 +152,22 @@ public static partial class HostConfiguration
         return builder;
     }
 
+    /// <summary>Registers the public runtime settings the SPA reads at startup: the Ocharo app and site addresses.</summary>
+    private static WebApplicationBuilder AddRuntimeConfig(this WebApplicationBuilder builder)
+    {
+        // Every address is optional, and a malformed one is left out rather than failing the host over a menu link.
+        builder.Services.AddValidatedSettings<OcharoAppsSettings>(builder.Configuration, OcharoAppsSettings.SectionName, _ => { });
+        return builder;
+    }
+
+    /// <summary>Warns once about each configured app address the runtime config leaves out.</summary>
+    private static void WarnAboutRejectedRuntimeConfig(this WebApplication app)
+    {
+        var rejected = app.Services.GetRequiredService<OcharoAppsSettings>().RejectedSettings();
+        if (rejected.Count > 0)
+            app.Logger.LogWarning("Runtime config leaves out {Settings}: each must be a plain HTTPS address.", string.Join(", ", rejected));
+    }
+
     /// <summary>Registers HTTP problem details, controllers and OpenAPI.</summary>
     private static WebApplicationBuilder AddControllers(this WebApplicationBuilder builder)
     {
@@ -175,7 +193,8 @@ public static partial class HostConfiguration
         app.UseHttpProblemDetails();
         app.UseMiddleware<BlogExceptionMiddleware>();
         app.UseMiddleware<LocalPilotBoundaryMiddleware>();
-        app.UseOcharoSso(http => http.Request.Path.StartsWithSegments("/api/public") || http.Request.Path == "/health" || http.Request.Path == "/api/system/status" || http.Request.Path == "/" || http.Request.Path.StartsWithSegments("/journal") || http.Request.Path.StartsWithSegments("/topics") || http.Request.Path.StartsWithSegments("/uz") || http.Request.Path.StartsWithSegments("/ru") || http.Request.Path.StartsWithSegments("/atlas") || http.Request.Path.StartsWithSegments("/wear") || http.Request.Path.StartsWithSegments("/catalogue") || http.Request.Path.StartsWithSegments("/media"),
+        // Health, status and the public runtime settings answer before sign-in, as the integration boundary allows.
+        app.UseOcharoSso(http => http.Request.Path.StartsWithSegments("/api/public") || TechnicalRoutes.IsPublic(http.Request) || http.Request.Path == "/" || http.Request.Path.StartsWithSegments("/journal") || http.Request.Path.StartsWithSegments("/topics") || http.Request.Path.StartsWithSegments("/uz") || http.Request.Path.StartsWithSegments("/ru") || http.Request.Path.StartsWithSegments("/atlas") || http.Request.Path.StartsWithSegments("/wear") || http.Request.Path.StartsWithSegments("/catalogue") || http.Request.Path.StartsWithSegments("/media"),
             resolveSession: http => http.Request.Path.StartsWithSegments("/media") || http.Request.Path.StartsWithSegments("/preview"));
         app.UseMiddleware<IntegrationBoundaryMiddleware>();
         if (app.Environment.IsLocalRun(app.Configuration))
@@ -201,6 +220,7 @@ public static partial class HostConfiguration
     /// <summary>Configures controller, status, API error and editorial SPA endpoints.</summary>
     private static WebApplication MapEndpoints(this WebApplication app)
     {
+        app.WarnAboutRejectedRuntimeConfig();
         app.MapControllers();
         app.MapGet("/health", () => Results.Ok(new
         {
