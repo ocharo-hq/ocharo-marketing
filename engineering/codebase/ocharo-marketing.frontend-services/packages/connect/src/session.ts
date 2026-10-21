@@ -16,13 +16,18 @@ interface SsoSession {
   canApprove?: boolean;
   csrfToken?: string;
   accountUrl?: unknown;
+  name?: unknown;
+  email?: unknown;
 }
 /**
- * Who is signed in through Ocharo Desk, as far as the session says: Desk sends no name or email yet, so the frame
- * names the session, not the person. `accountUrl` is Desk's own origin, where the operator manages the account.
+ * Who is signed in through Ocharo Desk: the operator's current Desk display name and email, each `null` when Desk
+ * sends none (an older Desk, or a blank profile field). `accountUrl` is Desk's own origin, where the operator
+ * manages the account.
  */
 export interface IntegrationAccount {
   readonly userId: string;
+  readonly name: string | null;
+  readonly email: string | null;
   readonly accountUrl: string | null;
 }
 export const integrationSession = ref<IntegrationSession | null>(null);
@@ -84,6 +89,11 @@ function decodeSso(value: unknown): SsoSession {
   )
     throw new Error(unavailable);
   return data as unknown as SsoSession;
+}
+/** Keeps a display name or email only as nonblank text; anything else reads as absent, never as a failed session. */
+function displayText(value: unknown): string | null {
+  const text = typeof value === "string" ? value.trim() : "";
+  return text.length > 0 ? text : null;
 }
 /** Accepts Desk's account address only as a plain HTTPS origin, the shape the server sends. */
 function safeAccountUrl(value: unknown): string | null {
@@ -163,6 +173,8 @@ async function readSession() {
       integrationAccount.value = session.authenticated
         ? {
             userId: session.userId!,
+            name: displayText(session.name),
+            email: displayText(session.email),
             accountUrl: safeAccountUrl(session.accountUrl),
           }
         : null;

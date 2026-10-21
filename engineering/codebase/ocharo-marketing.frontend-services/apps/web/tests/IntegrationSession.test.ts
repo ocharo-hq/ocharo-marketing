@@ -244,10 +244,43 @@ describe('Ocharo shared sign-in', () => {
     await session.initializeIntegration();
     expect(session.integrationAccount.value).toEqual({
       userId: 'operator-1',
+      name: null,
+      email: null,
       accountUrl: 'https://desk.example.test/',
     });
     await session.refreshIntegration();
-    expect(session.integrationAccount.value).toEqual({ userId: 'operator-1', accountUrl: null });
+    expect(session.integrationAccount.value).toEqual({
+      userId: 'operator-1',
+      name: null,
+      email: null,
+      accountUrl: null,
+    });
+  });
+
+  it('names the signed-in person with the display name and email Desk sends, trimmed', async () => {
+    fetcher.mockResolvedValueOnce(
+      success({ ...authenticated, name: '  Maftuna Rakhimova ', email: 'maftuna@ocharo.example.test' }),
+    );
+    const session = await load();
+    await session.initializeIntegration();
+    expect(session.integrationAccount.value).toMatchObject({
+      userId: 'operator-1',
+      name: 'Maftuna Rakhimova',
+      email: 'maftuna@ocharo.example.test',
+    });
+  });
+
+  it.each([
+    ['absent, as an older Desk sends', {}],
+    ['null', { name: null, email: null }],
+    ['blank or not text', { name: '   ', email: 42 }],
+  ])('keeps the session and reads no name or email when they are %s', async (_case, identity) => {
+    fetcher.mockResolvedValueOnce(success({ ...authenticated, ...identity }));
+    const session = await load();
+    await session.initializeIntegration();
+    expect(session.integrationAccess.value).toBe(true);
+    expect(session.integrationError.value).toBe('');
+    expect(session.integrationAccount.value).toMatchObject({ userId: 'operator-1', name: null, email: null });
   });
 
   it('signs out with the CSRF token and reads signed out without an expiry notice', async () => {
