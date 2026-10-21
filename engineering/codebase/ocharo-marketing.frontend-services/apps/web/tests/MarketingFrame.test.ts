@@ -197,6 +197,11 @@ describe('Ocharo frame in Marketing', () => {
 
     expect(wrapper!.find('aside').exists()).toBe(false);
     const bar = wrapper!.get('[aria-label="Marketing sections"]');
+    // The SDK glass variant paints the fill, edge and upward shadow; the solid page fill would hide the glass.
+    expect(bar.classes()).toEqual(
+      expect.arrayContaining(['surface-glass', 'border-glass-edge', 'shadow-(--glass-bottom-shadow)', 'md:hidden']),
+    );
+    expect(bar.classes()).not.toContain('bg-background');
     expect(bar.findAll('a').map((link) => link.text())).toEqual(['Today', 'Posts', 'Products', 'Atlas']);
     expect(bar.get('[aria-current="page"]').text()).toBe('Today');
 

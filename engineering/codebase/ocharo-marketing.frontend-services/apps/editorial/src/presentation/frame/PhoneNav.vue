@@ -22,8 +22,9 @@ const moreOpen = ref(false);
 <template>
   <BottomNavMenu
     :is-fixed="false"
+    variant="glass"
     v-bind="{ 'aria-label': t('Editorial sections') }"
-    class="no-print surface-glass z-sticky border-t border-glass-edge pb-[env(safe-area-inset-bottom)] [grid-area:footer] md:hidden"
+    class="no-print z-sticky [grid-area:footer] md:hidden"
   >
     <BottomNavMenuItem
       v-for="section in EditorialSections"

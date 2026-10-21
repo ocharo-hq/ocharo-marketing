@@ -26,8 +26,9 @@ const moreIsCurrent = computed(() => moreSections.some((section) => section.id =
 <template>
   <BottomNavMenu
     :is-fixed="false"
+    variant="glass"
     v-bind="{ 'aria-label': t('Marketing sections') }"
-    class="surface-glass z-sticky border-t border-glass-edge pb-[env(safe-area-inset-bottom)] [grid-area:footer] md:hidden"
+    class="z-sticky [grid-area:footer] md:hidden"
   >
     <BottomNavMenuItem
       v-for="section in barSections"

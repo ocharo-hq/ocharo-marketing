@@ -143,6 +143,11 @@ describe('Ocharo frame in Editorial', () => {
 
     expect(wrapper!.find('aside').exists()).toBe(false);
     const bar = wrapper!.get('[aria-label="Editorial sections"]');
+    // The SDK glass variant paints the fill, edge and upward shadow; the solid page fill would hide the glass.
+    expect(bar.classes()).toEqual(
+      expect.arrayContaining(['surface-glass', 'border-glass-edge', 'shadow-(--glass-bottom-shadow)', 'no-print']),
+    );
+    expect(bar.classes()).not.toContain('bg-background');
     expect(bar.findAll('a').map((link) => link.text())).toEqual(['Stories', 'Topics', 'Site settings']);
     expect(bar.get('[aria-current="page"]').text()).toBe('Topics');
 
