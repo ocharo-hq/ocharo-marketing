@@ -1,6 +1,6 @@
 # Local Ocharo Marketing runtime
 
-*Last updated: 2026-10-19*
+*Last updated: 2026-10-21*
 
 ## Supported pilot
 
@@ -65,9 +65,18 @@ Image and text preparation run only after explicit configuration and a user comm
 ## Wheelhouse
 
 Marketing has no `deploy.yml` and no `publish-docker-image.yml`, so Wheelhouse neither builds nor deploys it
-(`deploy: none` in the WoW2 catalog). Each blocker below must clear before a descriptor is added:
+(`deploy: none` in the WoW2 catalog). The owner asked on 2026-10-21 to deploy every runnable Ocharo service. Its two
+runnable hosts and what each still needs:
 
-- The Marketing API refuses startup outside a local Development run; both it and the Blog API reject non-loopback requests.
-- Atlas, Wear, Blog and Catalogue are exported from a running Editorial (`scripts/build-public.py`), so CI cannot
-  build them from source; a deployable image serves published revisions at runtime instead.
-- Public launch of Blog and the public apps remains the owner's decision.
+| Service | Image | Serves | Planned site | Blocker |
+|---|---|---|---|---|
+| `marketing` | `deployment/Dockerfile` | Marketing API and the operator desk (`apps/web`) | `marketing`, private | The API refuses startup outside a local Development run, and its loopback boundary answers 403 to every remote caller; the runtime image has no browser for card PNG/PDF rendering |
+| `blog` | `deployment/blog/Dockerfile` | Editorial API: the public renderer (`/`, `/journal`, `/topics`, `/atlas`, `/wear`, `/catalogue`), the `/studio/` editor and its API | `blog`, public | The loopback boundary answers 403 to every remote caller; Production's default `PlatformIntegration:Mode` is `local`, which leaves private routes without sign-in |
+
+- Atlas, Wear, Blog and Catalogue are also exported from a running Editorial (`scripts/build-public.py`), so CI cannot
+  build them from source; on a deployed host the Editorial's public renderer serves published revisions at runtime.
+- Each service's descriptor entry waits for the change that lets a deployed host accept remote callers, with private
+  routes in `connected` mode (Platform tickets or Desk SSO); CI builds both images on every change meanwhile.
+- When listed, each keeps its SQLite store and blobs on a `data` volume at `/data`, as its image already sets, and
+  needs `PlatformIntegration:BaseUrl` and `PlatformIntegration:OrganizationId` for connected access.
+- Noindex stays until the owner's launch decision.
