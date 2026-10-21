@@ -1,8 +1,10 @@
 /**
  * The Ocharo frame in Marketing and Editorial: the app menu, the sections, the phone bar, the account menu and the
- * places' titles, in Desk's wording where Desk has one. These win over an older entry for the same source.
+ * places' titles, in Desk's wording where Desk has one. These win over an older entry for the same source. A word that
+ * means something else elsewhere takes an `Apps menu:` key with its English text, as Desk's does, so neither reading
+ * replaces the other.
  */
-export const frameUiMessages: Readonly<Record<string, Readonly<{ uz: string; ru: string }>>> = {
+export const frameUiMessages: Readonly<Record<string, Readonly<{ en?: string; uz: string; ru: string }>>> = {
   "Ocharo apps": { uz: "Ocharo ilovalari", ru: "Приложения Ocharo" },
   "Ocharo apps — {app}": { uz: "Ocharo ilovalari — {app}", ru: "Приложения Ocharo — {app}" },
   "Public sites": { uz: "Ommaviy saytlar", ru: "Публичные сайты" },
@@ -19,9 +21,10 @@ export const frameUiMessages: Readonly<Record<string, Readonly<{ uz: string; ru:
     uz: "Mahsulotlar, narxlar va nashrlar",
     ru: "Товары, цены и издания",
   },
+  "Apps menu: Editorial": { en: "Editorial", uz: "Tahririyat", ru: "Редакция" },
   "Garments and fabric": { uz: "Kiyimlar va matolar", ru: "Одежда и ткани" },
   "Posts and leads": { uz: "Postlar va murojaatlar", ru: "Публикации и заявки" },
-  "Blog stories": { uz: "Blog hikoyalari", ru: "Истории блога" },
+  "Apps menu: Blog stories": { en: "Blog stories", uz: "Blog hikoyalari", ru: "Истории блога" },
   "Logo and brand guide": { uz: "Logotip va brend qo‘llanmasi", ru: "Логотип и брендбук" },
   "Ocharo app links could not be loaded, so the app menu uses the built-in addresses.": {
     uz: "Ocharo ilovalari havolalarini yuklab bo‘lmadi, shuning uchun ilovalar menyusi o‘rnatilgan manzillardan foydalanadi.",

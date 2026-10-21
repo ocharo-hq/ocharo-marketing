@@ -2,7 +2,7 @@ import { frameUiMessages } from "./FrameUiMessages";
 /** English source messages for Ocharo operator chrome. Authored content is never passed here. */
 export type UiLocale = "uz" | "ru" | "en";
 export const uiMessages: Readonly<
-  Record<string, Readonly<{ uz: string; ru: string }>>
+  Record<string, Readonly<{ en?: string; uz: string; ru: string }>>
 > = {
   "Check your Ocharo connection": { uz: "Ocharo ulanishini tekshiring", ru: "Проверьте подключение к Ocharo" },
   "Open app in a new tab": { uz: "Ilovani yangi oynada ochish", ru: "Открыть приложение в новой вкладке" },
@@ -4943,7 +4943,8 @@ export function translateUi(
       );
   }
   const key = aliases[source] ?? source;
-  const translated = locale === "en" ? key : (uiMessages[key]?.[locale] ?? key);
+  // A keyed entry (`Apps menu: Editorial`) carries its English text; every other key is its own English source.
+  const translated = uiMessages[key]?.[locale] ?? key;
   return translated.replace(/\{(\w+)\}/g, (match, name: string) =>
     variables && Object.hasOwn(variables, name)
       ? String(variables[name])

@@ -21,9 +21,12 @@ export type OcharoAppKey =
 /** One destination in the app menu. */
 export interface OcharoApp {
   readonly key: OcharoAppKey;
-  /** The English source label; the frame translates it. */
+  /**
+   * The label's message key: its English source, or an `Apps menu:` key where the word means something else elsewhere
+   * (`Apps menu: Editorial`, as Desk keys it). The frame translates it.
+   */
   readonly label: string;
-  /** One line under the label naming what the app is for. */
+  /** The message key of the line under the label naming what the app is for. */
   readonly summary: string;
   readonly kind: OcharoAppKind;
   readonly url: string;
@@ -38,7 +41,12 @@ const OcharoAppEntries: readonly Omit<OcharoApp, "url">[] = [
   { key: "catalogue", label: "Catalogue", summary: "Products, prices and editions", kind: OcharoAppKind.Workspace },
   { key: "studio", label: "Studio", summary: "Garments and fabric", kind: OcharoAppKind.Workspace },
   { key: "marketing", label: "Marketing", summary: "Posts and leads", kind: OcharoAppKind.Workspace },
-  { key: "editorial", label: "Editorial", summary: "Blog stories", kind: OcharoAppKind.Workspace },
+  {
+    key: "editorial",
+    label: "Apps menu: Editorial",
+    summary: "Apps menu: Blog stories",
+    kind: OcharoAppKind.Workspace,
+  },
   { key: "brand", label: "Brand", summary: "Logo and brand guide", kind: OcharoAppKind.Workspace },
   { key: "atlas", label: "Atlas", summary: "Public site", kind: OcharoAppKind.PublicSite },
   { key: "wear", label: "Wear", summary: "Public site", kind: OcharoAppKind.PublicSite },

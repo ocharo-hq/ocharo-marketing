@@ -11,9 +11,11 @@ import {
   reportOcharoAppsStartup,
   resolveOcharoAppsConfig,
   runtimeConfigSource,
+  useOcharoAppSwitcherItems,
   useOcharoApps,
   usePlatformUrl,
 } from '@ocharomarketing/connect/OcharoAppsConfig';
+import { translateUi } from '@ocharomarketing/connect/UiMessages';
 import { useUiLocale } from '@ocharomarketing/connect/UseUiLocale';
 
 /** The local-run addresses both apps fall back to when nothing configures an app; the app keys match Desk's. */
@@ -46,10 +48,16 @@ function serveRuntimeConfig(body: unknown | (() => Promise<Response>)) {
 
 /** Reads the seam's composables inside a component, with or without the startup plugin. */
 function withLinks(plugin?: ReturnType<typeof ocharoAppsPlugin>) {
-  let result: { apps: ReturnType<typeof useOcharoApps>; platformUrl: string } | undefined;
+  let result:
+    | {
+        apps: ReturnType<typeof useOcharoApps>;
+        platformUrl: string;
+        tiles: ReturnType<typeof useOcharoAppSwitcherItems>['value'];
+      }
+    | undefined;
   const probe = defineComponent({
     setup() {
-      result = { apps: useOcharoApps(), platformUrl: usePlatformUrl() };
+      result = { apps: useOcharoApps(), platformUrl: usePlatformUrl(), tiles: useOcharoAppSwitcherItems().value };
       return () => h('div');
     },
   });
@@ -125,7 +133,7 @@ describe('Ocharo app addresses', () => {
     expect(keys).toEqual(['desk']);
   });
 
-  it('lists the same apps, labels and summaries as Desk, in Desk’s order', () => {
+  it('lists the same apps, label keys and summaries as Desk, in Desk’s order', () => {
     const apps = ocharoApps(
       Object.fromEntries(
         ['desk', 'catalogue', 'studio', 'marketing', 'editorial', 'brand', 'atlas', 'wear', 'blog'].map((key) => [
@@ -140,12 +148,30 @@ describe('Ocharo app addresses', () => {
       ['catalogue', 'Catalogue', 'Products, prices and editions', 'workspace'],
       ['studio', 'Studio', 'Garments and fabric', 'workspace'],
       ['marketing', 'Marketing', 'Posts and leads', 'workspace'],
-      ['editorial', 'Editorial', 'Blog stories', 'workspace'],
+      ['editorial', 'Apps menu: Editorial', 'Apps menu: Blog stories', 'workspace'],
       ['brand', 'Brand', 'Logo and brand guide', 'workspace'],
       ['atlas', 'Atlas', 'Public site', 'public-site'],
       ['wear', 'Wear', 'Public site', 'public-site'],
       ['blog', 'Blog', 'Public site', 'public-site'],
     ]);
+  });
+});
+
+describe('app menu wording', () => {
+  /** The Editorial tile's label and summary in `locale`, as the frame's app menu shows them. */
+  function editorialTile(locale: 'en' | 'uz' | 'ru') {
+    useUiLocale().setUiLocale(locale);
+    const tile = withLinks().tiles.find((item) => item.key === 'editorial');
+    return tile && { label: tile.label, description: tile.description };
+  }
+
+  it('names Editorial by its own key, in Desk’s wording, apart from every other “Editorial” or “Blog stories”', () => {
+    expect(editorialTile('en')).toEqual({ label: 'Editorial', description: 'Blog stories' });
+    expect(editorialTile('uz')).toEqual({ label: 'Tahririyat', description: 'Blog hikoyalari' });
+    expect(editorialTile('ru')).toEqual({ label: 'Редакция', description: 'Истории блога' });
+    // The plain words keep their own readings: the Automation page's blog row is untouched by the app menu.
+    expect(translateUi('Editorial', 'uz')).toBe('Editorial');
+    expect(translateUi('Blog stories', 'ru')).toBe('Статьи блога');
   });
 });
 
