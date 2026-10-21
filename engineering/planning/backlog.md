@@ -30,16 +30,16 @@ Active work belongs to [v0.1](version-track/v0.1/v0.1.md). The [delivery/metrics
 ## SDK gaps
 
 Found while adopting `@wow-two-beta/fe` 0.0.23 and `WoW2.Sdk.Beta.Be` 10.0.71-beta (2026-10-19), and re-checked or
-added while adopting `@wow-two-beta/fe` 0.0.28 for the suite frame and 0.0.31 for its glass (2026-10-21). Each is a fix
-for the SDK, not a product workaround; the narrow product adapters stay until a published release closes the gap.
+added while adopting `@wow-two-beta/fe` 0.0.28 for the suite frame, 0.0.31 for its glass and 0.0.32 for the glass
+phone bar (2026-10-21). Each is a fix for the SDK, not a product workaround; the narrow product adapters stay until a
+published release closes the gap.
 
 | Gap | Product adapter | Closes when |
 |---|---|---|
-| `FilePickerProps` omits the native `accept` attribute; strict Vue templates reject it (still open in 0.0.31) | `apps/web/.../compatibility/MediaPicker.vue` | The SDK declares `accept`; delete the adapter |
-| `SelectPickerTriggerProps` omits `aria-label`; strict Vue templates reject it (still open in 0.0.31) | `apps/web/.../compatibility/PickerTrigger.vue` | The SDK declares native accessible naming; delete the adapter |
-| `MarkdownEditor` prints its view-mode identifiers with no locale key (still open in 0.0.31) | Editorial's translated selector hides the SDK one (`SectionTextEditor.vue`) | The SDK localizes view-mode labels |
+| `FilePickerProps` omits the native `accept` attribute; strict Vue templates reject it (still open in 0.0.32) | `apps/web/.../compatibility/MediaPicker.vue` | The SDK declares `accept`; delete the adapter |
+| `SelectPickerTriggerProps` omits `aria-label`; strict Vue templates reject it (still open in 0.0.32) | `apps/web/.../compatibility/PickerTrigger.vue` | The SDK declares native accessible naming; delete the adapter |
+| `MarkdownEditor` prints its view-mode identifiers with no locale key (still open in 0.0.32) | Editorial's translated selector hides the SDK one (`SectionTextEditor.vue`) | The SDK localizes view-mode labels |
 | The router has no app-wide "unsaved work" state: `useNavigationBlocker` guards navigation only, so a frame cannot hold sign-out on the same state | `packages/connect/src/UnsavedWork.ts` (`trackUnsavedWork`, `unsavedWork`) | The SDK exposes the blockers' combined state; delete the registry |
-| `BottomNavMenu` paints its own `bg-background` and takes no `variant`, so the phone bar's `surface-glass` keeps the blur and edge but loses its fill to the opaque page colour (as the copied `oc-glass` did) | None; the phone bar stays opaque | `BottomNavMenu` takes `variant="glass"` like `AppShellHeader` |
 | `MIGRATION.md` has no rows for 0.0.29 and 0.0.30 (read-only inputs and pickers, combobox select triggers) | None needed | The SDK records every published version |
 
 ## Session expiry adoption

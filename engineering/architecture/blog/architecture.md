@@ -34,7 +34,7 @@ flowchart LR
 
 ## SDK usage and extraction candidates
 
-- Uses `WoW2.Sdk.Beta.Be 10.0.71-beta` (settings files, local-run check, validated settings, blob storage, mediator registration) and `@wow-two-beta/fe 0.0.31` (HTTP client, router with basename, error boundary, icons, session-expiry notice, config seam, `AppShell`, app and account menus with link rows, sidebar and bottom bar, Ocharo theme with its frame glass, and colour mode).
+- Uses `WoW2.Sdk.Beta.Be 10.0.71-beta` (settings files, local-run check, validated settings, blob storage, mediator registration) and `@wow-two-beta/fe 0.0.32` (HTTP client, router with basename, error boundary, icons, session-expiry notice, config seam, `AppShell`, app and account menus with link rows, sidebar and glass bottom bar, Ocharo theme with its frame glass, and colour mode).
 - Serves `GET /api/runtime-config` for the Studio's apps menu; the Studio wears the [Ocharo frame](../architecture.md#ocharo-frame-and-app-links).
 - The host reads `appsettings.Target.json` and, on a local run with `LOCAL_SETTINGS=true`, `appsettings.Local.json` through the SDK's `AddSettingsFiles`; the OpenAPI document maps only on a local run (`IsLocalRun`), never on a Development host with `DEPLOY_ENVIRONMENT`.
 - Candidates for later extraction (shared with the Catalogue): revisioned document store, content-addressed media store, local-pilot boundary; blog-specific: scheduled-publication worker pattern, static-site export.

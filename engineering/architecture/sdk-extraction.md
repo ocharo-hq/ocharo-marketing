@@ -25,7 +25,7 @@ SDK extraction must include public exports, documentation, contract tests, depen
 
 ## Published UI compatibility gaps found by this consumer
 
-The frontend currently uses thin local wrappers around published `@wow-two-beta/fe` 0.0.31 components. `ActionButton` re-exports the SDK `Button` unchanged. Two declaration gaps remain under strict Vue templates, re-checked against 0.0.31 on 2026-10-21: `FilePickerProps` omits the native `accept` attribute (`MediaPicker`), and `SelectPickerTriggerProps` omits `aria-label` (`PickerTrigger`). Record these as SDK declaration fixes during extraction ([backlog](../planning/backlog.md#sdk-gaps)); do not mistake a local wrapper for a published SDK upgrade. Consumer acceptance must include strict Vue typechecking, keyboard activation and disabled-state behavior.
+The frontend currently uses thin local wrappers around published `@wow-two-beta/fe` 0.0.32 components. `ActionButton` re-exports the SDK `Button` unchanged. Two declaration gaps remain under strict Vue templates, re-checked against 0.0.32 on 2026-10-21: `FilePickerProps` omits the native `accept` attribute (`MediaPicker`), and `SelectPickerTriggerProps` omits `aria-label` (`PickerTrigger`). Record these as SDK declaration fixes during extraction ([backlog](../planning/backlog.md#sdk-gaps)); do not mistake a local wrapper for a published SDK upgrade. Consumer acceptance must include strict Vue typechecking, keyboard activation and disabled-state behavior.
 
 ## Added consumer evidence
 
