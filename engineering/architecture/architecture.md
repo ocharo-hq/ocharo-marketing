@@ -24,8 +24,12 @@ Studio carry ([agreement](../../../../docs/architecture.md#suite-frame-and-app-l
   Editorial lists Stories, Topics, Site settings and the public site in a new tab.
 - The SDK `themes.css` `theme-ocharo`, one `ColorModeProvider` and the generated `colorModeScript` pre-paint
   (`ocharo.marketing.theme`, `ocharo.editorial.theme`) replace the fixed light palettes; Editorial keeps Georgia
-  (`--font-editorial`) for authored story content.
+  (`--font-editorial`) for authored story content. The theme carries the approved frame glass: the top bar and sidebar
+  use the SDK `glass` variants, the menus and phone sheets `glass-menu`, so no app copies glass values.
 - Mounted editors stay inside a `<fieldset :disabled>` while signed out; Reconnect opens Desk sign-in in a new tab.
+- The account menu names the person with the display name and email `GET /api/sso/session` returns, and names the
+  session ("Signed in through Ocharo Desk") only when Desk sends neither. Ocharo account is a link row to Desk's origin
+  in a new tab.
 - The account menu signs out through `POST /api/sso/logout` with the in-memory CSRF token. Sign-out is held, with a
   notice, while an editor's existing unsaved-edit guard would warn or a save is in flight.
 
