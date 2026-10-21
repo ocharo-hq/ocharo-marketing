@@ -89,6 +89,18 @@ describe('Ocharo frame in Editorial', () => {
     expect(appLink('https://localhost:8284/')?.target).toBe('_blank');
   });
 
+  it('names Editorial in the apps menu by its own key, as Desk does, in the chosen language', async () => {
+    await renderAt('/topics');
+    useUiLocale().setUiLocale('uz');
+    await flushPromises();
+
+    await wrapper!.get('header button[aria-label="Ocharo ilovalari — Tahririyat"]').trigger('click');
+    await flushPromises();
+
+    expect(document.querySelector('[aria-current="true"]')?.textContent).toContain('Tahririyat');
+    expect(document.querySelector('[aria-current="true"]')?.textContent).toContain('Blog hikoyalari');
+  });
+
   it('lists the sections and the public site in the sidebar, marks the open one and names the place', async () => {
     const { router } = await renderAt('/topics');
 

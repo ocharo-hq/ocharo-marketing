@@ -85,9 +85,14 @@ const crumbs = computed(() => {
 const signedIn = computed(() => integrationMode.value === 'sso' && integrationSession.value?.active === true);
 const accountUrl = computed(() => (signedIn.value ? (integrationAccount.value?.accountUrl ?? null) : null));
 const accountOpen = ref(false);
-const accountIdentity = computed(() =>
-  signedIn.value ? { description: t('Signed in through Ocharo Desk'), onSignOut: signOut } : {},
-);
+/** Desk's display name and email name the person; with neither, the menu names the session instead. */
+const accountIdentity = computed(() => {
+  if (!signedIn.value) return {};
+  const name = integrationAccount.value?.name ?? undefined;
+  const email = integrationAccount.value?.email ?? undefined;
+  const fallback = name || email ? undefined : t('Signed in through Ocharo Desk');
+  return { name, description: email ?? fallback, onSignOut: signOut };
+});
 /** The app's own version, then the API's from its status, with the commit the build carries split off. */
 const versions = computed<AccountMenuVersion[]>(() => {
   const [api = '', commit] = apiVersion.value.split('+');
@@ -99,10 +104,6 @@ const versions = computed<AccountMenuVersion[]>(() => {
 watch(accountOpen, (open) => {
   if (open) void refreshApiVersion();
 });
-/** Opens Desk's account page in another tab, so unsaved edits here stay. */
-function openAccount(): void {
-  if (accountUrl.value) window.open(accountUrl.value, '_blank', 'noopener,noreferrer');
-}
 /** Sign-out waits while an editor's guard holds unsaved or saving work, or any workspace write is in flight. */
 const signOutHeld = computed(() => unsavedWork.value || desk.busy.value !== null);
 async function signOut(): Promise<void> {
@@ -148,10 +149,7 @@ onScopeDispose(() => {
     sidebar-breakpoint="md"
     :sidebar-width="sidebarWidth"
   >
-    <AppShellHeader
-      height="auto"
-      class="oc-glass border-b border-(--oc-glass-edge) p-0 pt-[env(safe-area-inset-top)] shadow-(--oc-glass-shadow)"
-    >
+    <AppShellHeader height="auto" variant="glass" class="p-0 pt-[env(safe-area-inset-top)]">
       <div class="flex min-h-15 w-full min-w-0 items-center gap-2 px-3 sm:gap-3 sm:px-4">
         <div class="flex shrink-0 items-center gap-2">
           <AppSwitcherMenu
@@ -164,7 +162,7 @@ onScopeDispose(() => {
             :close-label="t('Close')"
             :new-tab-label="t('(opens in a new tab)')"
             :trigger-label="t('Ocharo apps — {app}')"
-            panel-class="oc-glass-menu border-(--oc-glass-edge) text-foreground shadow-(--oc-menu-shadow)"
+            variant="glass-menu"
             class="max-sm:gap-1.5 max-sm:[&>span:not([data-app-switcher-mark])]:sr-only [&[data-state=open]_[data-app-switcher-chevron]]:text-primary-soft-foreground"
           >
             <template #mark><span class="oc-mark">O</span></template>
@@ -204,18 +202,18 @@ onScopeDispose(() => {
           :locale="uiLocale"
           :versions="versions"
           :is-busy="integrationSigningOut"
-          panel-class="oc-glass-menu overflow-x-hidden border-(--oc-glass-edge) text-foreground shadow-(--oc-menu-shadow)"
+          variant="glass-menu"
           @update:locale="setUiLocale"
         >
           <template v-if="accountUrl" #items>
-            <MenuItem @select="openAccount"
+            <MenuItem :href="accountUrl" target="_blank"
               ><ExternalLink :size="15" class="shrink-0" aria-hidden="true" />{{ t('Ocharo account') }}</MenuItem
             >
           </template>
         </AccountMenu>
       </div>
     </AppShellHeader>
-    <AppShellSidebar class="oc-glass-side border-e border-(--oc-glass-edge)">
+    <AppShellSidebar variant="glass">
       <MarketingNav
         :current="section"
         :collapsed="isRail"

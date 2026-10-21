@@ -5,7 +5,7 @@
    `theme-ocharo` on <html> (index.html) with `dark` from the colour-mode provider. After styles.css, so it wins. */
 @import '@wow-two-beta/fe/themes.css';
 
-/* The Ocharo frame's glass and marks, shared with Editorial. */
+/* The Ocharo frame's base and marks, shared with Editorial; the glass is the theme's. */
 @import '@ocharomarketing/connect/OcharoFrame.css';
 @source '../../node_modules/@wow-two-beta/fe/dist';
 @source '../../../../packages/connect/src';

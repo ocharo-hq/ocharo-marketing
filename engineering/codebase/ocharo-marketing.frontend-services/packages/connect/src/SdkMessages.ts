@@ -67,6 +67,7 @@ const sdkSources: Record<string, string> = {
   "NumberInput.decrementLabel": "Decrease",
   "ToastHost.notifications": "Notifications",
   "AppShell.skipToContent": "Skip to main content",
+  "MenuItem.newTabLabel": "(opens in a new tab)",
 };
 /**
  * The SDK account menu in Desk's wording, so every Ocharo app names its rows alike. English is the SDK's default text;

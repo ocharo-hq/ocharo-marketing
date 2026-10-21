@@ -27,7 +27,7 @@ const moreIsCurrent = computed(() => moreSections.some((section) => section.id =
   <BottomNavMenu
     :is-fixed="false"
     v-bind="{ 'aria-label': t('Marketing sections') }"
-    class="oc-glass z-sticky border-t border-(--oc-glass-edge) pb-[env(safe-area-inset-bottom)] [grid-area:footer] md:hidden"
+    class="surface-glass z-sticky border-t border-glass-edge pb-[env(safe-area-inset-bottom)] [grid-area:footer] md:hidden"
   >
     <BottomNavMenuItem
       v-for="section in barSections"
@@ -48,7 +48,8 @@ const moreIsCurrent = computed(() => moreSections.some((section) => section.id =
   <Modal v-model:open="moreOpen">
     <ModalContent
       v-if="moreOpen"
-      class="oc-glass-menu flex max-h-dvh flex-col gap-4 overflow-y-auto p-5 pt-[calc(1.25rem+env(safe-area-inset-top))] text-foreground sm:max-w-md sm:rounded-2xl"
+      variant="glass-menu"
+      class="flex max-h-dvh flex-col gap-4 overflow-y-auto p-5 pt-[calc(1.25rem+env(safe-area-inset-top))] text-foreground sm:max-w-md sm:rounded-2xl"
     >
       <div class="flex items-center justify-between gap-3">
         <ModalTitle class="text-lg font-semibold">{{ t('More in Marketing') }}</ModalTitle>

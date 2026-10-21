@@ -37,21 +37,49 @@ afterEach(() => {
 });
 
 describe('Marketing account menu with an Ocharo session', () => {
-  it('names the session, offers the Ocharo account in a new tab and ends with sign out', async () => {
+  it('names the session when Desk sends no name or email, links the Ocharo account and ends with sign out', async () => {
     await renderSignedIn();
-    const open = vi.fn();
-    vi.stubGlobal('open', open);
 
     const menu = await openAccountMenu();
 
     expect(menu.get('[data-account-menu-identity]').text()).toBe('Signed in through Ocharo Desk');
+    expect(wrapper!.get('header button[aria-haspopup="menu"]').attributes('aria-label')).toBe('Account menu');
     const rows = menu.findAll('[role="menuitem"]');
-    expect(rows.map((item) => item.text().trim())).toEqual(['Ocharo account', 'Sign out']);
+    expect(rows.map((item) => item.text().trim())).toEqual(['Ocharo account (opens in a new tab)', 'Sign out']);
     expect(menu.findAll('[role="menuitem"], [role="menuitemradio"]').at(-1)!.attributes()).toHaveProperty(
       'data-account-menu-sign-out',
     );
-    await rows[0]!.trigger('click');
-    expect(open).toHaveBeenCalledWith('https://desk.example.test/', '_blank', 'noopener,noreferrer');
+    expect(rows[0]!.element.tagName).toBe('A');
+    expect(rows[0]!.attributes()).toMatchObject({
+      href: 'https://desk.example.test/',
+      target: '_blank',
+      rel: 'noopener noreferrer',
+    });
+  });
+
+  it('names the person with the Desk display name and email, without the session fallback', async () => {
+    await renderSignedIn('/channels', {
+      ssoSession: { ...SignedIn, name: 'Maftuna Rakhimova', email: 'maftuna@ocharo.example.test' },
+    });
+
+    const menu = await openAccountMenu();
+
+    expect(menu.get('[data-account-menu-identity]').text()).toBe('Maftuna Rakhimovamaftuna@ocharo.example.test');
+    expect(menu.text()).not.toContain('Signed in through Ocharo Desk');
+    expect(wrapper!.get('header button[aria-haspopup="menu"]').attributes('aria-label')).toBe(
+      'Account menu for Maftuna Rakhimova',
+    );
+  });
+
+  it.each([
+    ['only a display name', { name: 'Maftuna Rakhimova', email: null }, 'Maftuna Rakhimova'],
+    ['only an email', { name: null, email: 'maftuna@ocharo.example.test' }, 'maftuna@ocharo.example.test'],
+  ])('shows %s without the session fallback', async (_case, identity, shown) => {
+    await renderSignedIn('/channels', { ssoSession: { ...SignedIn, ...identity } });
+
+    const menu = await openAccountMenu();
+
+    expect(menu.get('[data-account-menu-identity]').text()).toBe(shown);
   });
 
   it('signs this app out with its CSRF token, keeps the page and offers to reconnect without an expiry notice', async () => {

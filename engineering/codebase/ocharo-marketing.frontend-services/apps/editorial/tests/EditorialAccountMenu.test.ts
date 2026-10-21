@@ -41,21 +41,22 @@ afterEach(() => {
 });
 
 describe('Editorial account menu with an Ocharo session', () => {
-  it('names the session, opens the Ocharo account in a new tab and signs out with the CSRF token', async () => {
+  it('names the session without a Desk name or email, links the Ocharo account and signs out with the CSRF token', async () => {
     wrapper = (await mountEditorial('/topics', { ssoSession: SignedIn })).wrapper;
-    const open = vi.fn();
-    vi.stubGlobal('open', open);
     const expired = vi.fn();
     const unsubscribe = subscribeIntegrationExpired(expired);
 
-    let menu = await openAccountMenu();
+    const menu = await openAccountMenu();
     expect(menu.get('[data-account-menu-identity]').text()).toBe('Signed in through Ocharo Desk');
     const rows = menu.findAll('[role="menuitem"]');
-    expect(rows.map((item) => item.text().trim())).toEqual(['Ocharo account', 'Sign out']);
-    await rows[0]!.trigger('click');
-    expect(open).toHaveBeenCalledWith('https://desk.example.test/', '_blank', 'noopener,noreferrer');
+    expect(rows.map((item) => item.text().trim())).toEqual(['Ocharo account (opens in a new tab)', 'Sign out']);
+    expect(rows[0]!.element.tagName).toBe('A');
+    expect(rows[0]!.attributes()).toMatchObject({
+      href: 'https://desk.example.test/',
+      target: '_blank',
+      rel: 'noopener noreferrer',
+    });
 
-    menu = await openAccountMenu();
     await menu.get('[data-account-menu-sign-out]').trigger('click');
     await flushPromises();
 
@@ -68,6 +69,32 @@ describe('Editorial account menu with an Ocharo session', () => {
     expect(wrapper.get('fieldset').attributes('disabled')).toBeDefined();
     expect(wrapper.get('main h1').text()).toBe('Topics');
     unsubscribe();
+  });
+
+  it('names the person with the Desk display name and email, without the session fallback', async () => {
+    wrapper = (
+      await mountEditorial('/topics', {
+        ssoSession: { ...SignedIn, name: 'Maftuna Rakhimova', email: 'maftuna@ocharo.example.test' },
+      })
+    ).wrapper;
+
+    const menu = await openAccountMenu();
+
+    expect(menu.get('[data-account-menu-identity]').text()).toBe('Maftuna Rakhimovamaftuna@ocharo.example.test');
+    expect(menu.text()).not.toContain('Signed in through Ocharo Desk');
+    expect(wrapper.get('header button[aria-haspopup="menu"]').attributes('aria-label')).toBe(
+      'Account menu for Maftuna Rakhimova',
+    );
+  });
+
+  it('shows only the email when Desk sends no display name', async () => {
+    wrapper = (
+      await mountEditorial('/topics', { ssoSession: { ...SignedIn, name: null, email: 'maftuna@ocharo.example.test' } })
+    ).wrapper;
+
+    const menu = await openAccountMenu();
+
+    expect(menu.get('[data-account-menu-identity]').text()).toBe('maftuna@ocharo.example.test');
   });
 
   it('holds sign-out while the story has unsaved edits, and says why', async () => {

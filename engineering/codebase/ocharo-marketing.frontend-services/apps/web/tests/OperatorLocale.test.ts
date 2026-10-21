@@ -86,6 +86,7 @@ describe('operator locale', () => {
     locale.setUiLocale('uz');
     expect(locale.sdkMessages.value['ImageEditor.removeBackground']).toBe('Fonni olib tashlash');
     expect(locale.sdkMessages.value['MarkdownEditor.bold']).toBe('Qalin');
+    expect(locale.sdkMessages.value['MenuItem.newTabLabel']).toBe('(yangi oynada ochiladi)');
     expect(locale.formatWhen('2026-10-01T10:00:00Z')).toContain('okt');
     expect(locale.formatWhen('2026-10-01T10:00:00Z')).toContain('15:00');
     expect(locale.sdkMessages.value['Unowned.futureKey']).toBeUndefined();
