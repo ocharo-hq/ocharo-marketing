@@ -21,15 +21,24 @@ using WoW.Two.Sdk.Beta.Be.Media.Images;
 using WoW.Two.Sdk.Beta.Be.Mediator;
 using WoW.Two.Sdk.Beta.Be.Storage.Core;
 using WoW.Two.Sdk.Beta.Be.Storage.FileSystem;
+using WoW.Two.Sdk.Beta.Be.Web.Hosting;
 using WoW.Two.Sdk.Beta.Be.Web.ProblemDetails;
 
 namespace OcharoBlog.Api.Configurations;
 
 public static partial class HostConfiguration
 {
-    /// <summary>Registers the platform access-ticket client.</summary>
+    /// <summary>Registers forwarded headers trusted only from loopback and <c>Deployment:TrustedProxies</c>, and the
+    /// platform access-ticket client.</summary>
     private static WebApplicationBuilder AddIntegrationBoundary(this WebApplicationBuilder builder)
     {
+        // Behind the TLS-terminating ingress, same-origin write checks need the forwarded scheme; any other sender keeps its own.
+        var proxies = builder.Configuration.GetSection("Deployment:TrustedProxies").Get<string[]>() ?? [];
+        builder.Services.AddProxyAwareHosting(options =>
+        {
+            foreach (var proxy in proxies)
+                options.TrustedProxies.Add(proxy);
+        });
         builder.Services.AddOcharoSso(builder.Configuration, "editorial", "ocharo-editorial", requireBoundOrganization: true);
         builder.Services.AddHttpClient("ocharo-platform-tickets", client => client.Timeout = TimeSpan.FromSeconds(5))
             .ConfigurePrimaryHttpMessageHandler(() => new HttpClientHandler { AllowAutoRedirect = false });
@@ -190,6 +199,7 @@ public static partial class HostConfiguration
     /// <summary>Configures the request boundaries and editorial SPA static files.</summary>
     private static WebApplication UsePipeline(this WebApplication app)
     {
+        app.UseProxyAwareHosting();
         app.UseHttpProblemDetails();
         app.UseMiddleware<BlogExceptionMiddleware>();
         app.UseMiddleware<LocalPilotBoundaryMiddleware>();

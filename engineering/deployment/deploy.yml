@@ -1,0 +1,74 @@
+# yaml-language-server: $schema=../../../../../../../../../conventions/deployment/descriptor/deploy.schema.json
+# What this product deploys: its sites, its services, how each builds, what changes it and which paths it serves.
+# Format and rules: wow-two-ws/conventions/deployment/descriptor/deploy-descriptor.md. Hostnames, secrets and
+# environments live in Wheelhouse targets, never here. Paths are relative to engineering/.
+#
+# Ocharo Marketing deploys the Marketing desk and the Editorial (Blog) host as a repository of the one `ocharo` product
+# (Wheelhouse decision 70), so its service, site and volume names stay unique across Ocharo's repositories. Both are
+# public without sign-in by the owner's decision of 2026-10-24, until the Ocharo identity server lands
+# (deployment.md § Wheelhouse); each keeps its SQLite store and blobs on its own volume. Both environments run as .NET
+# Production (no dotnetEnvironment), whose PlatformIntegration:Mode is `local`: private routes answer without sign-in.
+descriptor: 2
+product: ocharo
+sites:
+  marketing: {}                         # the Marketing desk, public without sign-in until the identity server lands
+  blog: {}                              # the Blog site and its /studio/ editor, public without sign-in until then
+services:
+  marketing:
+    build: { dockerfile: deployment/Dockerfile }
+    paths:
+      - codebase/ocharo-marketing.backend-services/**
+      - codebase/ocharo-marketing.frontend-services/**
+    health: /health
+    settings:
+      # Wheelhouse derives AllowedHosts and Deployment:TrustedProxies (the ingress, whose forwarded scheme the
+      # same-origin write check needs); nobody types them.
+      required: [AllowedHosts, Deployment:TrustedProxies]
+      keys:
+        # Public without sign-in until the identity server lands; false refuses startup on a deployed host.
+        Marketing:PublicAccess: { type: boolean, default: true }
+        # The Catalogue and Blog origins the catalogue sync and story picker read; unset, both stay unavailable.
+        Marketing:CatalogueBaseUrl: { type: url }
+        Marketing:BlogBaseUrl: { type: url }
+        # The Ocharo app menu, served anonymously at /api/runtime-config; an unset key leaves that app out.
+        OcharoApps:Desk: { type: url }
+        OcharoApps:Catalogue: { type: url }
+        OcharoApps:Studio: { type: url }
+        OcharoApps:Marketing: { type: url }
+        OcharoApps:Editorial: { type: url }
+        OcharoApps:Brand: { type: url }
+        OcharoApps:Atlas: { type: url }
+        OcharoApps:Wear: { type: url }
+        OcharoApps:Blog: { type: url }
+    volumes:
+      marketing-data: /data             # SQLite store (ocharomarketing.db) and private blobs
+    sites:
+      marketing: {}
+  blog:
+    build: { dockerfile: deployment/blog/Dockerfile }
+    paths:
+      - codebase/ocharo-blog.backend-services/**
+      - codebase/ocharo-marketing.frontend-services/**   # the /studio/ editor is apps/editorial of this workspace
+    health: /health
+    settings:
+      required: [AllowedHosts, Deployment:TrustedProxies]
+      keys:
+        # Public without sign-in until the identity server lands; false restores the loopback-only pilot.
+        Blog:PublicAccess: { type: boolean, default: true }
+        # The Catalogue, Brand and Marketing origins the public renderer and enquiry relay read; unset, those reads fail.
+        Blog:CatalogueBaseUrl: { type: url }
+        Blog:BrandBaseUrl: { type: url }
+        Blog:MarketingBaseUrl: { type: url }
+        OcharoApps:Desk: { type: url }
+        OcharoApps:Catalogue: { type: url }
+        OcharoApps:Studio: { type: url }
+        OcharoApps:Marketing: { type: url }
+        OcharoApps:Editorial: { type: url }
+        OcharoApps:Brand: { type: url }
+        OcharoApps:Atlas: { type: url }
+        OcharoApps:Wear: { type: url }
+        OcharoApps:Blog: { type: url }
+    volumes:
+      blog-data: /data                  # SQLite store (ocharo-blog.db) and blobs
+    sites:
+      blog: {}

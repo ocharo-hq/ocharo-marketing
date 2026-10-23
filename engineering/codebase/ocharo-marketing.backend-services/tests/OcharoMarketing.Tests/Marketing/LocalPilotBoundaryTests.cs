@@ -1,5 +1,6 @@
 using System.Net;
 using Microsoft.AspNetCore.Http;
+using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using OcharoMarketing.Api.Marketing;
 using Xunit;
@@ -34,7 +35,30 @@ public sealed class LocalPilotBoundaryTests
         context.Connection.RemoteIpAddress = IPAddress.Parse(remote);
         if (origin.Length > 0) context.Request.Headers.Origin = origin;
         context.Response.Body = new MemoryStream();
-        var boundary = new LocalPilotBoundaryMiddleware(ctx => { ctx.Response.StatusCode = 204; return Task.CompletedTask; });
+        var boundary = new LocalPilotBoundaryMiddleware(ctx => { ctx.Response.StatusCode = 204; return Task.CompletedTask; },
+            new ConfigurationBuilder().Build());
+        await boundary.InvokeAsync(context);
+        Assert.Equal(expected, context.Response.StatusCode);
+    }
+
+    [Theory]
+    [InlineData("marketing.example", "192.0.2.1", "", 204)]
+    [InlineData("marketing.example", "192.0.2.1", "https://marketing.example", 204)]
+    [InlineData("marketing.example", "192.0.2.1", "https://evil.example", 403)]
+    [InlineData("marketing.example", "192.0.2.1", "http://marketing.example", 403)]
+    public async Task PublicHost_AcceptsRemoteCallersAndStillRejectsCrossOriginWrites(string host, string remote, string origin, int expected)
+    {
+        using var services = new ServiceCollection().AddLogging().BuildServiceProvider();
+        var context = new DefaultHttpContext { RequestServices = services };
+        context.Request.Host = new HostString(host);
+        context.Request.Method = "POST";
+        context.Request.Scheme = "https";
+        context.Connection.RemoteIpAddress = IPAddress.Parse(remote);
+        if (origin.Length > 0) context.Request.Headers.Origin = origin;
+        context.Response.Body = new MemoryStream();
+        var configuration = new ConfigurationBuilder()
+            .AddInMemoryCollection(new Dictionary<string, string?> { ["DEPLOY_ENVIRONMENT"] = "prod" }).Build();
+        var boundary = new LocalPilotBoundaryMiddleware(ctx => { ctx.Response.StatusCode = 204; return Task.CompletedTask; }, configuration);
         await boundary.InvokeAsync(context);
         Assert.Equal(expected, context.Response.StatusCode);
     }

@@ -1,7 +1,6 @@
-# Unverified future-host packaging reference. Current pilot startup rejects
-# Production and non-loopback callers; this is not a deployable service yet.
-# An explicit profile prevents ordinary compose startup from launching it.
-# SQLite and private blobs share the named volume in the future host shape.
+# Local packaging reference; Wheelhouse deploys the image from deploy.yml instead. Outside a deployment the container
+# refuses to start unless Marketing:PublicAccess is true, and an explicit profile keeps ordinary compose startup from
+# launching it. SQLite and private blobs share the named volume.
 services:
   ocharomarketing:
     build:

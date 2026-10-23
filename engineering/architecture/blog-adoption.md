@@ -1,6 +1,6 @@
 # Blog source adoption
 
-*Updated: 2026-10-17*
+*Updated: 2026-10-24*
 
 Both existing Blog implementations now belong to Marketing. The thirty-story manuscript seed,
 revisioned editorial storage and public exports now converge in the adopted Editorial API.
@@ -41,16 +41,16 @@ are preserved before archival; do not reseed, merge or publish these stores.
 Development seed assets resolve relative to the Blog API content root and use the tracked
 static `public/assets/` directory. Existing absolute overrides continue to work.
 
-The modern Blog host remains loopback-only; connected private routes require current Platform
-tickets and an exact organization binding. Cross-origin writes remain rejected. Public builds
+The modern Blog host is loopback-only on a local run and public without sign-in when deployed, by the
+owner's decision of 2026-10-24, until the Ocharo identity server lands; connected private routes require
+current Platform tickets and an exact organization binding. Cross-origin writes remain rejected. Public builds
 consume published revisions; draft previews require the same private boundary. Noindex remains
 until the owner's launch decision. Editorial research imports stay drafts.
 
 Marketing's deployment script replaces its API's entire `wwwroot`. Never deploy either Blog
 there. Blog's existing companion deployment script targets only its own `wwwroot/studio/`.
-Marketing has no deployment descriptor yet; Blog joins the single `engineering/deployment/deploy.yml`
-when public deployment is decided ([deployment](../deployment/deployment.md#wheelhouse)).
-No donor CI or hosting automation is activated by this adoption.
+Blog is the `blog` service of the single `engineering/deployment/deploy.yml`, beside `marketing`
+([deployment](../deployment/deployment.md#wheelhouse)). No donor CI or hosting automation is activated.
 
 ## Verification
 

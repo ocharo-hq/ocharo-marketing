@@ -1,5 +1,8 @@
 # syntax=docker/dockerfile:1
 
+# The `blog` service of deploy.yml: the Editorial API, its public renderer and the /studio/ editor. A deployed host runs
+# without sign-in until the Ocharo identity server lands (owner decision 2026-10-24); a local run keeps the loopback pilot.
+#
 # Multi-stage build: ONE image serving the .NET API + the Vue SPA. The build
 # context MUST be engineering/codebase/, which holds BOTH ocharo-blog.backend-services
 # and ocharo-blog.frontend-services.
@@ -8,7 +11,7 @@
 #
 #   docker run -d --name ocharoblog -p 127.0.0.1:8200:8080 -v ocharoblog-data:/data ocharoblog
 #
-# On first run the app creates /data/ocharoblog.db automatically.
+# On first run the app creates /data/ocharo-blog.db automatically.
 
 # ---- Stage 1: build the Vue workspace ----
 FROM node:24.11.0-alpine AS spa
@@ -32,6 +35,8 @@ RUN dotnet publish OcharoBlog.Api/OcharoBlog.Api.csproj -c Release -o /app -p:Bu
 # ---- Stage 3: runtime ----
 FROM mcr.microsoft.com/dotnet/aspnet:10.0 AS final
 WORKDIR /app
+# curl serves the deployment's /health probe.
+RUN apt-get update && apt-get install --yes --no-install-recommends curl && rm -rf /var/lib/apt/lists/*
 COPY --from=build /app ./
 
 # SQLite store on a volume so data survives container replacement.

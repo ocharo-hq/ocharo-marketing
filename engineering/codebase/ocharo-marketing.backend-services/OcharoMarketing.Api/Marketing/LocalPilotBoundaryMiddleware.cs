@@ -2,8 +2,8 @@ using System.Net;
 
 namespace OcharoMarketing.Api.Marketing;
 
-/// <summary>Restricts the unauthenticated development pilot to local browser requests.</summary>
-public sealed class LocalPilotBoundaryMiddleware(RequestDelegate next)
+/// <summary>Restricts the unauthenticated pilot to local browser requests unless it is public (<see cref="IsPublic"/>).</summary>
+public sealed class LocalPilotBoundaryMiddleware(RequestDelegate next, IConfiguration configuration)
 {
     private static readonly HashSet<string> TrustedDevelopmentOrigins = new(StringComparer.OrdinalIgnoreCase)
     {
@@ -12,12 +12,12 @@ public sealed class LocalPilotBoundaryMiddleware(RequestDelegate next)
         "https://[::1]:8358"
     };
 
-    /// <summary>Rejects non-local requests and cross-origin state changes before application work.</summary>
+    /// <summary>Rejects non-local requests on a loopback pilot, and cross-origin state changes, before application work.</summary>
     public async Task InvokeAsync(HttpContext context)
     {
         var address = context.Connection.RemoteIpAddress;
         var localHost = context.Request.Host.Host is "localhost" or "127.0.0.1" or "[::1]" or "::1";
-        if (!localHost || address is not null && !IPAddress.IsLoopback(address))
+        if (!IsPublic(configuration) && (!localHost || address is not null && !IPAddress.IsLoopback(address)))
         {
             await RejectAsync(context, "This development pilot accepts loopback requests only.");
             return;
@@ -40,6 +40,15 @@ public sealed class LocalPilotBoundaryMiddleware(RequestDelegate next)
             context.Response.Headers.CacheControl = "no-store";
         await next(context);
     }
+
+    /// <summary>
+    /// Whether any caller may reach the Marketing host without sign-in. The owner opened the deployed hosts to the public on
+    /// 2026-10-24, until the Ocharo identity server lands: <c>Marketing:PublicAccess</c> decides, and unset it is on for a
+    /// deployed host (<c>DEPLOY_ENVIRONMENT</c>) and off for a local run, which keeps the loopback boundary.
+    /// </summary>
+    public static bool IsPublic(IConfiguration configuration) =>
+        configuration.GetValue<bool?>("Marketing:PublicAccess")
+        ?? !string.IsNullOrWhiteSpace(configuration["DEPLOY_ENVIRONMENT"] ?? Environment.GetEnvironmentVariable("DEPLOY_ENVIRONMENT"));
 
     private static bool IsAllowedOrigin(string origin, HttpRequest request)
     {

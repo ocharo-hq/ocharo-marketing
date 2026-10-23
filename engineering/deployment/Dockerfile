@@ -1,16 +1,14 @@
 # syntax=docker/dockerfile:1
 
-# Unverified future-host packaging reference. Current application deliberately
-# rejects Production startup and non-loopback callers. Authentication and a
-# Linux browser/native-image runtime must be implemented before deployment.
+# The `marketing` service of deploy.yml. A deployed host runs without sign-in until the Ocharo identity server lands
+# (owner decision 2026-10-24); a local run keeps the loopback pilot. The image has no browser, so card PNG/PDF
+# rendering stays unavailable on a deployed host.
 #
 # Multi-stage build: ONE image serving the .NET API + the Vue SPA. The build
 # context MUST be engineering/codebase/, which holds BOTH ocharo-marketing.backend-services
 # and ocharo-marketing.frontend-services.
 #
 #   docker build -f engineering/deployment/Dockerfile -t ocharomarketing engineering/codebase
-#
-# No supported container run command is provided for this local-only pilot.
 
 # ---- Stage 1: build the Vue workspace ----
 FROM node:24.11.0-alpine AS spa
@@ -34,6 +32,8 @@ RUN dotnet publish OcharoMarketing.Api/OcharoMarketing.Api.csproj -c Release -o 
 # ---- Stage 3: runtime ----
 FROM mcr.microsoft.com/dotnet/aspnet:10.0 AS final
 WORKDIR /app
+# curl serves the deployment's /health probe.
+RUN apt-get update && apt-get install --yes --no-install-recommends curl && rm -rf /var/lib/apt/lists/*
 COPY --from=build /app ./
 
 # SQLite store on a volume so data survives container replacement.

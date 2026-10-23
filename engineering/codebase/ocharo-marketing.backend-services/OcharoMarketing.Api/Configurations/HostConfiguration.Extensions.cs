@@ -33,23 +33,33 @@ using WoW.Two.Sdk.Beta.Be.Foundation.Configuration;
 using WoW.Two.Sdk.Beta.Be.Foundation.Options;
 using WoW.Two.Sdk.Beta.Be.Mediator;
 using WoW.Two.Sdk.Beta.Be.Storage.FileSystem;
+using WoW.Two.Sdk.Beta.Be.Web.Hosting;
 using WoW.Two.Sdk.Beta.Be.Web.ProblemDetails;
 
 namespace OcharoMarketing.Api.Configurations;
 
 public static partial class HostConfiguration
 {
-    /// <summary>Configures the local pilot startup boundary.</summary>
+    /// <summary>Configures the pilot startup boundary: a local run, or a public host, and forwarded headers from the ingress.</summary>
     private static WebApplicationBuilder AddPilotBoundary(this WebApplicationBuilder builder)
     {
-        // A deployed host may run as Development too (DEPLOY_ENVIRONMENT set), so only a local run qualifies.
-        if (!builder.IsLocalRun() || !builder.Configuration.GetValue("Marketing:LocalPilot", true))
+        // A deployed host may run as Development too (DEPLOY_ENVIRONMENT set), so only a local run counts as local. Any
+        // other host runs only when public: the owner's decision of 2026-10-24, until the Ocharo identity server lands.
+        if (!builder.Configuration.GetValue("Marketing:LocalPilot", true)
+            || !builder.IsLocalRun() && !LocalPilotBoundaryMiddleware.IsPublic(builder.Configuration))
         {
             throw new InvalidOperationException(
-                "This pilot requires a local Development run and local-only access. " +
+                "This pilot requires a local Development run or a public host (Marketing:PublicAccess). " +
                 "Remote hosting requires authenticated deployment configuration.");
         }
 
+        // Behind the TLS-terminating ingress, same-origin write checks need the forwarded scheme; any other sender keeps its own.
+        var proxies = builder.Configuration.GetSection("Deployment:TrustedProxies").Get<string[]>() ?? [];
+        builder.Services.AddProxyAwareHosting(options =>
+        {
+            foreach (var proxy in proxies)
+                options.TrustedProxies.Add(proxy);
+        });
         return builder;
     }
 
@@ -298,6 +308,7 @@ public static partial class HostConfiguration
     /// <summary>Configures the existing request boundaries, static shell and public inquiry budget.</summary>
     private static WebApplication UsePipeline(this WebApplication app)
     {
+        app.UseProxyAwareHosting();
         app.UseHttpProblemDetails();
         app.UseMiddleware<MarketingExceptionMiddleware>();
         app.UseMiddleware<LocalPilotBoundaryMiddleware>();

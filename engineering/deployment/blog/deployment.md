@@ -1,8 +1,8 @@
 # deployment/
 
-*Last updated: 2026-10-19*
+*Last updated: 2026-10-24*
 
-Local pilot only (loopback boundary). For a public site today: Sayt → Statik sayt (ZIP) and upload it to any static host; live hosting needs authentication for `/studio/` and `/api/blog/*` first.
+Wheelhouse deploys this image as the `blog` service and public site of `../deploy.yml`, with `/studio/` and `/api/blog/*` open without sign-in until the Ocharo identity server lands (owner decision 2026-10-24); a local run keeps the loopback boundary. A static copy still comes from Sayt → Statik sayt (ZIP). Details: `../deployment.md` § Wheelhouse.
 Rules: wow-two-ws/conventions/development/repo/structure/repo-structure.md
 
 ## Local settings

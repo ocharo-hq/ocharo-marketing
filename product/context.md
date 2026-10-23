@@ -1,6 +1,6 @@
 # Product context
 
-*Last updated: 2026-09-27*
+*Last updated: 2026-10-24*
 
 ## Current state
 
@@ -13,7 +13,7 @@ Ocharo Marketing was scaffolded independently and is in an active continuous bui
 - Start with T02 bone/charcoal and T01 right-fabric candidates.
 - Separate WhatsApp customer messaging from public-channel publishing.
 - Keep unknown metrics and delivery outcomes explicit.
-- Keep the first pilot local; remote hosting and live account verification remain separate work.
+- Both hosts deploy publicly without sign-in until the Ocharo identity server lands (owner decision 2026-10-24); live account verification remains separate work.
 
 ## Review
 

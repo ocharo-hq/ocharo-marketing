@@ -1,6 +1,6 @@
 # Marketing implementation contract
 
-*Last updated: 2026-09-29*
+*Last updated: 2026-10-24*
 
 ## Scope
 
@@ -125,7 +125,7 @@ Card request: `{ productId, presetId, title, subtitle?, locale, fabricAssetId?, 
 
 ## Runtime and extraction
 
-First pilot is explicitly loopback-only. Validate origin for mutations; remote hosting requires authentication, secret persistence, secure callback routing, and deployment review. Ports: API HTTPS 8276, HTTP 8277, Vue HTTPS 8358. Use Node 24.11.0 on this host and pnpm 10.33.2.
+A local run is loopback-only. A deployed host is public without sign-in by the owner's decision of 2026-10-24, until the Ocharo identity server lands; then remote hosting requires authentication, secret persistence and secure callback routing. Validate origin for mutations in both. Ports: API HTTPS 8276, HTTP 8277, Vue HTTPS 8358. Use Node 24.11.0 on this host and pnpm 10.33.2.
 
 Provider and card contracts contain neutral data, not canonical business entities. Persist job state in SQLite, with a single host worker and atomic claims/completion. Backend uses published SDK surfaces where available; local namespaces retain extractable boundaries. Never publish packages, create remote repositories, send messages/posts, or invoke paid providers during verification.
 

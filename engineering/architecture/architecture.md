@@ -1,6 +1,6 @@
 # Architecture
 
-*Last updated: 2026-10-21*
+*Last updated: 2026-10-24*
 
 Use .NET Clean Architecture: Domain values, Application interfaces/models, Infrastructure behavior/brokers, Persistence row access, and API host composition. Use the five-layer Vue source arrangement and public wow-two Vue SDK exports. SQLite is an explicit single-operator pilot choice; durable jobs are database-backed, not an in-memory queue.
 
@@ -8,7 +8,7 @@ Use .NET Clean Architecture: Domain values, Application interfaces/models, Infra
 - [SDK extraction](sdk-extraction.md): neutral capability inventory and exit criteria.
 - [Provider research](../research/providers.md): official external contracts and current limitations.
 
-No dependency references the moving Brand Workspace checkout. Secrets, assets, and provider operations stay behind the API. The local pilot enforces loopback/same-origin access; remote deployment requires an authenticated operator boundary and deployment review.
+No dependency references the moving Brand Workspace checkout. Secrets, assets, and provider operations stay behind the API. A local run enforces loopback/same-origin access; a deployed host enforces same-origin writes only and runs without sign-in until the Ocharo identity server lands (owner decision 2026-10-24), when it moves behind an authenticated operator boundary.
 
 ## Ocharo frame and app links
 

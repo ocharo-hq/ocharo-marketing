@@ -1,0 +1,75 @@
+# Verifies, builds and publishes Ocharo Marketing like every product, through the shared delivery workflow in
+# wow-two-platform.pipelines (current → plan → ci → publish):
+#   main          → release vX.Y.Z (X.Y from the newest version-track folder), bundle on the GitHub release
+#   other branches → candidate sha-<commit>, bundle as an Actions artifact
+#   workflow_dispatch → a candidate for one commit that has no build yet (Wheelhouse's Build action)
+#   pull request  → ci only
+# Images: ghcr.io/ocharo-hq/ocharo-marketing/{marketing,blog}, one per service in engineering/deployment/deploy.yml;
+# publish builds the changed ones, so ci builds no image.
+# Each check runs when its own paths change; a docs-only push runs nothing. Wheelhouse deploys the bundle.
+name: publish-docker-image
+
+on:
+  push:
+    branches: ['**', '!renovate/**']
+  pull_request:
+  workflow_dispatch:
+    inputs:
+      commit:
+        description: The full commit SHA to build
+        required: true
+
+permissions:
+  contents: write
+  packages: write
+  actions: read
+
+concurrency:
+  group: delivery-${{ github.repository }}-${{ inputs.commit || github.ref }}
+  # main queues, so each release reads the tag the previous one created; other refs cancel a superseded run.
+  cancel-in-progress: ${{ github.event_name == 'pull_request' || (github.event_name == 'push' && github.ref != 'refs/heads/main') }}
+  queue: max
+
+jobs:
+  delivery:
+    uses: wow-two-platform/wow-two-platform.pipelines/.github/workflows/delivery.yml@v0.10.0
+    with:
+      commit: ${{ inputs.commit }}
+      # Neither solution declares NuGet lockfiles. Card rendering tests need Playwright's Chromium on the runner; the
+      # deployed image has no browser. The published apps (Atlas, Wear, Blog, Catalogue) build from isolated export
+      # fixtures: packaging only, never authenticated publication or live content.
+      backends: |
+        [{"name": "Backend (ocharo-marketing)", "dir": "engineering/codebase/ocharo-marketing.backend-services",
+          "dotnet": "10.0.300", "lfs": "engineering/codebase/**", "timeout": 30,
+          "run": ["python3 shared/sync-sso.py --check",
+                  "dotnet restore OcharoMarketing.BackendServices.slnx",
+                  "dotnet build OcharoMarketing.BackendServices.slnx -c Release --no-restore -p:BuildSpa=false",
+                  "pwsh tests/OcharoMarketing.Tests/bin/Release/net10.0/playwright.ps1 install --with-deps chromium",
+                  "dotnet test OcharoMarketing.BackendServices.slnx -c Release --no-build -p:BuildSpa=false"],
+          "paths": ["engineering/codebase/ocharo-marketing.backend-services/**"]},
+         {"name": "Backend (ocharo-blog)", "dir": "engineering/codebase/ocharo-blog.backend-services",
+          "dotnet": "10.0.300", "lfs": "engineering/codebase/**", "timeout": 30,
+          "run": ["python3 shared/sync-sso.py --check",
+                  "dotnet restore OcharoBlog.BackendServices.slnx",
+                  "dotnet build OcharoBlog.BackendServices.slnx -c Release --no-restore -p:BuildSpa=false",
+                  "dotnet test OcharoBlog.BackendServices.slnx -c Release --no-build -p:BuildSpa=false"],
+          "paths": ["engineering/codebase/ocharo-blog.backend-services/**"]},
+         {"name": "Public artifacts", "dir": "engineering/codebase/ocharo-marketing.frontend-services",
+          "node": "engineering/codebase/ocharo-marketing.frontend-services/.nvmrc", "python": "3.12",
+          "lfs": "engineering/codebase/**", "timeout": 20,
+          "run": ["pnpm install --frozen-lockfile",
+                  "python3 ../../scripts/check-public-artifact.py atlas wear blog catalogue"],
+          "paths": ["engineering/codebase/ocharo-marketing.frontend-services/**",
+                    "engineering/scripts/check-public-artifact.py"]},
+         {"name": "Deployment composition", "dir": "engineering/deployment", "timeout": 5,
+          "run": ["docker compose --file docker-compose.yml config --quiet",
+                  "docker compose --file blog/docker-compose.yml config --quiet"],
+          "paths": ["engineering/deployment/**"]}]
+      frontends: |
+        [{"name": "Frontend (web)", "dir": "engineering/codebase/ocharo-marketing.frontend-services",
+          "lfs": "engineering/codebase/**", "scripts": ["lint", "format:check", "typecheck", "test", "build"],
+          "paths": ["engineering/codebase/ocharo-marketing.frontend-services/**"]},
+         {"name": "Frontend (editorial)", "dir": "engineering/codebase/ocharo-marketing.frontend-services",
+          "lfs": "engineering/codebase/**",
+          "scripts": ["lint:editorial", "format:check:editorial", "typecheck:editorial", "test:editorial", "build:editorial"],
+          "paths": ["engineering/codebase/ocharo-marketing.frontend-services/**"]}]
