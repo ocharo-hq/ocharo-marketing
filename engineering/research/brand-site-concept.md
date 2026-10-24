@@ -1,17 +1,21 @@
 # Brand site concept — "Abr"
 
-*Last updated: 2026-10-19*
+*Last updated: 2026-10-24*
 
-A hook-level, high-resolution, animated concept site for the root domain: one recognisable motion
+A hook-level, high-resolution, animated concept site for `ocharo.co`: one recognisable motion
 language, the way Apple's pinned product stage is Apple's. Research only — no build is authorized
 by this document. Facts marked *(unverified)* or *(estimate)* rest on inference or one weak source.
 
 ## Status
 
 - ✅ Reference teardown, technique catalogue, performance budget — `2026-10-19`
+- ✅ Structure: 6 acts, product first — user, `2026-10-24`
+- ✅ Footage: AI-generated prototype, real shoot before launch — user, `2026-10-24`
+- ⬜ Signature motion — abr register at the rack wipe; [demo](#signature-motion--the-abr-register) shown, not yet approved
 - ⬜ Host app: new root app vs reuse of `apps/wear` / `apps/atlas` stub
-- ⬜ Concept approval — signature motion, chapter list, type
-- ⬜ Asset shoot — macro cloth, warp/binding video, flatbed scans
+- ⬜ Type and colour
+- ⬜ Prototype footage — AI clips for acts 1–3
+- ⬜ Real shoot — replaces prototype footage before public launch
 - ⬜ MVP build
 
 ## Signature motion — the "abr register"
@@ -28,21 +32,50 @@ slightly out of register on the loom ([NGV](https://ngv.vic.gov.au/explore/colle
 - The abr softness also masks transition compression artifacts on high-frequency ikat.
 
 Ikat colour appears only inside cloth images. The interface stays charcoal (~`#1F1E1C`) and ivory
-(~`#F3EEE4`), matching the approved wordmark; each chapter may take one accent sampled from its own textile.
+(~`#F3EEE4`), matching the approved wordmark; each act may take one accent sampled from its own textile.
 
-## Chapters
+## Structure — 6 acts
 
-| # | Chapter | Moment | Assets needed |
-|---|---|---|---|
-| 1 | Thread (*ip*) | Hero: a silk thread stitches the needle mark into the wordmark (SVG stroke draw, Hermès-style) | Macro still of silk hanks (LCP image); mark as SVG |
-| 2 | Bind & dye (*abrband*) | Colour blooms along bound threads — abr shader at full strength | Macro video of binding/dyeing, or shader over a flat scan |
-| 3 | Weave | Pinned frame sequence: the pattern registers as strips align; tap → deep zoom of adras, khan-atlas, velvet ikat | 600+ dpi flatbed scans; 60–120-frame sequence |
-| 4 | Cut | Line drawing of band collar, gathered waist, mid-calf over the front cutout; 3 sticky callouts | Existing front cutouts; technical line drawing |
-| 5 | Garment | Six-mannequin group on a gutterless "wall" (Loewe); later a 3D turntable | Group shot (exists); optional new GLB |
-| 6 | Atelier | Founder portrait → hands and needle in short loops | Portrait (exists, 640 px — too small for hero); three 4–6 s loops |
-| 7 | Contact / wholesale | Lookbook request, buyer email, Telegram, WhatsApp | Form wired to Marketing lead intake |
+Agreed by the user `2026-10-24`; open to refinement. Product first: visitors arrive from Instagram
+mid-scroll, so a garment is in the first frame. The earlier process-first draft (thread → dye →
+weave → cut → garment → atelier → contact) is superseded — it held the first garment until chapter 5.
 
-Total scroll ≈ 12–15 viewport heights; one moving element per viewport; no scroll hijacking.
+Four jobs set the count: show the product, prove the craft, place it in Tashkent, convert.
+
+| # | Act | Job | Moment | Length |
+|---|---|---|---|---|
+| 1 | Hero film | Product | Full-bleed loop of one signature piece in motion; wordmark; one line | 1 screen |
+| 2 | The rack | Product | A model pushes garments along a rack; each piece crossing the lens changes her outfit. Each scroll step plays one clip and names the piece and its cloth. The ikat-filled wipe carries the abr register | 6–8 steps |
+| 3 | The cloth | Craft | Macro adras, khan-atlas, velvet ikat; abr register at full strength; tap → deep zoom | 2 screens |
+| 4 | The atelier | Craft | Founder, hands, cutting, `tikuvchi` work in short loops | 2 screens |
+| 5 | Tashkent | Action | Where to see and buy the work; map pin for visitors | 1 screen |
+| 6 | Enquire | Action | Three doors: wholesale, lookbook request, follow on Instagram / Telegram | 1 screen |
+
+Footer: Instagram, Telegram, language, address. Total ≈ 8–10 screens; one moving element per
+viewport; no scroll hijacking. The signature cut (band collar, gathered waist, mid-calf) is called
+out per garment inside act 2 rather than as its own act.
+
+## Header
+
+- ≤56 px tall — Instagram's in-app browser already stacks its own bar above it.
+- Transparent over the hero; charcoal after it; hides on scroll-down, returns on scroll-up.
+- `OCHARO` wordmark centred; menu left; `Enquire` right.
+- Links: Collection (act 2) · Atelier (act 4) · Visit (act 5); EN / RU / UZ switch.
+- No cart and no search until a shop exists.
+
+## Footage
+
+Decided by the user `2026-10-24`: high-quality AI video is the prototype footage; a real shoot
+replaces it before public launch.
+
+- Prototype clips: Seedance 2.0 / Kling / Veo per [Seedance video](seedance-video.md) — product
+  shots from real garment photos as first/last frames; the rack sequence and hero as text/image-to-video.
+- AI regenerates ikat per frame (motif swim, cut drift), so prototype footage stays internal or
+  labelled; the public launch shows real garments.
+- Each clip slot keeps fixed specs (aspect, length, loop points, poster) so the real footage
+  drops in without layout changes.
+- Real shoot, later: one day, model + videographer, 4K 50 fps, camera locked off for the rack;
+  one session yields both the 16:9 site cut and the 9:16 Reel.
 
 ## References to study
 
@@ -53,10 +86,10 @@ Total scroll ≈ 12–15 viewport heights; one moving element per viewport; no s
 | [Lacoste Polo Factory](https://www.awwwards.com/sites/lacoste-polo-factory) | Awwwards SOTD Jul 2026 — "where polos are born", Three.js | Making-process as story = thread → garment spine |
 | [Max Mara Jacket Circle](https://www.awwwards.com/sites/max-mara-jacket-circle) | SOTD Apr 2026, GSAP + PixiJS (2D) | One garment + 2D canvas wins without heavy 3D |
 | [The Tie-break](https://www.awwwards.com/sites/the-tie-break) | SOTD Sep 2026 — real photo/video treated inside WebGL | Photo first, CG second — right order for real product |
-| [Miu Miu house](https://www.awwwards.com/sites/miu-miu-a-house-that-we-shaped) | SOTD Aug 2026 — products discovered inside a world | Model for the atelier chapter |
+| [Miu Miu house](https://www.awwwards.com/sites/miu-miu-a-house-that-we-shaped) | SOTD Aug 2026 — products discovered inside a world | Model for act 4, the atelier |
 | [Loewe](https://www.work.co/news/inside-the-redesigned-loewe-site/) | 2025 Work & Co gutterless "shop walls" grid *(unverified — snippet only)* | Product as a dense object wall |
 | [Loro Piana Workshop of Wonders](https://www.awwwards.com/sites/loro-piana-workshop-of-wonders) | WebGL story tied to physical QR displays | QR on hangtags/atelier wall → site, for tourists |
-| [Bottega Veneta "Craft is our Language"](https://aeworld.com/fashion/bottega-veneta-marks-50-years-of-iconic-weave-with-craft-is-our-language-campaign/) | Hands and gesture over product | Atelier chapter direction |
+| [Bottega Veneta "Craft is our Language"](https://aeworld.com/fashion/bottega-veneta-marks-50-years-of-iconic-weave-with-craft-is-our-language-campaign/) | Hands and gesture over product | Act 4 direction |
 | [Coutumes](https://www.awwwards.com/sites/coutumes) | Quiet, image-led Shopify | Later shop phase |
 
 ## Techniques
@@ -80,7 +113,7 @@ Total scroll ≈ 12–15 viewport heights; one moving element per viewport; no s
 |---|---|
 | LCP (p75) | ≤2.5 s; aim ≤2.0 s on 4G phones ([web.dev](https://web.dev/articles/defining-core-web-vitals-thresholds)) |
 | INP / CLS | ≤200 ms / ≤0.1 |
-| First paint payload | ≤500 KB; JS ≤120 KB gz; three.js / OpenSeadragon lazy per chapter *(own targets)* |
+| First paint payload | ≤500 KB; JS ≤120 KB gz; three.js / OpenSeadragon lazy per act *(own targets)* |
 | Whole scroll | ≤8–12 MB mobile, ≤20–25 MB desktop *(own targets)* |
 
 Instagram in-app browser — where most traffic lands:
@@ -108,7 +141,7 @@ Hosting: Cloudflare Pages (25 MiB per-file cap, [changelog](https://developers.c
 - Vue 3 + strict TS + Vite + Tailwind v4 — the WoW2 frontend standard; static prerendered page, no Nuxt.
 - Vue 3.6 Vapor skipped — still a release candidate; the bottleneck is media/GPU, not the VDOM.
 - GSAP 3.13+ (ScrollTrigger, SplitText) · Lenis desktop-only · OGL for 2D shaders.
-- three.js r186 only if a 3D chapter ships — the Assets Motion lab already runs Vue 3.5 + three 0.186.
+- three.js r186 only if a 3D act ships — the Assets Motion lab already runs Vue 3.5 + three 0.186.
 - Frame-sequence player, reduced-motion composable and in-app-browser tiering are reusable → build in
   `@wow-two-beta/fe` per the SDK doctrine.
 
@@ -116,8 +149,8 @@ Hosting: Cloudflare Pages (25 MiB per-file cap, [changelog](https://developers.c
 
 | Scope | Contents | Dev days |
 |---|---|---|
-| MVP | 5 chapters, abr shader + fallbacks, 1 frame sequence, reduced motion, IG lite tier, contact links, asset pipeline (sharp, avifenc, ffmpeg), device QA | 12–16 |
-| Full | 7 chapters, 3 sequences, deep zoom, 3D signature cut, founder film (HLS), EN/RU/UZ, kinetic type, award polish | 35–40 + 5–10 days 3D modelling |
+| MVP | 6 acts on prototype footage, abr shader + fallbacks, 1 frame sequence, reduced motion, IG lite tier, contact links, asset pipeline (sharp, avifenc, ffmpeg), device QA | 12–16 |
+| Full | 6 acts on real footage, 3 sequences, deep zoom, 3D signature cut, founder film (HLS), EN/RU/UZ, kinetic type, award polish | 35–40 + 5–10 days 3D modelling |
 
 Asset production (shoot + post) is separate: ~5–8 days. The hook depends more on macro cloth
 photography than on code — the existing 640 px portrait and phone product shots cannot carry a
