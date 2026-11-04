@@ -47,8 +47,6 @@ export const frameUiMessages: Readonly<Record<string, Readonly<{ en?: string; uz
   Plan: { uz: "Reja", ru: "План" },
   Settings: { uz: "Sozlamalar", ru: "Настройки" },
   "Site settings": { uz: "Sayt sozlamalari", ru: "Настройки сайта" },
-  "Signed in through Ocharo Desk": { uz: "Ocharo Desk orqali kirilgan", ru: "Вход выполнен через Ocharo Desk" },
-  "Ocharo account": { uz: "Ocharo hisobi", ru: "Учётная запись Ocharo" },
   "Could not sign out. Try again.": {
     uz: "Hisobdan chiqib bo‘lmadi. Qayta urinib ko‘ring.",
     ru: "Не удалось выйти. Попробуйте ещё раз.",
@@ -57,9 +55,9 @@ export const frameUiMessages: Readonly<Record<string, Readonly<{ en?: string; uz
     uz: "Bu oyna Ocharo’ga kirishni tasdiqlay olmadi. Ilovani qayta yuklang, so‘ng hisobdan chiqing.",
     ru: "Эта вкладка не смогла подтвердить вход в Ocharo. Перезагрузите приложение, затем выйдите.",
   },
-  "Ocharo Desk could not end this sign-in. Your work stays here; try again shortly.": {
-    uz: "Ocharo Desk bu kirishni yakunlay olmadi. Ishingiz shu yerda qoladi; birozdan so‘ng qayta urinib ko‘ring.",
-    ru: "Ocharo Desk не смог завершить этот вход. Ваша работа остаётся здесь; повторите попытку чуть позже.",
+  "Ocharo could not end this sign-in. Your work stays here; try again shortly.": {
+    uz: "Ocharo bu kirishni yakunlay olmadi. Ishingiz shu yerda qoladi; birozdan so‘ng qayta urinib ko‘ring.",
+    ru: "Ocharo не смог завершить этот вход. Ваша работа остаётся здесь; повторите попытку чуть позже.",
   },
   "Save or discard your unsaved changes before signing out.": {
     uz: "Hisobdan chiqishdan oldin saqlanmagan o‘zgarishlarni saqlang yoki bekor qiling.",

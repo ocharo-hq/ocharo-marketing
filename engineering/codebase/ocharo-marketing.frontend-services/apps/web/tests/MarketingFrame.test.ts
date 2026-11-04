@@ -229,7 +229,7 @@ describe('Ocharo frame in Marketing', () => {
   });
 
   it('reports the app and API versions in the account menu, with no sign-out outside an Ocharo session', async () => {
-    await renderAt('/channels');
+    await renderAt('/channels', { session: { isAuthenticated: false } });
 
     await wrapper!.get('header button[aria-label="Account menu"]').trigger('click');
     await flushPromises();

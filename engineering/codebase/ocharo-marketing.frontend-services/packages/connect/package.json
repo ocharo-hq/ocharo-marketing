@@ -5,7 +5,7 @@
   "type": "module",
   "exports": {
     ".": "./src/session.ts",
-    "./ConnectDesk.vue": "./src/ConnectDesk.vue",
+    "./SessionConnection.vue": "./src/SessionConnection.vue",
     "./UseUiLocale": "./src/UseUiLocale.ts",
     "./UiMessages": "./src/UiMessages.ts",
     "./RequestFeedback": "./src/RequestFeedback.ts",

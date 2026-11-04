@@ -3,7 +3,7 @@ import { vi } from 'vitest';
 import { computed, defineComponent, h, ref, type Plugin } from 'vue';
 import { importMetaEnvSource } from '@wow-two-beta/fe/foundation/config';
 import { RouterHistoryMode } from '@wow-two-beta/fe/router';
-import { refreshIntegration } from '@ocharomarketing/connect';
+import { configureIntegration, refreshIntegration } from '@ocharomarketing/connect';
 import { loadOcharoApps, ocharoAppsPlugin } from '@ocharomarketing/connect/OcharoAppsConfig';
 
 import AppRoot from '../../src/bootstrap/AppRoot.vue';
@@ -13,17 +13,24 @@ import { emptyArticle } from '../../src/domain/blog/BlogRules';
 /** The informational version the stubbed `/api/system/status` reports: a release and the commit it was built from. */
 export const ApiVersion = '0.2.0+1a2b3c4d5e6f';
 
-/** One signed-in Ocharo session, the same identity in every test, so the identity-change rule never trips. */
+/**
+ * What `GET /api/identity/session` answers for one signed-in person, the same in every test, so the
+ * identity-change rule never trips.
+ */
 export const SignedIn = {
-  enabled: true,
-  authenticated: true,
-  userId: 'editor-1',
-  organizationId: 'ocharo',
-  canEdit: true,
-  canApprove: true,
+  isAuthenticated: true,
+  person: { sub: 'editor-1', name: null, picture: null, email: null, phoneNumber: null },
+  organization: { id: 'b8c672a6-c2e4-4516-82ad-5b178e71ace1', name: 'Ocharo', role: 'owner', slug: 'ocharo' },
+  permissions: ['editorial:edit', 'editorial:approve'],
   csrfToken: 'csrf-token',
-  accountUrl: 'https://desk.example.test/',
+  expiresAt: '2026-11-04T08:00:00Z',
 };
+
+/** Identity's end-session page, where a sign-out sends the browser. */
+export const EndSessionUrl = 'https://identity.example.test/connect/endsession?client_id=editorial';
+
+/** The addresses the app sent the browser to, oldest first; each mount clears it, and navigation is never performed. */
+export const navigations: string[] = [];
 
 /** A list page that names itself, standing in for the real stories, topics and settings pages. */
 export function placeStub(name: string, heading: string) {
@@ -83,10 +90,10 @@ export interface EditorialAppOptions {
   readonly width?: number;
   /** When given, `/api/runtime-config` serves it and the app menu resolves it the way startup does. */
   readonly runtimeConfig?: Record<string, string>;
-  /** The session `/api/sso/session` serves; default SSO disabled, so the local integration session applies. */
-  readonly ssoSession?: Record<string, unknown>;
-  /** The status `POST /api/sso/logout` answers; default 204. */
-  readonly logoutStatus?: number;
+  /** What `GET /api/identity/session` serves; default a signed-in person who edits and approves. */
+  readonly session?: Record<string, unknown>;
+  /** The status `POST /api/identity/sign-out` answers; default 200 with Identity's end-session address. */
+  readonly signOutStatus?: number;
 }
 
 /**
@@ -98,6 +105,10 @@ export async function mountEditorial(
   options: EditorialAppOptions = {},
 ): Promise<{ wrapper: VueWrapper; router: ReturnType<typeof createBlogRouter> }> {
   stubViewport(options.width ?? 1440);
+  navigations.length = 0;
+  vi.spyOn(window.location, 'assign').mockImplementation((url) => {
+    navigations.push(String(url));
+  });
   vi.stubGlobal(
     'fetch',
     vi.fn(async (input: RequestInfo | URL) => {
@@ -106,17 +117,18 @@ export async function mountEditorial(
       if (pathname === '/api/runtime-config') return Response.json(options.runtimeConfig ?? {});
       if (pathname === '/api/system/status')
         return Response.json({ service: 'OcharoBlog', status: 'healthy', version: ApiVersion });
-      if (pathname === '/api/sso/session')
-        return Response.json({ data: options.ssoSession ?? { enabled: false, authenticated: false } });
-      if (pathname === '/api/integrations/session')
-        return Response.json({ mode: 'local', active: true, configured: true, canEdit: true, canApprove: true });
-      if (pathname === '/api/sso/logout') return new Response(null, { status: options.logoutStatus ?? 204 });
+      if (pathname === '/api/identity/session') return Response.json({ data: options.session ?? SignedIn });
+      if (pathname === '/api/identity/sign-out')
+        return options.signOutStatus && options.signOutStatus !== 200
+          ? new Response(null, { status: options.signOutStatus })
+          : Response.json({ data: { endSessionUrl: EndSessionUrl } });
       return Response.json({ title: 'Not found' }, { status: 404 });
     }),
   );
   const router = createBlogRouter({ history: RouterHistoryMode.Memory });
   await router.push(path);
   await router.isReady();
+  configureIntegration({ permissionNamespace: 'editorial' });
   await refreshIntegration();
   const plugins: Plugin[] = [router];
   if (options.runtimeConfig) plugins.push(ocharoAppsPlugin(await loadOcharoApps(importMetaEnvSource(import.meta.env))));

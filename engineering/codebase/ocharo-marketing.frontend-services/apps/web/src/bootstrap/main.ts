@@ -2,7 +2,7 @@ import './index.css';
 
 import { createApp } from 'vue';
 import { importMetaEnvSource } from '@wow-two-beta/fe/foundation/config';
-import { initializeIntegration, subscribeIntegrationExpired } from '@ocharomarketing/connect';
+import { configureIntegration, initializeIntegration, subscribeIntegrationExpired } from '@ocharomarketing/connect';
 import { sessionExpiryNotice } from '@ocharomarketing/connect/Feedback';
 import { loadOcharoApps, ocharoAppsPlugin, reportOcharoAppsStartup } from '@ocharomarketing/connect/OcharoAppsConfig';
 import { initializeUiLocale } from '@ocharomarketing/connect/UseUiLocale';
@@ -12,7 +12,9 @@ import AppRoot from './AppRoot.vue';
 import { createMarketingRouter } from './MarketingRouter';
 
 initializeUiLocale();
-// An expired sign-in shows one neutral notice; the page and its unsaved edits stay while the operator reconnects.
+// Identity grants this app `marketing:edit` and `marketing:approve`; the session's permissions are read under that name.
+configureIntegration({ permissionNamespace: 'marketing' });
+// An expired sign-in shows one neutral notice; the page and its unsaved edits stay while the operator signs in again.
 subscribeIntegrationExpired(sessionExpiryNotice());
 const router = createMarketingRouter();
 const app = createApp(AppRoot);

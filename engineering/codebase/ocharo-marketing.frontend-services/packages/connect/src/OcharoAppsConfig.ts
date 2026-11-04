@@ -16,7 +16,6 @@ import { notifyFeedback } from "./Feedback";
 import {
   OcharoAppKind,
   ocharoApps,
-  resolveOcharoAppUrl,
   type OcharoApp,
   type OcharoAppAddresses,
   type OcharoAppKey,
@@ -29,8 +28,7 @@ export const BuildTimePrefix = "VITE_";
 
 /**
  * Every address Marketing and Editorial read, keyed as `/api/runtime-config` serves it; each default is the local-run
- * address. The app keys match Desk's. `PLATFORM_URL` is the Desk address the connection panel opens; only the build
- * sets it (`VITE_PLATFORM_URL`), as before.
+ * address. The app keys match Desk's.
  */
 export const OcharoAppsConfigSchema = {
   OCHARO_DESK_URL: url({ default: "https://localhost:8264/" }),
@@ -42,7 +40,6 @@ export const OcharoAppsConfigSchema = {
   OCHARO_ATLAS_URL: url({ default: "https://localhost:8284/atlas/" }),
   OCHARO_WEAR_URL: url({ default: "https://localhost:8284/wear/" }),
   OCHARO_BLOG_URL: url({ default: "https://localhost:8284/" }),
-  PLATFORM_URL: url({ default: "https://localhost:8264/" }),
 } satisfies ConfigSchema;
 
 /** The resolved addresses, one per schema key. */
@@ -62,7 +59,6 @@ const AppKeys: Readonly<Partial<Record<keyof OcharoAppsConfig, OcharoAppKey>>> =
 };
 
 /** @internal The connection panel's Desk address when the configured one is unusable. */
-const DefaultPlatformUrl = "https://localhost:8264/";
 
 /** What the operator is told when startup could not use every source or value. */
 export const OcharoAppsProblem = {
@@ -76,8 +72,6 @@ export type OcharoAppsProblem = (typeof OcharoAppsProblem)[keyof typeof OcharoAp
 export interface OcharoLinks {
   /** The app menu's destinations. */
   readonly addresses: OcharoAppAddresses;
-  /** The Desk address the connection panel opens. */
-  readonly platformUrl: string;
 }
 
 /** What startup resolved, and each problem owed to the operator. */
@@ -101,15 +95,14 @@ export function resolveOcharoAppsConfig(sources: readonly ConfigSource[]): Ochar
   return defineConfig(OcharoAppsConfigSchema, { sources, prefix: BuildTimePrefix });
 }
 
-/** @internal Maps resolved keys onto menu destinations and the connection panel's Desk address. */
+/** @internal Maps resolved keys onto menu destinations. */
 function toLinks(config: Readonly<Record<string, unknown>>): OcharoLinks {
   const addresses: Partial<Record<OcharoAppKey, string>> = {};
   for (const [key, app] of Object.entries(AppKeys)) {
     const value = config[key];
     if (typeof value === "string" && app) addresses[app] = value;
   }
-  const platform = config.PLATFORM_URL;
-  return { addresses, platformUrl: typeof platform === "string" ? platform : DefaultPlatformUrl };
+  return { addresses };
 }
 
 /** @internal Resolves the links; a malformed value leaves its key out instead of yielding to a lower source. */
@@ -166,7 +159,7 @@ const OcharoLinksKey: InjectionKey<OcharoLinks> = Symbol("OcharoLinks");
 export function ocharoAppsPlugin(links: OcharoLinks): Plugin {
   return {
     install(app) {
-      app.provide(OcharoLinksKey, { addresses: links.addresses, platformUrl: links.platformUrl });
+      app.provide(OcharoLinksKey, { addresses: links.addresses });
     },
   };
 }
@@ -179,11 +172,6 @@ function useOcharoLinks(): OcharoLinks {
 /** The app menu's destinations. */
 export function useOcharoApps(): OcharoApp[] {
   return ocharoApps(useOcharoLinks().addresses);
-}
-
-/** The Desk address the connection panel opens; only a plain HTTPS link, else the local Desk. */
-export function usePlatformUrl(): string {
-  return resolveOcharoAppUrl(useOcharoLinks().platformUrl) ?? DefaultPlatformUrl;
 }
 
 /** The icon on each app tile in the app menu, as Desk draws it; public sites share one. */

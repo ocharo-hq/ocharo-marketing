@@ -5,13 +5,16 @@ export const uiMessages: Readonly<
   Record<string, Readonly<{ en?: string; uz: string; ru: string }>>
 > = {
   "Check your Ocharo connection": { uz: "Ocharo ulanishini tekshiring", ru: "Проверьте подключение к Ocharo" },
+  "Ocharo connection": { uz: "Ocharo ulanishi", ru: "Подключение к Ocharo" },
+  "Sign in to Ocharo": { uz: "Ocharo hisobiga kirish", ru: "Войти в Ocharo" },
+  "Sign-in did not complete. Try again.": { uz: "Hisobga kirish yakunlanmadi. Qayta urinib ko‘ring.", ru: "Вход не завершён. Попробуйте ещё раз." },
+  "You have read-only access.": { uz: "Sizda faqat ko‘rish ruxsati bor.", ru: "У вас доступ только для чтения." },
+  "Your sign-in expired. Sign in again; your unsaved work stays here.": { uz: "Kirish muddati tugadi. Qayta kiring; saqlanmagan ishingiz shu yerda qoladi.", ru: "Срок входа истёк. Войдите снова; несохранённая работа останется здесь." },
   "Open app in a new tab": { uz: "Ilovani yangi oynada ochish", ru: "Открыть приложение в новой вкладке" },
-  "Open Ocharo Desk": { uz: "Ocharo Desk’ni ochish", ru: "Открыть Ocharo Desk" },
   "Reconnection opens a new tab. Your unsaved edits stay here.": { uz: "Qayta ulanish yangi oynada ochiladi. Saqlanmagan o‘zgarishlaringiz shu yerda qoladi.", ru: "Подключение откроется в новой вкладке. Несохранённые изменения останутся здесь." },
   "Signed in to Ocharo": { uz: "Ocharo hisobiga kirilgan", ru: "Вход в Ocharo выполнен" },
   "Reconnect to Ocharo": { uz: "Ocharo hisobiga qayta ulaning", ru: "Подключитесь к Ocharo снова" },
   "Use your Ocharo account across all apps.": { uz: "Barcha ilovalarda Ocharo hisobingizdan foydalaning.", ru: "Используйте аккаунт Ocharo во всех приложениях." },
-  "Reconnect": { uz: "Qayta ulanish", ru: "Подключиться снова" },
   "Your Ocharo account changed. Reload this app before continuing.": { uz: "Ocharo hisobingiz o‘zgardi. Davom etishdan oldin ilovani qayta yuklang.", ru: "Аккаунт Ocharo изменился. Перезагрузите приложение перед продолжением." },
   'Preview unavailable': {uz:'Ko‘rinish mavjud emas',ru:'Предпросмотр недоступен'},
   'Retry preview': {uz:'Ko‘rinishni qayta yuklash',ru:'Повторить предпросмотр'},
@@ -648,10 +651,6 @@ export const uiMessages: Readonly<
     uz: "yopilgan",
     ru: "закрыто",
   },
-  "Connect this desk": {
-    uz: "Ushbu ish stolini ulash",
-    ru: "Подключить этот кабинет",
-  },
   "Connection status is unavailable.": {
     uz: "Ulanish holati mavjud emas.",
     ru: "Состояние подключения недоступно.",
@@ -731,14 +730,6 @@ export const uiMessages: Readonly<
   "Edit image": {
     uz: "Tasvirni tahrirlash",
     ru: "Редактировать изображение",
-  },
-  "Editing access": {
-    uz: "Tahrirlash huquqi",
-    ru: "Доступ к редактированию",
-  },
-  "Editing and approval access": {
-    uz: "Tahrirlash va tasdiqlash huquqi",
-    ru: "Доступ к редактированию и утверждению",
   },
   "Editorial publications": {
     uz: "Tahririy nashrlar",
@@ -1481,10 +1472,6 @@ export const uiMessages: Readonly<
     uz: "Asl tasvir o‘lchamlari yuklanmoqda…",
     ru: "Загрузка исходных размеров изображения…",
   },
-  "Local workspace": {
-    uz: "Mahalliy ish stoli",
-    ru: "Локальный кабинет",
-  },
   Logo: {
     uz: "Logotip",
     ru: "Логотип",
@@ -2086,18 +2073,9 @@ export const uiMessages: Readonly<
     uz: "olindi ·",
     ru: "получено ·",
   },
-  "Open Connected apps in Platform, choose this desk, then return here. Unsaved edits stay open.":
-    {
-      uz: "Platform’da Ulangan ilovalarni oching, ushbu ish stolini tanlang va qayting. Saqlanmagan tahrirlar ochiq qoladi.",
-      ru: "Откройте подключённые приложения в Platform, выберите этот кабинет и вернитесь. Несохранённые изменения останутся открытыми.",
-    },
   "Open imported draft →": {
     uz: "Import qilingan qoralamani ochish →",
     ru: "Открыть импортированный черновик →",
-  },
-  "Open Platform ↗": {
-    uz: "Platform’ni ochish ↗",
-    ru: "Открыть Platform ↗",
   },
   "OpenAI · This button may start paid image analysis. Results are not accepted automatically.":
     {
@@ -2154,14 +2132,6 @@ export const uiMessages: Readonly<
       uz: "PDF postlarning aynan tanlangan PNG tasvirlarini ishlatadi. Izohlar kartadan tashqarida qoladi.",
       ru: "PDF использует именно выбранные PNG-изображения. Подписи остаются за пределами карточек.",
     },
-  "Platform connected": {
-    uz: "Platform ulangan",
-    ru: "Platform подключена",
-  },
-  "Platform connection": {
-    uz: "Platform ulanishi",
-    ru: "Подключение к Platform",
-  },
   Post: {
     uz: "Post",
     ru: "Пост",
@@ -2475,10 +2445,6 @@ export const uiMessages: Readonly<
   Images: {
     uz: "Tasvirlar",
     ru: "Изображения",
-  },
-  "Read access": {
-    uz: "O‘qish huquqi",
-    ru: "Доступ к чтению",
   },
   "Reading service version…": {
     uz: "Xizmat versiyasi o‘qilmoqda…",
@@ -3206,11 +3172,6 @@ export const uiMessages: Readonly<
     uz: "To‘qimachilik obyekti",
     ru: "Текстильный объект",
   },
-  "This connection expired or belongs to another organization. Reconnect from Platform.":
-    {
-      uz: "Bu ulanish muddati tugagan yoki boshqa tashkilotga tegishli. Platform orqali qayta ulang.",
-      ru: "Срок подключения истёк или оно принадлежит другой организации. Подключитесь заново через Platform.",
-    },
   "This image has no readable dimensions.": {
     uz: "Bu tasvirning o‘lchamlarini o‘qib bo‘lmaydi.",
     ru: "Не удалось прочитать размеры изображения.",
@@ -3218,10 +3179,6 @@ export const uiMessages: Readonly<
   "This image is unavailable. Choose a saved image from the media library.": {
     uz: "Bu tasvir mavjud emas. Kutubxonadan saqlangan tasvirni tanlang.",
     ru: "Изображение недоступно. Выберите сохранённое изображение из библиотеки.",
-  },
-  "This instance needs its Platform URL and organization binding.": {
-    uz: "Ushbu nusxa uchun Platform manzili va tashkilot bog‘lanishi kerak.",
-    ru: "Для этого экземпляра нужны адрес Platform и привязка организации.",
   },
   Restore: {
     uz: "Tiklash",

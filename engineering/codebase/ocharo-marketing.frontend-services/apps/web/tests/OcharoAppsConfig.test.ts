@@ -13,7 +13,6 @@ import {
   runtimeConfigSource,
   useOcharoAppSwitcherItems,
   useOcharoApps,
-  usePlatformUrl,
 } from '@ocharomarketing/connect/OcharoAppsConfig';
 import { translateUi } from '@ocharomarketing/connect/UiMessages';
 import { useUiLocale } from '@ocharomarketing/connect/UseUiLocale';
@@ -29,7 +28,6 @@ const LocalDefaults = {
   OCHARO_ATLAS_URL: 'https://localhost:8284/atlas/',
   OCHARO_WEAR_URL: 'https://localhost:8284/wear/',
   OCHARO_BLOG_URL: 'https://localhost:8284/',
-  PLATFORM_URL: 'https://localhost:8264/',
 };
 
 /** The app side of the seam: only an app module can hand its `import.meta.env` over. */
@@ -51,13 +49,12 @@ function withLinks(plugin?: ReturnType<typeof ocharoAppsPlugin>) {
   let result:
     | {
         apps: ReturnType<typeof useOcharoApps>;
-        platformUrl: string;
         tiles: ReturnType<typeof useOcharoAppSwitcherItems>['value'];
       }
     | undefined;
   const probe = defineComponent({
     setup() {
-      result = { apps: useOcharoApps(), platformUrl: usePlatformUrl(), tiles: useOcharoAppSwitcherItems().value };
+      result = { apps: useOcharoApps(), tiles: useOcharoAppSwitcherItems().value };
       return () => h('div');
     },
   });
@@ -90,14 +87,12 @@ describe('Ocharo app addresses', () => {
     expect(config.OCHARO_CATALOGUE_URL).toBe(LocalDefaults.OCHARO_CATALOGUE_URL);
   });
 
-  it('reads the VITE_OCHARO_* and VITE_PLATFORM_URL build variables the app hands over', () => {
+  it('reads the VITE_OCHARO_* build variables the app hands over', () => {
     vi.stubEnv('VITE_OCHARO_WEAR_URL', 'https://wear.example.test/');
-    vi.stubEnv('VITE_PLATFORM_URL', 'https://platform.example.test/');
 
     const config = resolveOcharoAppsConfig([buildTime()]);
 
     expect(config.OCHARO_WEAR_URL).toBe('https://wear.example.test/');
-    expect(config.PLATFORM_URL).toBe('https://platform.example.test/');
   });
 
   it('rejects a malformed runtime value instead of falling back to the build-time one', () => {
@@ -192,7 +187,6 @@ describe('startup resolution', () => {
       desk: 'https://desk.example.test/',
       catalogue: LocalDefaults.OCHARO_CATALOGUE_URL,
     });
-    expect(startup.platformUrl).toBe(LocalDefaults.PLATFORM_URL);
     expect(ocharoApps(startup.addresses)).toHaveLength(9);
   });
 
@@ -240,7 +234,6 @@ describe('startup resolution', () => {
 
     reportOcharoAppsStartup({
       addresses: {},
-      platformUrl: LocalDefaults.PLATFORM_URL,
       problems: [{ message: OcharoAppsProblem.Unavailable, detail: 'GET /api/runtime-config failed: timeout.' }],
     });
 
@@ -257,22 +250,10 @@ describe('startup resolution', () => {
 
   it('hands the startup links to every component, and the local defaults where startup provided none', async () => {
     serveRuntimeConfig({ OCHARO_DESK_URL: 'https://desk.example.test/' });
-    vi.stubEnv('VITE_PLATFORM_URL', 'https://platform.example.test/');
     const provided = withLinks(ocharoAppsPlugin(await loadOcharoApps(buildTime())));
     const fallback = withLinks();
 
     expect(provided.apps.find((app) => app.key === 'desk')?.url).toBe('https://desk.example.test/');
-    expect(provided.platformUrl).toBe('https://platform.example.test/');
     expect(fallback.apps.find((app) => app.key === 'desk')?.url).toBe(LocalDefaults.OCHARO_DESK_URL);
-    expect(fallback.platformUrl).toBe(LocalDefaults.PLATFORM_URL);
-  });
-
-  it('keeps the connection panel on the local Desk when the build sets a non-HTTPS platform address', async () => {
-    serveRuntimeConfig({});
-    vi.stubEnv('VITE_PLATFORM_URL', 'http://platform.example.test/');
-
-    const { platformUrl } = withLinks(ocharoAppsPlugin(await loadOcharoApps(buildTime())));
-
-    expect(platformUrl).toBe(LocalDefaults.PLATFORM_URL);
   });
 });

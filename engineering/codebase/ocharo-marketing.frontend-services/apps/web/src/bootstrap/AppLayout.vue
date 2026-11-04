@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { computed, onMounted, onScopeDispose, ref, watch } from 'vue';
 import { RouterView, useRoute } from 'vue-router';
-import { ChevronRight, CirclePlus, ExternalLink, RefreshCw, X } from 'lucide-vue-next';
+import { ChevronRight, CirclePlus, RefreshCw, X } from 'lucide-vue-next';
 import { NoticeTone } from '@wow-two-beta/fe/feedback';
 import { TailwindBreakpoints, useBreakpoint } from '@wow-two-beta/fe/foundation/device';
 import { Icon } from '@wow-two-beta/fe/foundation/icons';
@@ -14,19 +14,17 @@ import {
   AppShellMain,
   AppShellSidebar,
 } from '@wow-two-beta/fe/presentation/layout';
-import { AccountMenu, AppSwitcherMenu, MenuItem, type AccountMenuVersion } from '@wow-two-beta/fe/presentation/nav';
+import { AccountMenu, AppSwitcherMenu, type AccountMenuVersion } from '@wow-two-beta/fe/presentation/nav';
 import { AppErrorBoundary } from '@wow-two-beta/fe/router';
 import {
   integrationAccess,
   integrationAccount,
-  integrationMode,
-  integrationSession,
   integrationSigningOut,
   signOutIntegration,
 } from '@ocharomarketing/connect';
-import ConnectDesk from '@ocharomarketing/connect/ConnectDesk.vue';
+import SessionConnection from '@ocharomarketing/connect/SessionConnection.vue';
 import { notifyFeedback, useErrorToast } from '@ocharomarketing/connect/Feedback';
-import { useOcharoAppSwitcherItems, usePlatformUrl } from '@ocharomarketing/connect/OcharoAppsConfig';
+import { useOcharoAppSwitcherItems } from '@ocharomarketing/connect/OcharoAppsConfig';
 import { useServiceVersion } from '@ocharomarketing/connect/ServiceVersion';
 import { unsavedWork } from '@ocharomarketing/connect/UnsavedWork';
 import { interfaceLanguages, useUiLocale } from '@ocharomarketing/connect/UseUiLocale';
@@ -58,7 +56,6 @@ const desk = useMarketingWorkspace();
 useErrorToast(desk.error);
 const workspace = desk.workspace;
 const apps = useOcharoAppSwitcherItems();
-const platformUrl = usePlatformUrl();
 const { version: apiVersion, refresh: refreshApiVersion } = useServiceVersion();
 const appVersion = typeof __APP_VERSION__ === 'string' ? __APP_VERSION__ : 'dev';
 // The stored choice seeds the first render too, so a collapsed rail never animates in from the full sidebar.
@@ -81,17 +78,22 @@ const crumbs = computed(() => {
   return labels.filter((label, index) => labels.indexOf(label) === index).map((label) => t(label));
 });
 
-/** Who is signed in, the account row and sign-out exist only with an Ocharo session; the local pilot has none. */
-const signedIn = computed(() => integrationMode.value === 'sso' && integrationSession.value?.active === true);
-const accountUrl = computed(() => (signedIn.value ? (integrationAccount.value?.accountUrl ?? null) : null));
+/** Who is signed in, and sign-out, exist only with an Ocharo session. */
 const accountOpen = ref(false);
-/** Desk's display name and email name the person; with neither, the menu names the session instead. */
+/** The person Identity names, their contact and picture; a session that names neither still says it is signed in. */
 const accountIdentity = computed(() => {
-  if (!signedIn.value) return {};
-  const name = integrationAccount.value?.name ?? undefined;
-  const email = integrationAccount.value?.email ?? undefined;
-  const fallback = name || email ? undefined : t('Signed in through Ocharo Desk');
-  return { name, description: email ?? fallback, onSignOut: signOut };
+  const account = integrationAccount.value;
+  if (!integrationAccess.value || !account) return {};
+  const { name, email, phoneNumber, picture } = account;
+  const contact = email ?? phoneNumber;
+  if (!name && !contact) return { description: t('Signed in to Ocharo'), onSignOut: signOut };
+  return {
+    ...(name ? { name } : {}),
+    // A person without a display name is named by their contact; it is not repeated under itself.
+    ...(contact && contact !== name ? { description: contact } : {}),
+    ...(picture ? { avatarSrc: picture } : {}),
+    onSignOut: signOut,
+  };
 });
 /** The app's own version, then the API's from its status, with the commit the build carries split off. */
 const versions = computed<AccountMenuVersion[]>(() => {
@@ -108,11 +110,11 @@ watch(accountOpen, (open) => {
 const signOutHeld = computed(() => unsavedWork.value || desk.busy.value !== null);
 async function signOut(): Promise<void> {
   if (signOutHeld.value) {
-    notifyFeedback(SignOutHeldMessage, 'sso:sign-out-held');
+    notifyFeedback(SignOutHeldMessage, 'identity:sign-out-held');
     return;
   }
   const result = await signOutIntegration();
-  if (!result.ok && result.message) notifyFeedback(result.message, 'sso:sign-out', NoticeTone.Danger);
+  if (!result.ok && result.message) notifyFeedback(result.message, 'identity:sign-out', NoticeTone.Danger);
 }
 
 let timer: ReturnType<typeof setTimeout> | undefined;
@@ -204,13 +206,7 @@ onScopeDispose(() => {
           :is-busy="integrationSigningOut"
           variant="glass-menu"
           @update:locale="setUiLocale"
-        >
-          <template v-if="accountUrl" #items>
-            <MenuItem :href="accountUrl" target="_blank"
-              ><ExternalLink :size="15" class="shrink-0" aria-hidden="true" />{{ t('Ocharo account') }}</MenuItem
-            >
-          </template>
-        </AccountMenu>
+        />
       </div>
     </AppShellHeader>
     <AppShellSidebar variant="glass">
@@ -224,7 +220,7 @@ onScopeDispose(() => {
     </AppShellSidebar>
     <AppShellMain class="min-w-0">
       <AppShellContent gutter="lg" :max-width="1600" class="pb-12 pt-6 xl:px-10">
-        <ConnectDesk :platform-url="platformUrl" />
+        <SessionConnection />
         <div
           v-if="desk.notice.value"
           role="status"

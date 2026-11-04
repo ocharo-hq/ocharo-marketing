@@ -38,7 +38,7 @@ vi.mock('../../editorial/src/application/blog', async () => {
   const { ref } = await import('vue');
   return { useBlogStore: () => ({ error: ref(null), notice: ref(null), loadTopics: controls.loadTopics }) };
 });
-vi.mock('@ocharomarketing/connect/ConnectDesk.vue', () => ({
+vi.mock('@ocharomarketing/connect/SessionConnection.vue', () => ({
   default: { template: '<div>Connection controls</div>' },
 }));
 

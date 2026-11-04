@@ -59,7 +59,10 @@ export default defineConfig(({ command }) => {
       port: 8284,
       strictPort: true,
       https: tls ?? {},
-      // The API host renders the public site and previews; the Studio links to them.
+      // The API host renders the public site and previews; the Studio links to them. Every API route rides this proxy,
+      // the Identity session routes too (`/api/identity/session`, `sign-in`, the OIDC `callback`, `sign-out`).
+      // `changeOrigin` stays off, so the API sees this origin: the BFF builds its callback as
+      // https://localhost:8284/api/identity/callback and the session cookie lands on this origin.
       proxy: Object.fromEntries(
         [
           '^/$',

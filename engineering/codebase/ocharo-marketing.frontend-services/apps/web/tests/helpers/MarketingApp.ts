@@ -4,7 +4,7 @@ import type { Plugin } from 'vue';
 import { importMetaEnvSource } from '@wow-two-beta/fe/foundation/config';
 import { ResultExtensions } from '@wow-two-beta/fe/foundation/results';
 import { RouterHistoryMode } from '@wow-two-beta/fe/router';
-import { refreshIntegration } from '@ocharomarketing/connect';
+import { configureIntegration, refreshIntegration } from '@ocharomarketing/connect';
 import { loadOcharoApps, ocharoAppsPlugin } from '@ocharomarketing/connect/OcharoAppsConfig';
 
 import { createMarketingWorkspace, MarketingWorkspaceKey } from '../../src/application/marketing';
@@ -16,17 +16,24 @@ import { marketingApi } from '../../src/integration/marketing';
 /** The informational version the stubbed `/api/system/status` reports: a release and the commit it was built from. */
 export const ApiVersion = '0.1.4+8f2c1d9e4b7a';
 
-/** One signed-in Ocharo session, the same identity in every test, so the identity-change rule never trips. */
+/**
+ * What `GET /api/identity/session` answers for one signed-in person, the same in every test, so the
+ * identity-change rule never trips.
+ */
 export const SignedIn = {
-  enabled: true,
-  authenticated: true,
-  userId: 'operator-1',
-  organizationId: 'ocharo',
-  canEdit: true,
-  canApprove: true,
+  isAuthenticated: true,
+  person: { sub: 'operator-1', name: null, picture: null, email: null, phoneNumber: null },
+  organization: { id: 'b8c672a6-c2e4-4516-82ad-5b178e71ace1', name: 'Ocharo', role: 'owner', slug: 'ocharo' },
+  permissions: ['marketing:edit', 'marketing:approve'],
   csrfToken: 'csrf-token',
-  accountUrl: 'https://desk.example.test/',
+  expiresAt: '2026-11-04T08:00:00Z',
 };
+
+/** Identity's end-session page, where a sign-out sends the browser. */
+export const EndSessionUrl = 'https://identity.example.test/connect/endsession?client_id=marketing';
+
+/** The addresses the app sent the browser to, oldest first; each mount clears it, and navigation is never performed. */
+export const navigations: string[] = [];
 
 /** Answers every `min-width` media query for a viewport `width` wide; colour-scheme queries read as light. */
 export function stubViewport(width: number): void {
@@ -114,10 +121,10 @@ export interface MarketingAppOptions {
   readonly width?: number;
   /** When given, `/api/runtime-config` serves it and the app menu resolves it the way startup does. */
   readonly runtimeConfig?: Record<string, string>;
-  /** The session `/api/sso/session` serves; default SSO disabled, so the local integration session applies. */
-  readonly ssoSession?: Record<string, unknown>;
-  /** The status `POST /api/sso/logout` answers; default 204. */
-  readonly logoutStatus?: number;
+  /** What `GET /api/identity/session` serves; default a signed-in person who edits and approves. */
+  readonly session?: Record<string, unknown>;
+  /** The status `POST /api/identity/sign-out` answers; default 200 with Identity's end-session address. */
+  readonly signOutStatus?: number;
   /** The saved posts the workspace holds. */
   readonly drafts?: number;
 }
@@ -131,6 +138,10 @@ export async function mountMarketing(
   options: MarketingAppOptions = {},
 ): Promise<{ wrapper: VueWrapper; router: ReturnType<typeof createMarketingRouter> }> {
   stubViewport(options.width ?? 1440);
+  navigations.length = 0;
+  vi.spyOn(window.location, 'assign').mockImplementation((url) => {
+    navigations.push(String(url));
+  });
   vi.stubGlobal(
     'fetch',
     vi.fn(async (input: RequestInfo | URL) => {
@@ -139,11 +150,11 @@ export async function mountMarketing(
       if (pathname === '/api/runtime-config') return Response.json(options.runtimeConfig ?? {});
       if (pathname === '/api/system/status')
         return Response.json({ service: 'OcharoMarketing', status: 'healthy', version: ApiVersion });
-      if (pathname === '/api/sso/session')
-        return Response.json({ data: options.ssoSession ?? { enabled: false, authenticated: false } });
-      if (pathname === '/api/integrations/session')
-        return Response.json({ mode: 'local', active: true, configured: true, canEdit: true, canApprove: true });
-      if (pathname === '/api/sso/logout') return new Response(null, { status: options.logoutStatus ?? 204 });
+      if (pathname === '/api/identity/session') return Response.json({ data: options.session ?? SignedIn });
+      if (pathname === '/api/identity/sign-out')
+        return options.signOutStatus && options.signOutStatus !== 200
+          ? new Response(null, { status: options.signOutStatus })
+          : Response.json({ data: { endSessionUrl: EndSessionUrl } });
       return Response.json({ title: 'Not found' }, { status: 404 });
     }),
   );
@@ -154,6 +165,7 @@ export async function mountMarketing(
   });
   await router.push(path);
   await router.isReady();
+  configureIntegration({ permissionNamespace: 'marketing' });
   await refreshIntegration();
   const plugins: Plugin[] = [router];
   if (options.runtimeConfig) plugins.push(ocharoAppsPlugin(await loadOcharoApps(importMetaEnvSource(import.meta.env))));

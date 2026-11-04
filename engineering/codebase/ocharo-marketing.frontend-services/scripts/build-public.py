@@ -1,5 +1,5 @@
-"""Build one standalone app from its authenticated, revisioned published export."""
-import hashlib, html, io, json, os, re, shutil, ssl, sys, urllib.request, urllib.parse, zipfile
+"""Build one standalone app from its revisioned published export."""
+import hashlib, html, io, json, os, re, shutil, sys, zipfile
 from pathlib import Path
 version=os.environ.get('APP_VERSION','dev')
 if version=='0.0.0': version='dev'
@@ -8,18 +8,9 @@ if app not in ('atlas','wear','blog','catalogue'): raise SystemExit('Unknown pub
 root=Path(__file__).resolve().parents[1]; target=root/'apps'/app/'dist'
 archive=os.environ.get('OCHARO_EXPORT_ARCHIVE')
 locale=os.environ.get('OCHARO_CATALOGUE_LOCALE') if app=='catalogue' else None
-if archive: data=Path(archive).read_bytes()
-else:
-    origin=os.environ.get('OCHARO_EDITORIAL_URL','https://localhost:8280').rstrip('/')
-    if not origin.startswith('https://'): raise SystemExit('Use an HTTPS Editorial origin')
-    endpoint='/api/blog/export/site.zip' if app=='blog' else '/api/blog/export/'+app+'.zip'
-    if locale: endpoint+='?'+urllib.parse.urlencode({'locale':locale})
-    headers={}
-    if token:=os.environ.get('OCHARO_EXPORT_TICKET'): headers['X-Ocharo-Integration-Ticket']=token
-    context=ssl.create_default_context(cafile=os.environ.get('OCHARO_CA_FILE'))
-    try:
-        with urllib.request.urlopen(urllib.request.Request(origin+endpoint,headers=headers),context=context,timeout=60) as response: data=response.read()
-    except Exception as e: raise SystemExit('Published export unavailable. Start Editorial and provide a current audience ticket or OCHARO_EXPORT_ARCHIVE. '+str(e))
+# Editorial's export routes need a signed-in session, so a build takes an archive an editor downloaded.
+if not archive: raise SystemExit('Published export unavailable. Download it from Editorial and set OCHARO_EXPORT_ARCHIVE.')
+data=Path(archive).read_bytes()
 with zipfile.ZipFile(io.BytesIO(data)) as bundle:
     if app != 'blog' and ('publication.json' not in bundle.namelist() or json.loads(bundle.read('publication.json')).get('publication') != app): raise SystemExit('Export belongs to another publication')
     if app=='catalogue' and locale and json.loads(bundle.read('publication.json')).get('locale')!=locale: raise SystemExit('Catalogue export language does not match the requested language')

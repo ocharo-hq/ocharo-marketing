@@ -92,7 +92,7 @@ describe('image editing API contracts', () => {
   it('does not retry an expired connection, and distinguishes cancellation from failure', async () => {
     const fetcher = vi
       .fn()
-      .mockResolvedValueOnce(Response.json({ detail: 'Reconnect from Platform' }, { status: 401 }))
+      .mockResolvedValueOnce(Response.json({ detail: 'Sign in again' }, { status: 401 }))
       .mockRejectedValueOnce(new DOMException('Aborted', 'AbortError'));
     const api = createBlogApi(fetcher),
       controller = new AbortController();

@@ -163,7 +163,7 @@ describe('Ocharo frame in Editorial', () => {
   });
 
   it('reports the app and API versions and offers appearance and language without an Ocharo session', async () => {
-    await renderAt('/topics');
+    await renderAt('/topics', { session: { isAuthenticated: false } });
 
     await wrapper!.get('header button[aria-label="Account menu"]').trigger('click');
     await flushPromises();
