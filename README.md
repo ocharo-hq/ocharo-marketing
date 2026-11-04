@@ -19,9 +19,9 @@ Use Node 24, pnpm 10.33.2 and .NET 10. All frontend source is under `engineering
 | Blog | `pnpm build:blog` | `apps/blog/dist` |
 | Catalogue | `pnpm build:catalogue` | `apps/catalogue/dist` |
 
-Public builds consume authenticated published exports. They accept `OCHARO_EXPORT_ARCHIVE`, or `OCHARO_EDITORIAL_URL`, a current `OCHARO_EXPORT_TICKET`, and optional `OCHARO_CA_FILE`. The old static manuscript compiler remains `apps/blog` → `pnpm build:archive` for archival comparison only.
+Public builds consume a published export a signed-in editor downloaded, through `OCHARO_EXPORT_ARCHIVE`. The old static manuscript compiler remains `apps/blog` → `pnpm build:archive` for archival comparison only.
 
-The APIs remain separate local processes: Marketing HTTPS 8276 and Editorial HTTPS 8280. Configure `PlatformIntegration:Mode=connected`, an HTTPS `BaseUrl`, and the owning `OrganizationId` on each. Missing or mismatched bindings fail private operations. Explicit `local` mode is confined to loopback. The current local host boundary is retained; enabling hosted deployment remains a separate decision.
+The APIs remain separate local processes: Marketing HTTPS 8276 and Editorial HTTPS 8280. Both sign in through Ocharo's Identity: configure `Identity:Client:*` and the owning `Marketing:OrganizationId` or `Blog:OrganizationId` on each, or startup refuses. A session from another organization gets 403.
 
 Use `pnpm install --frozen-lockfile`, each app's build/test command, and `dotnet test` in each backend root. Local TLS can use an existing trusted pair through `OCHARO_TLS_CERT` and `OCHARO_TLS_KEY`; proxies verify TLS and Node trusts the supplied CA through `NODE_EXTRA_CA_CERTS`. Native trust changes require user action.
 

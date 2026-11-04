@@ -13,7 +13,7 @@ Ocharo Marketing was scaffolded independently and is in an active continuous bui
 - Start with T02 bone/charcoal and T01 right-fabric candidates.
 - Separate WhatsApp customer messaging from public-channel publishing.
 - Keep unknown metrics and delivery outcomes explicit.
-- Both hosts deploy publicly without sign-in until the Ocharo identity server lands (owner decision 2026-10-24); live account verification remains separate work.
+- Both hosts sign in through Ocharo's Identity, with published pages and `/api/public/*` anonymous; live account verification remains separate work.
 
 ## Review
 

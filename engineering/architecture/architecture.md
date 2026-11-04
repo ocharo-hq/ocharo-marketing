@@ -8,7 +8,7 @@ Use .NET Clean Architecture: Domain values, Application interfaces/models, Infra
 - [SDK extraction](sdk-extraction.md): neutral capability inventory and exit criteria.
 - [Provider research](../research/providers.md): official external contracts and current limitations.
 
-No dependency references the moving Brand Workspace checkout. Secrets, assets, and provider operations stay behind the API. A local run enforces loopback/same-origin access; a deployed host enforces same-origin writes only and runs without sign-in until the Ocharo identity server lands (owner decision 2026-10-24), when it moves behind an authenticated operator boundary.
+No dependency references the moving Brand Workspace checkout. Secrets, assets, and provider operations stay behind the API. Every host enforces same-origin writes. Private routes sit behind Ocharo's Identity (BFF clients `marketing` and `editorial`): membership of the bound organization, `{app}:edit` to write and `{app}:approve` for publication actions.
 
 ## Ocharo frame and app links
 
@@ -26,11 +26,9 @@ Studio carry ([agreement](../../../../docs/architecture.md#suite-frame-and-app-l
   (`ocharo.marketing.theme`, `ocharo.editorial.theme`) replace the fixed light palettes; Editorial keeps Georgia
   (`--font-editorial`) for authored story content. The theme carries the approved frame glass: the top bar, sidebar and
   phone bar use the SDK `glass` variants, the menus and phone sheets `glass-menu`, so no app copies glass values.
-- Mounted editors stay inside a `<fieldset :disabled>` while signed out; Reconnect opens Desk sign-in in a new tab.
-- The account menu names the person with the display name and email `GET /api/sso/session` returns, and names the
-  session ("Signed in through Ocharo Desk") only when Desk sends neither. Ocharo account is a link row to Desk's origin
-  in a new tab.
-- The account menu signs out through `POST /api/sso/logout` with the in-memory CSRF token. Sign-out is held, with a
+- Mounted editors stay inside a `<fieldset :disabled>` while signed out; the sign-in link returns to the same page.
+- The account menu names the person from `person` in `GET /api/identity/session`.
+- The account menu signs out through `POST /api/identity/sign-out` with the in-memory CSRF token. Sign-out is held, with a
   notice, while an editor's existing unsaved-edit guard would warn or a save is in flight.
 
 Each host serves `GET /api/runtime-config` (anonymous, `no-store`) from optional `OcharoApps:*` settings, mapped to

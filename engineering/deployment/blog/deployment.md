@@ -1,8 +1,8 @@
 # deployment/
 
-*Last updated: 2026-10-24*
+*Last updated: 2026-11-04*
 
-Wheelhouse deploys this image as the `blog` service and public site of `../deploy.yml`, with `/studio/` and `/api/blog/*` open without sign-in until the Ocharo identity server lands (owner decision 2026-10-24); a local run keeps the loopback boundary. A static copy still comes from Sayt → Statik sayt (ZIP). Details: `../deployment.md` § Wheelhouse.
+Wheelhouse deploys this image as the `blog` service and public site of `../deploy.yml`, with the published pages public and `/studio/` and `/api/blog/*` behind Ocharo's Identity (BFF client `editorial`). A static copy still comes from Sayt → Statik sayt (ZIP). Details: `../deployment.md` § Wheelhouse.
 Rules: wow-two-ws/conventions/development/repo/structure/repo-structure.md
 
 ## Local settings
@@ -14,14 +14,23 @@ The file is gitignored and excluded from image builds; tests, review scripts and
 
 ```json
 {
-  "PlatformIntegration": { "BaseUrl": "https://localhost:8264", "OrganizationId": "<Desk organization id>" },
+  "Identity": {
+    "Client": {
+      "Authority": "https://localhost:8404",
+      "ClientId": "editorial",
+      "ClientSecret": "<the editorial client's secret>",
+      "CookieName": "__Host-ocharo-editorial",
+      "PostSignOutRedirectPath": "/"
+    }
+  },
   "Blog": {
+    "OrganizationId": "<Ocharo's organization id in that Identity>",
     "PlatformBaseUrl": "https://localhost:8264",
     "SeedAssetRoot": "../../ocharo-marketing.frontend-services/apps/blog/public/assets"
   }
 }
 ```
 
-Without it the run stays in unconfigured connected mode, catalogue and brand reads use the retained pilots
-(`Blog:CatalogueBaseUrl`, `Blog:BrandBaseUrl`), and a first seed of an empty database stores the stories without
-their cover images. The OpenAPI document maps only on a local run.
+Startup refuses without the client block or `Blog:OrganizationId`. Without `Blog:PlatformBaseUrl`, catalogue and brand
+reads use the retained pilots (`Blog:CatalogueBaseUrl`, `Blog:BrandBaseUrl`); without `Blog:SeedAssetRoot`, a first seed
+of an empty database stores the stories without their cover images. The OpenAPI document maps only on a local run.

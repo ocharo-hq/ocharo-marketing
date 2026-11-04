@@ -41,9 +41,8 @@ are preserved before archival; do not reseed, merge or publish these stores.
 Development seed assets resolve relative to the Blog API content root and use the tracked
 static `public/assets/` directory. Existing absolute overrides continue to work.
 
-The modern Blog host is loopback-only on a local run and public without sign-in when deployed, by the
-owner's decision of 2026-10-24, until the Ocharo identity server lands; connected private routes require
-current Platform tickets and an exact organization binding. Cross-origin writes remain rejected. Public builds
+The modern Blog host serves published pages to anyone; private routes require a session from Ocharo's Identity
+and an exact organization binding. Cross-origin writes remain rejected. Public builds
 consume published revisions; draft previews require the same private boundary. Noindex remains
 until the owner's launch decision. Editorial research imports stay drafts.
 

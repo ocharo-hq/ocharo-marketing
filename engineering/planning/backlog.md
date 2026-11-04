@@ -44,11 +44,11 @@ published release closes the gap.
 
 ## Session expiry adoption
 
-Marketing and Editorial sign in through Desk SSO with secure HttpOnly cookies, an in-memory CSRF token and an
+Marketing and Editorial sign in through Ocharo's Identity BFF with secure HttpOnly cookies, an in-memory CSRF token and an
 identity-change reload rule (`packages/connect/src/session.ts`); they do not use the SDK auth bridge. Adopted narrowly:
 a 401 is quiet (no error toast), and each expiry of a signed-in session publishes the SDK's one neutral
 `feedbackSessionExpiry` notice. Kept product behavior: expiry never navigates, so unsaved editors survive, and
-Reconnect opens Desk sign-in in a new tab with the return path captured at expiry. `signInRedirect` and `useReturnTo`
+the sign-in link carries the return path captured at expiry. `signInRedirect` and `useReturnTo`
 are not adopted because the server sign-in route restores the return path. Full bridge adoption needs a cookie-session
 strategy with CSRF, the identity-change rule and the legacy ticket fallback; it is a separate auth change.
 
@@ -56,6 +56,21 @@ strategy with CSRF, the identity-change rule and the legacy ticket fallback; it 
 
 - **Page headings.** Pages keep their editorial headlines ("Each channel's purpose") as `<h1>`; the shell convention
   asks the heading to carry the navigation label. Align when the pages are next reworked.
+
+## Identity follow-ups
+
+After the move to Ocharo's Identity (2026-11-04):
+
+- **Editorial background removal.** Unavailable until Desk's service credential is chosen (shared API key or Identity
+  client credentials); the previous call is in commit `67c4193`. Track: `ocharo-platform`'s `identity-cutover.md` #47.
+- **Live public builds.** `scripts/build-public.py` takes only `OCHARO_EXPORT_ARCHIVE`, because Editorial's export routes
+  need a session; a build fetching a live export needs the same kind of service credential.
+- **Sessions.** Both hosts keep BFF sessions in memory, so a restart signs everyone out; a durable SQLite or shared cache
+  would end that.
+- **Local containers.** `deployment/docker-compose.yml` and `deployment/blog/docker-compose.yml` set no `Identity:Client:*`
+  or organization id, so neither boots alone.
+- **Public writes in the BFF.** Each host branches `/api/public/*` around `UseIdentityBff`, whose antiforgery check would
+  refuse a signed-in visitor's form; an SDK exemption for public writes would replace that branch.
 
 ## Retained source follow-ups
 
