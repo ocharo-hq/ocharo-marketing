@@ -1,8 +1,7 @@
 # syntax=docker/dockerfile:1
 
-# The `marketing` service of deploy.yml. A deployed host runs without sign-in until the Ocharo identity server lands
-# (owner decision 2026-10-24); a local run keeps the loopback pilot. The image has no browser, so card PNG/PDF
-# rendering stays unavailable on a deployed host.
+# The `marketing` service of deploy.yml. The host signs in through Ocharo's Identity and keeps its Data Protection key
+# ring under /data. The image has no browser, so card PNG/PDF rendering stays unavailable on a deployed host.
 #
 # Multi-stage build: ONE image serving the .NET API + the Vue SPA. The build
 # context MUST be engineering/codebase/, which holds BOTH ocharo-marketing.backend-services

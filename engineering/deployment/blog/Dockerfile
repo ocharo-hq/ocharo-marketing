@@ -1,7 +1,7 @@
 # syntax=docker/dockerfile:1
 
-# The `blog` service of deploy.yml: the Editorial API, its public renderer and the /studio/ editor. A deployed host runs
-# without sign-in until the Ocharo identity server lands (owner decision 2026-10-24); a local run keeps the loopback pilot.
+# The `blog` service of deploy.yml: the Editorial API, its public renderer and the /studio/ editor. The renderer is
+# public; the editor signs in through Ocharo's Identity, and the Data Protection key ring stays under /data.
 #
 # Multi-stage build: ONE image serving the .NET API + the Vue SPA. The build
 # context MUST be engineering/codebase/, which holds BOTH ocharo-blog.backend-services

@@ -1,5 +1,5 @@
-# Local packaging reference; Wheelhouse deploys the image from deploy.yml instead. Outside a deployment the container
-# refuses to start unless Marketing:PublicAccess is true, and an explicit profile keeps ordinary compose startup from
+# Local packaging reference; Wheelhouse deploys the image from deploy.yml instead. The container needs Identity:Client:*
+# and Marketing:OrganizationId, which this file does not set, and an explicit profile keeps ordinary compose startup from
 # launching it. SQLite and private blobs share the named volume.
 services:
   ocharomarketing:

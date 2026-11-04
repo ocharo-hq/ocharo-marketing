@@ -4,15 +4,15 @@
 # environments live in Wheelhouse targets, never here. Paths are relative to engineering/.
 #
 # Ocharo Marketing deploys the Marketing desk and the Editorial (Blog) host as a repository of the one `ocharo` product
-# (Wheelhouse decision 70), so its service, site and volume names stay unique across Ocharo's repositories. Both are
-# public without sign-in by the owner's decision of 2026-10-24, until the Ocharo identity server lands
-# (deployment.md § Wheelhouse); each keeps its SQLite store and blobs on its own volume. Both environments run as .NET
-# Production (no dotnetEnvironment), whose PlatformIntegration:Mode is `local`: private routes answer without sign-in.
+# (Wheelhouse decision 70), so its service, site and volume names stay unique across Ocharo's repositories. Both sign in
+# through Ocharo's Identity, which ocharo-platform's descriptor declares (deployment.md § Wheelhouse); each keeps its
+# SQLite store, blobs and Data Protection key ring on its own volume. Their sign-in sessions live in memory, so a restart
+# or deploy signs everyone out once.
 descriptor: 2
 product: ocharo
 sites:
-  marketing: {}                         # the Marketing desk, public without sign-in until the identity server lands
-  blog: {}                              # the Blog site and its /studio/ editor, public without sign-in until then
+  marketing: {}                         # the Marketing desk, behind sign-in; /api/public stays anonymous
+  blog: {}                              # the public Blog site, and its /studio/ editor behind sign-in
 services:
   marketing:
     build: { dockerfile: deployment/Dockerfile }
@@ -25,8 +25,14 @@ services:
       # same-origin write check needs); nobody types them.
       required: [AllowedHosts, Deployment:TrustedProxies]
       keys:
-        # Public without sign-in until the identity server lands; false refuses startup on a deployed host.
-        Marketing:PublicAccess: { type: boolean, default: true }
+        # Sign-in through Ocharo's Identity as client 3, whose keys ocharo-platform's descriptor declares; reads need
+        # membership of the bound organization, writes marketing:edit, publication actions marketing:approve.
+        Identity:Client:Authority: { from: Sites:identity:Url }
+        Identity:Client:ClientId: { default: marketing }
+        Identity:Client:ClientSecret: { from: Identity:Server:Clients:3:ClientSecret }
+        Identity:Client:CookieName: { default: __Host-ocharo-marketing }
+        Identity:Client:PostSignOutRedirectPath: { default: "/" }
+        Marketing:OrganizationId: { required: true }         # Ocharo's organization id in that environment's Identity
         # The Catalogue and Blog origins the catalogue sync and story picker read; unset, both stay unavailable.
         Marketing:CatalogueBaseUrl: { type: url }
         Marketing:BlogBaseUrl: { type: url }
@@ -53,8 +59,15 @@ services:
     settings:
       required: [AllowedHosts, Deployment:TrustedProxies]
       keys:
-        # Public without sign-in until the identity server lands; false restores the loopback-only pilot.
-        Blog:PublicAccess: { type: boolean, default: true }
+        # The /studio/ editor signs in through Ocharo's Identity as client 4, whose keys ocharo-platform's descriptor
+        # declares; reads need membership of the bound organization, writes editorial:edit, publication actions
+        # editorial:approve. The public site stays anonymous, and signing out lands on it.
+        Identity:Client:Authority: { from: Sites:identity:Url }
+        Identity:Client:ClientId: { default: editorial }
+        Identity:Client:ClientSecret: { from: Identity:Server:Clients:4:ClientSecret }
+        Identity:Client:CookieName: { default: __Host-ocharo-editorial }
+        Identity:Client:PostSignOutRedirectPath: { default: "/" }
+        Blog:OrganizationId: { required: true }              # Ocharo's organization id in that environment's Identity
         # The Catalogue, Brand and Marketing origins the public renderer and enquiry relay read; unset, those reads fail.
         Blog:CatalogueBaseUrl: { type: url }
         Blog:BrandBaseUrl: { type: url }
