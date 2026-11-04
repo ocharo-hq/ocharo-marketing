@@ -6,13 +6,12 @@ using OcharoBlog.Application.Blog.Services;
 using OcharoBlog.Infrastructure.Blog;
 
 namespace OcharoBlog.Api.Blog.Controllers;
-/// <summary>Private image preview and immutable edited-copy operations, protected by the integration boundary.</summary>
+/// <summary>Private image preview and immutable edited-copy operations, protected by the access middleware.</summary>
 [ApiController]
 [Route("api/blog/media")]
 public sealed class MediaEditingController(
     IMediaEditingService editing,
-    IBlogRepository repository,
-    IConfiguration config) : ControllerBase
+    IBlogRepository repository) : ControllerBase
 {
   [HttpGet("editing-capabilities")]
   public async Task<IActionResult> Capabilities(CancellationToken ct)
@@ -44,7 +43,9 @@ public sealed class MediaEditingController(
       MediaEditRecipe recipe,
       CancellationToken ct)
   {
-    var actor = !config.GetValue<bool>("Identity:Sso:Enabled") && (config["PlatformIntegration:Mode"] ?? "local") == "local" ? new MediaEditActor("local", "local-operator") : HttpContext.Items["Ocharo.OrganizationId"] is string org && HttpContext.Items["Ocharo.UserId"] is string user ? new MediaEditActor(org, user) : throw new BlogException("Reconnect from Platform.", 401);
+    var actor = HttpContext.Items["Ocharo.OrganizationId"] is string org && HttpContext.Items["Ocharo.UserId"] is string user
+        ? new MediaEditActor(org, user)
+        : throw new BlogException("Your connection expired. Your original image is unchanged.", 401);
     var r = await editing.SaveAsync(
         sha,
         recipe,

@@ -1,4 +1,3 @@
-using Ocharo.Sso;
 using System.Reflection;
 using Microsoft.Data.Sqlite;
 using Microsoft.EntityFrameworkCore;
@@ -17,6 +16,7 @@ using OcharoBlog.Persistence;
 using OcharoBlog.Persistence.Blog;
 using WoW.Two.Sdk.Beta.Be.Foundation.Configuration;
 using WoW.Two.Sdk.Beta.Be.Foundation.Options;
+using WoW.Two.Sdk.Beta.Be.Identity.Bff;
 using WoW.Two.Sdk.Beta.Be.Media.Images;
 using WoW.Two.Sdk.Beta.Be.Mediator;
 using WoW.Two.Sdk.Beta.Be.Storage.Core;
@@ -28,9 +28,8 @@ namespace OcharoBlog.Api.Configurations;
 
 public static partial class HostConfiguration
 {
-    /// <summary>Registers forwarded headers trusted only from loopback and <c>Deployment:TrustedProxies</c>, and the
-    /// platform access-ticket client.</summary>
-    private static WebApplicationBuilder AddIntegrationBoundary(this WebApplicationBuilder builder)
+    /// <summary>Registers forwarded headers trusted only from loopback and <c>Deployment:TrustedProxies</c>.</summary>
+    private static WebApplicationBuilder AddForwardedHeaders(this WebApplicationBuilder builder)
     {
         // Behind the TLS-terminating ingress, same-origin write checks need the forwarded scheme; any other sender keeps its own.
         var proxies = builder.Configuration.GetSection("Deployment:TrustedProxies").Get<string[]>() ?? [];
@@ -39,9 +38,6 @@ public static partial class HostConfiguration
             foreach (var proxy in proxies)
                 options.TrustedProxies.Add(proxy);
         });
-        builder.Services.AddOcharoSso(builder.Configuration, "editorial", "ocharo-editorial", requireBoundOrganization: true);
-        builder.Services.AddHttpClient("ocharo-platform-tickets", client => client.Timeout = TimeSpan.FromSeconds(5))
-            .ConfigurePrimaryHttpMessageHandler(() => new HttpClientHandler { AllowAutoRedirect = false });
         return builder;
     }
 
@@ -82,7 +78,9 @@ public static partial class HostConfiguration
     /// <summary>Registers blog settings, records, editorial services, seeding and scheduled publishing.</summary>
     private static WebApplicationBuilder AddBlog(this WebApplicationBuilder builder)
     {
-        builder.Services.AddOptions<BlogOptions>().Bind(builder.Configuration.GetSection(BlogOptions.Section));
+        builder.Services.AddOptions<BlogOptions>().Bind(builder.Configuration.GetSection(BlogOptions.Section))
+            .Validate(options => options.OrganizationId != Guid.Empty, "Blog:OrganizationId must name the Identity organization this Editorial instance belongs to.")
+            .ValidateOnStart();
         builder.Services.AddScoped<IBlogRepository, BlogRepository>();
         builder.Services.AddScoped<ArticleService>();
         builder.Services.AddScoped<TopicService>();
@@ -115,12 +113,6 @@ public static partial class HostConfiguration
             options.MaxOutputDimension = MediaEditingService.MaximumDimension;
         });
         builder.Services.AddHttpContextAccessor();
-        builder.Services.AddHttpClient("ocharo-image-processing", client => client.Timeout = TimeSpan.FromSeconds(95))
-            .ConfigurePrimaryHttpMessageHandler(() => new HttpClientHandler
-            {
-                AllowAutoRedirect = false,
-                UseCookies = false,
-            });
         builder.Services.AddScoped<IEditorialImageWorker, EditorialImageWorker>();
         builder.Services.AddScoped<IMediaEditingService, MediaEditingService>();
         builder.Services.AddScoped<IMediaStore, MediaStore>();
@@ -202,11 +194,8 @@ public static partial class HostConfiguration
         app.UseProxyAwareHosting();
         app.UseHttpProblemDetails();
         app.UseMiddleware<BlogExceptionMiddleware>();
-        app.UseMiddleware<LocalPilotBoundaryMiddleware>();
-        // Health, status and the public runtime settings answer before sign-in, as the integration boundary allows.
-        app.UseOcharoSso(http => http.Request.Path.StartsWithSegments("/api/public") || TechnicalRoutes.IsPublic(http.Request) || http.Request.Path == "/" || http.Request.Path.StartsWithSegments("/journal") || http.Request.Path.StartsWithSegments("/topics") || http.Request.Path.StartsWithSegments("/uz") || http.Request.Path.StartsWithSegments("/ru") || http.Request.Path.StartsWithSegments("/atlas") || http.Request.Path.StartsWithSegments("/wear") || http.Request.Path.StartsWithSegments("/catalogue") || http.Request.Path.StartsWithSegments("/media"),
-            resolveSession: http => http.Request.Path.StartsWithSegments("/media") || http.Request.Path.StartsWithSegments("/preview"));
-        app.UseMiddleware<IntegrationBoundaryMiddleware>();
+        app.UseMiddleware<EditorialHttpBoundaryMiddleware>();
+        app.UseAccess();
         if (app.Environment.IsLocalRun(app.Configuration))
         {
             app.MapOpenApi();
@@ -232,11 +221,11 @@ public static partial class HostConfiguration
     {
         app.WarnAboutRejectedRuntimeConfig();
         app.MapControllers();
+        app.MapIdentityBffEndpoints();
         app.MapGet("/health", () => Results.Ok(new
         {
             status = "healthy",
             service = "OcharoBlog",
-            mode = "local-pilot",
             version = typeof(HostConfiguration).Assembly.GetCustomAttribute<AssemblyInformationalVersionAttribute>()
                 ?.InformationalVersion ?? "dev",
         }));

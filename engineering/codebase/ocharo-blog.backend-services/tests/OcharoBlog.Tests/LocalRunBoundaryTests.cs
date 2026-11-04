@@ -25,15 +25,17 @@ public sealed class LocalRunBoundaryTests
             {
                 builder.UseEnvironment("Development");
                 if (deployEnvironment is not null) builder.UseSetting("DEPLOY_ENVIRONMENT", deployEnvironment);
-                builder.ConfigureAppConfiguration((_, config) => config.AddInMemoryCollection(new Dictionary<string, string?>
+                builder.ConfigureAppConfiguration((_, config) => config.AddInMemoryCollection(new Dictionary<string, string?>(EditorialSignIn.Settings)
                 {
-                    ["PlatformIntegration:Mode"] = "local",
-                    ["Identity:Sso:Enabled"] = "false",
                     ["ConnectionStrings:OcharoBlog"] = $"Data Source={Path.Combine(root, "api.db")};Pooling=False",
                     ["Blog:DataRoot"] = Path.Combine(root, "data"),
                     ["Blog:SeedFile"] = Path.Combine(root, "no-seed.json"), ["Blog:RunScheduler"] = "false",
                 }));
-                builder.ConfigureServices(services => services.RemoveAll<IHostedService>());
+                builder.ConfigureServices(services =>
+                {
+                    services.RemoveAll<IHostedService>();
+                    EditorialSignIn.Use(services);
+                });
             });
             using var client = factory.CreateClient(new WebApplicationFactoryClientOptions
             {

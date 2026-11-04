@@ -50,7 +50,7 @@ public sealed class ArticlesController(
   {
     var current = await articles.GetAsync(id, ct);
     if (current.Document.Status is "published" or "scheduled" && HttpContext.Items["Ocharo.CanApprove"] is not true)
-      return Problem(statusCode: 403, detail: "Editing published or scheduled content requires Platform approval permission.");
+      return Problem(statusCode: 403, detail: "Editing published or scheduled content requires approval permission.");
     return Ok(await articles.UpdateAsync(
         id,
         input,

@@ -9,7 +9,7 @@ public interface IMediaEditingService
     Task<EditedImage> PreviewAsync(string sha, MediaEditRecipe recipe, CancellationToken ct);
     Task<MediaBlobRecord> SaveAsync(string sha, MediaEditRecipe recipe, MediaEditActor actor, CancellationToken ct);
 }
-/// <summary>Platform delegation for optional segmentation and live write authorization.</summary>
+/// <summary>Optional segmentation and the final write check of a saved edit.</summary>
 public interface IEditorialImageWorker
 {
     Task<ImageWorkerStatus> GetStatusAsync(CancellationToken ct);

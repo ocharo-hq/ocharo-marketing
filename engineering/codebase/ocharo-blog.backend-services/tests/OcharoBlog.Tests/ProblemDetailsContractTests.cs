@@ -23,16 +23,16 @@ public sealed class ProblemDetailsContractTests
             await using var factory = new WebApplicationFactory<Program>().WithWebHostBuilder(builder =>
             {
                 builder.UseEnvironment("Testing");
-                builder.ConfigureAppConfiguration((_, config) => config.AddInMemoryCollection(new Dictionary<string, string?>
+                builder.ConfigureAppConfiguration((_, config) => config.AddInMemoryCollection(new Dictionary<string, string?>(EditorialSignIn.Settings)
                 {
-                    ["PlatformIntegration:Mode"] = "local",
                     ["ConnectionStrings:OcharoBlog"] = $"Data Source={Path.Combine(root, "api.db")};Pooling=False",
                     ["Blog:DataRoot"] = Path.Combine(root, "data"),
                     ["Blog:SeedFile"] = Path.Combine(root, "no-seed.json"),
                     ["Blog:RunScheduler"] = "false",
                 }));
+                builder.ConfigureServices(EditorialSignIn.Use);
             });
-            using var client = factory.CreateClient(new WebApplicationFactoryClientOptions { BaseAddress = new Uri("https://localhost") });
+            using var client = EditorialSignIn.Client(factory, EditorialSignIn.Owner);
             using var request = new HttpRequestMessage(new HttpMethod(method), path);
             request.Headers.Accept.ParseAdd("text/html");
             if (body is not null) request.Content = new StringContent(body, System.Text.Encoding.UTF8, contentType!);

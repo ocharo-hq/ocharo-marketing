@@ -5,6 +5,9 @@ public sealed class BlogOptions
 {
     public const string Section = "Blog";
 
+    /// <summary>The Identity organization this Editorial instance belongs to; only its members reach the private routes. Required.</summary>
+    public Guid OrganizationId { get; set; }
+
     public string? PlatformBaseUrl { get; set; }
     public string BrandSlug { get; set; } = "ocharo";
 

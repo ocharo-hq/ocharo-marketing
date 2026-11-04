@@ -7,6 +7,8 @@
   <ItemGroup>
     <!-- Kit: local blob storage (IBlobRepository). -->
     <PackageReference Include="WoW2.Sdk.Beta.Be" />
+    <!-- The organization claims the image worker's final write check reads. -->
+    <PackageReference Include="WoW2.Sdk.Beta.Be.Identity.Abstractions" />
     <PackageReference Include="SkiaSharp" />
   </ItemGroup>
 

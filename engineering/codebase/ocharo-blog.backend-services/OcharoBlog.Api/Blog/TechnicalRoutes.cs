@@ -1,8 +1,8 @@
 namespace OcharoBlog.Api.Blog;
 
 /// <summary>
-/// Names the technical routes both access gates answer before sign-in: health, service status and the public runtime
-/// settings. The Ocharo SSO gate and the integration boundary read the same list, so neither can lag the other.
+/// Names the technical routes the access middleware answers before sign-in: health, service status and the public
+/// runtime settings.
 /// </summary>
 public static class TechnicalRoutes
 {

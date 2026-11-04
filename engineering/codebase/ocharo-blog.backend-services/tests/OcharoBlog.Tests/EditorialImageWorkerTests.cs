@@ -1,93 +1,79 @@
-using System.Net;
-using System.Net.Http.Json;
+using System.Security.Claims;
 using Microsoft.AspNetCore.Http;
-using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.Options;
 using OcharoBlog.Application.Blog;
 using OcharoBlog.Application.Blog.Models;
 using OcharoBlog.Infrastructure.Blog;
+using WoW.Two.Sdk.Beta.Be.Identity.Core.Organizations;
 using Xunit;
 
 namespace OcharoBlog.Tests;
 
+/// <summary>Background removal waits on Desk's service credential, so the worker makes no HTTP call: it reports itself
+/// unavailable and checks a saved edit against the current session's claims.</summary>
 public sealed class EditorialImageWorkerTests
 {
-    private static readonly string Org=Guid.NewGuid().ToString();
+    private static readonly Guid Bound = Guid.NewGuid();
+    private static readonly MediaEditActor Actor = new(Bound.ToString("D"), "operator");
+
     [Fact]
-    public async Task Capabilities_without_connected_ticket_never_calls_platform()
+    public async Task Status_is_unavailable_and_removal_refuses_with_the_original_unchanged()
     {
-        var service=Build((_,_)=>throw new InvalidOperationException(),ticket:false);
-        Assert.False((await service.GetStatusAsync(default)).Available);
-        var local=Build((_,_)=>throw new InvalidOperationException(),mode:"local");
-        Assert.False((await local.GetStatusAsync(default)).Available);
-    }
-    [Fact]
-    public async Task Capabilities_use_fixed_private_endpoint_and_delegated_ticket_only()
-    {
-        var service=Build((request,_)=>{
-            Assert.Equal("https://platform.test/api/integrations/media/background-removal/capabilities",request.RequestUri!.ToString());
-            Assert.Equal("unit-test-ticket",Assert.Single(request.Headers.GetValues("X-Ocharo-Integration-Ticket")));
-            Assert.False(request.Headers.Contains("X-Image-Worker-Key"));
-            return Task.FromResult(new HttpResponseMessage(HttpStatusCode.OK){Content=JsonContent.Create(new{available=true,model="u2net"})});
-        });
-        Assert.Equal(new ImageWorkerStatus(true,"u2net"),await service.GetStatusAsync(default));
-    }
-    [Fact]
-    public async Task Foreign_actor_organization_is_rejected_before_network()
-    {
-        var service=Build((_,_)=>throw new InvalidOperationException());
-        var error=await Assert.ThrowsAsync<BlogException>(()=>service.EnsureEditableAsync(new(Guid.NewGuid().ToString(),"operator"),default));
-        Assert.Equal(401,error.StatusCode);
-    }
-    [Theory]
-    [InlineData(false,true,401)]
-    [InlineData(true,false,403)]
-    public async Task Final_authorization_rechecks_session_and_edit_role(bool active,bool canEdit,int status)
-    {
-        var service=Build((request,_)=>{
-            Assert.Equal("/api/integrations/introspect",request.RequestUri!.AbsolutePath);
-            return Task.FromResult(new HttpResponseMessage(HttpStatusCode.OK){Content=JsonContent.Create(new{data=new{active,canEdit,userId="operator",organizationId=Org,expiresAt=DateTimeOffset.UtcNow.AddMinutes(2)}})});
-        });
-        var error=await Assert.ThrowsAsync<BlogException>(()=>service.EnsureEditableAsync(new(Org,"operator"),default));
-        Assert.Equal(status,error.StatusCode);
-    }
-    [Fact]
-    public async Task Redirect_and_invalid_capability_responses_fail_closed()
-    {
-        var redirect=Build((_,_)=>Task.FromResult(new HttpResponseMessage(HttpStatusCode.Redirect)));
-        Assert.False((await redirect.GetStatusAsync(default)).Available);
-        var invalid=Build((_,_)=>Task.FromResult(new HttpResponseMessage(HttpStatusCode.OK){Content=new StringContent(new string('x',4097))}));
-        Assert.False((await invalid.GetStatusAsync(default)).Available);
-    }
-    [Fact]
-    public async Task Sso_uses_server_ticket_and_editorial_audience_even_with_legacy_local_mode()
-    {
-        var config = new ConfigurationBuilder().AddInMemoryCollection(new Dictionary<string,string?> {
-            ["PlatformIntegration:Mode"] = "local", ["Identity:Sso:Enabled"] = "true",
-            ["Identity:Sso:DeskOrigin"] = "https://desk.test", ["Identity:Sso:OrganizationId"] = Org }).Build();
-        var context = new DefaultHttpContext();
-        context.Items["Ocharo.Sso.Ticket"] = "server-only-ticket";
-        context.Request.Headers["X-Ocharo-Integration-Ticket"] = "untrusted-browser-ticket";
-        var service = new EditorialImageWorker(config, new HttpContextAccessor { HttpContext=context }, new Factory(async (request, ct) => {
-            Assert.Equal("https://desk.test/api/integrations/introspect", request.RequestUri!.ToString());
-            var input = await request.Content!.ReadFromJsonAsync<System.Text.Json.JsonElement>(cancellationToken:ct);
-            Assert.Equal("server-only-ticket", input.GetProperty("token").GetString());
-            Assert.Equal("ocharo-editorial", input.GetProperty("audience").GetString());
-            return new HttpResponseMessage(HttpStatusCode.OK) { Content=JsonContent.Create(new { data=new { active=true, canEdit=true, userId="operator", organizationId=Org, expiresAt=DateTimeOffset.UtcNow.AddMinutes(2) } }) };
-        }));
-        await service.EnsureEditableAsync(new(Org, "operator"), default);
-        var denied = await Assert.ThrowsAsync<BlogException>(() => service.EnsureEditableAsync(new("local", "local-operator"), default));
-        Assert.Equal(401, denied.StatusCode);
+        var worker = Build(Session(Bound, "editor", "editorial:edit"));
+
+        Assert.Equal(new ImageWorkerStatus(false), await worker.GetStatusAsync(default));
+        var error = await Assert.ThrowsAsync<BlogException>(() => worker.RemoveAsync([1, 2, 3], "image/png", default));
+        Assert.Equal(503, error.StatusCode);
+        Assert.Equal("Background removal is unavailable. Your original image is unchanged.", error.Message);
     }
 
-    private static EditorialImageWorker Build(Func<HttpRequestMessage,CancellationToken,Task<HttpResponseMessage>> send,bool ticket=true,string mode="connected")
+    [Fact]
+    public async Task Same_person_of_the_bound_organization_with_edit_may_save()
     {
-        var config=new ConfigurationBuilder().AddInMemoryCollection(new Dictionary<string,string?>{
-            ["PlatformIntegration:Mode"]=mode,["PlatformIntegration:BaseUrl"]="https://platform.test",["PlatformIntegration:OrganizationId"]=Org}).Build();
-        var context=new DefaultHttpContext();if(ticket)context.Request.Headers["X-Ocharo-Integration-Ticket"]="unit-test-ticket";
-        return new(config,new HttpContextAccessor{HttpContext=context},new Factory(send));
+        await Build(Session(Bound, "editor", "editorial:edit")).EnsureEditableAsync(Actor, default);
     }
-    private sealed class Factory(Func<HttpRequestMessage,CancellationToken,Task<HttpResponseMessage>> send):IHttpClientFactory
-    {public HttpClient CreateClient(string name)=>new(new Handler(send));}
-    private sealed class Handler(Func<HttpRequestMessage,CancellationToken,Task<HttpResponseMessage>> send):HttpMessageHandler
-    {protected override Task<HttpResponseMessage> SendAsync(HttpRequestMessage request,CancellationToken ct)=>send(request,ct);}
+
+    [Fact]
+    public async Task Member_without_edit_is_forbidden()
+    {
+        var error = await Assert.ThrowsAsync<BlogException>(() => Build(Session(Bound, "viewer")).EnsureEditableAsync(Actor, default));
+
+        Assert.Equal(403, error.StatusCode);
+        Assert.Equal("Editor access is required.", error.Message);
+    }
+
+    [Fact]
+    public async Task Actor_of_another_organization_or_person_is_refused()
+    {
+        var worker = Build(Session(Bound, "editor", "editorial:edit"));
+
+        foreach (var actor in new[] { new MediaEditActor(Guid.NewGuid().ToString("D"), "operator"), new MediaEditActor("local", "local-operator"), new MediaEditActor(Bound.ToString("D"), "someone-else") })
+            Assert.Equal(401, (await Assert.ThrowsAsync<BlogException>(() => worker.EnsureEditableAsync(actor, default))).StatusCode);
+    }
+
+    [Fact]
+    public async Task Session_outside_the_bound_organization_or_no_session_is_refused()
+    {
+        foreach (var worker in new[] { Build(Session(Guid.NewGuid(), "owner", "editorial:edit")), Build(new ClaimsPrincipal(new ClaimsIdentity())), Build(null) })
+        {
+            var error = await Assert.ThrowsAsync<BlogException>(() => worker.EnsureEditableAsync(Actor, default));
+            Assert.Equal(401, error.StatusCode);
+            Assert.Equal("Your connection expired. Your original image is unchanged.", error.Message);
+        }
+    }
+
+    private static ClaimsPrincipal Session(Guid organization, string role, params string[] permissions)
+    {
+        var id = organization.ToString("D");
+        var claims = new List<Claim> { new("sub", "operator"), new(OrganizationClaimTypeConstants.Id, id), new(OrganizationClaimTypeConstants.Role, $"{id}:{role}") };
+        claims.AddRange(permissions.Select(permission => new Claim(OrganizationClaimTypeConstants.Permission, $"{id}:{permission}")));
+        return new ClaimsPrincipal(new ClaimsIdentity(claims, "test"));
+    }
+
+    private static EditorialImageWorker Build(ClaimsPrincipal? user)
+    {
+        var accessor = new HttpContextAccessor();
+        if (user is not null) accessor.HttpContext = new DefaultHttpContext { User = user };
+        return new EditorialImageWorker(Options.Create(new BlogOptions { OrganizationId = Bound }), accessor);
+    }
 }

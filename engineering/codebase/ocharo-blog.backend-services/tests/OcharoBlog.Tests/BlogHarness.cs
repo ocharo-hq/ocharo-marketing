@@ -8,7 +8,7 @@ using SkiaSharp;
 
 namespace OcharoBlog.Tests;
 
-/// <summary>In-memory host over a temp SQLite file and blob folder; the real journal seed; a controllable clock.</summary>
+/// <summary>In-memory host over a temp SQLite file and blob folder; the real journal seed; a controllable clock; test sign-in.</summary>
 public sealed class BlogHarness : IAsyncDisposable
 {
     public string Root { get; } = Path.Combine(Path.GetTempPath(), "ocharo-blog-tests", Guid.NewGuid().ToString("N"));
@@ -30,7 +30,7 @@ public sealed class BlogHarness : IAsyncDisposable
         Factory = new WebApplicationFactory<Program>().WithWebHostBuilder(builder =>
         {
             builder.UseEnvironment("Testing");
-            builder.ConfigureAppConfiguration((context, config) => config.AddInMemoryCollection(new Dictionary<string, string?>
+            builder.ConfigureAppConfiguration((context, config) => config.AddInMemoryCollection(new Dictionary<string, string?>(EditorialSignIn.Settings)
             {
                 ["ConnectionStrings:OcharoBlog"] = $"Data Source={Path.Combine(Root, "blog.db")};Pooling=False",
                 ["Blog:DataRoot"] = Path.Combine(Root, "data"),
@@ -43,13 +43,18 @@ public sealed class BlogHarness : IAsyncDisposable
             }));
             builder.ConfigureServices(collection =>
             {
+                EditorialSignIn.Use(collection);
                 collection.Replace(ServiceDescriptor.Singleton<IClock>(Clock));
                 services?.Invoke(collection);
             });
         });
     }
 
-    public HttpClient Client() => Factory.CreateClient(new WebApplicationFactoryClientOptions { AllowAutoRedirect = false });
+    /// <summary>A client signed in as the owner, who may do anything; the access rules have their own tests.</summary>
+    public HttpClient Client() => EditorialSignIn.Client(Factory, EditorialSignIn.Owner);
+
+    /// <summary>A client without a session.</summary>
+    public HttpClient Anonymous() => EditorialSignIn.Anonymous(Factory);
 
     public T Get<T>() where T : notnull => Factory.Services.CreateScope().ServiceProvider.GetRequiredService<T>();
 

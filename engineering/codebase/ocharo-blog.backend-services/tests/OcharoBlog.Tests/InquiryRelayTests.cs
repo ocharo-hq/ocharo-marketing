@@ -172,6 +172,62 @@ public sealed class InquiryRelayTests
         Assert.Equal("/api/public/inquiries", body.GetProperty("instance").GetString());
     }
 
+    [Theory]
+    [InlineData(false, "/api/public/inquiries")]
+    [InlineData(true, "/api/public/inquiries")]
+    [InlineData(true, "/API/PUBLIC/INQUIRIES")]
+    public async Task Relay_accepts_an_enquiry_anonymously_and_with_a_live_session_without_a_csrf_token(bool session, string path)
+    {
+        const string body = "{\"reference\":\"receipt-42\"}";
+        await using var host = RelayHost(new StaticHandler(new(HttpStatusCode.Accepted) { Content = new StringContent(body) }));
+        using var client = session ? EditorialSignIn.Client(host.Factory, EditorialSignIn.Owner, csrf: false) : EditorialSignIn.Anonymous(host.Factory);
+
+        using var response = await client.PostAsJsonAsync(path, new { submissionId = "test" });
+
+        Assert.Equal(HttpStatusCode.Accepted, response.StatusCode);
+        Assert.Equal(body, await response.Content.ReadAsStringAsync());
+        Assert.True(response.Headers.CacheControl!.NoStore);
+    }
+
+    [Theory]
+    [InlineData("https://evil.example", "/api/public/inquiries")]
+    [InlineData("https://evil.example", "/API/PUBLIC/INQUIRIES")]
+    [InlineData("http://localhost", "/api/public/inquiries")]
+    [InlineData("null", "/api/public/inquiries")]
+    public async Task Relay_refuses_a_cross_origin_enquiry(string origin, string path)
+    {
+        var handler = new ReceiptHandler();
+        await using var host = RelayHost(handler);
+        using var client = EditorialSignIn.Anonymous(host.Factory);
+        using var request = new HttpRequestMessage(HttpMethod.Post, path) { Content = JsonContent.Create(new { submissionId = "test" }) };
+        request.Headers.Add("Origin", origin);
+
+        using var response = await client.SendAsync(request);
+
+        Assert.Equal(HttpStatusCode.Forbidden, response.StatusCode);
+        Assert.Empty(handler.Attempts);
+    }
+
+    // https://localhost:8284 is the local Vite origin, trusted in appsettings.json.
+    [Theory]
+    [InlineData("https://localhost")]
+    [InlineData("https://localhost:8284")]
+    public async Task Relay_accepts_an_enquiry_from_this_origin_or_a_trusted_one(string origin)
+    {
+        await using var host = RelayHost(new StaticHandler(new(HttpStatusCode.Accepted) { Content = new StringContent("{}") }));
+        using var client = EditorialSignIn.Anonymous(host.Factory);
+        using var request = new HttpRequestMessage(HttpMethod.Post, "/api/public/inquiries") { Content = JsonContent.Create(new { submissionId = "test" }) };
+        request.Headers.Add("Origin", origin);
+
+        using var response = await client.SendAsync(request);
+
+        Assert.Equal(HttpStatusCode.Accepted, response.StatusCode);
+    }
+
+    private static EditorialHost RelayHost(HttpMessageHandler upstream) => EditorialHost.Create(
+        new Dictionary<string, string?> { ["Blog:MarketingBaseUrl"] = "https://receiver.test" },
+        services: collection => collection.AddHttpClient("ocharo-inquiries").ConfigurePrimaryHttpMessageHandler(() => upstream));
+
     private sealed class StaticHandler(HttpResponseMessage response) : HttpMessageHandler
     {
         protected override Task<HttpResponseMessage> SendAsync(HttpRequestMessage request, CancellationToken ct)

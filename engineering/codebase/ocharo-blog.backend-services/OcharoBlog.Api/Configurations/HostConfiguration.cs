@@ -10,7 +10,8 @@ public static partial class HostConfiguration
     {
         builder
             .AddSettingsFiles()
-            .AddIntegrationBoundary()
+            .AddForwardedHeaders()
+            .AddAccess()
             .AddInquiries()
             .AddSqliteDatabase()
             .AddClock()
