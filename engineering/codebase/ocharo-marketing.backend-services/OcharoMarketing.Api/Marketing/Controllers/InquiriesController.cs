@@ -6,7 +6,7 @@ using OcharoMarketing.Application.Marketing;
 namespace OcharoMarketing.Api.Marketing.Controllers;
 
 [ApiController]
-public sealed class InquiriesController(InquiryService service, IConfiguration configuration) : ControllerBase
+public sealed class InquiriesController(InquiryService service) : ControllerBase
 {
   [HttpPost("api/public/inquiries")]
   [EnableRateLimiting("public-inquiries")]
@@ -58,7 +58,7 @@ public sealed class InquiriesController(InquiryService service, IConfiguration c
       CancellationToken ct)
   {
     var actor = HttpContext.Items["Ocharo.UserId"] as string;
-    if ((configuration.GetValue<bool>("Identity:Sso:Enabled") || (configuration["PlatformIntegration:Mode"] ?? "local") != "local") && string.IsNullOrWhiteSpace(actor))
+    if (string.IsNullOrWhiteSpace(actor))
       throw new MarketingException("A current operator identity is required.", 401);
     return Ok(await service.UpdateAsync(
         id,

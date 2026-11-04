@@ -1,7 +1,6 @@
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
-using Microsoft.Extensions.Configuration;
 using OcharoMarketing.Api.Marketing.Controllers;
 using OcharoMarketing.Application.Inquiries;
 using OcharoMarketing.Application.Marketing;
@@ -114,8 +113,7 @@ public sealed class InquiryFollowUpTests:IAsyncLifetime
     public async Task Controller_uses_authenticated_actor_and_rejects_missing_connected_identity()
     {
         await using var db=database.NewContext();var service=Service(new InquiryRepository(db));var id=(await service.SubmitAsync(Input(),default)).Id;
-        var config=new ConfigurationBuilder().AddInMemoryCollection(new Dictionary<string,string?>{["PlatformIntegration:Mode"]="connected"}).Build();
-        var controller=new InquiriesController(service,config){ControllerContext=new(){HttpContext=new DefaultHttpContext()}};
+        var controller=new InquiriesController(service){ControllerContext=new(){HttpContext=new DefaultHttpContext()}};
         Assert.Equal(401,(await Assert.ThrowsAsync<MarketingException>(()=>controller.Update(id,new(1,"contacted",null),default))).StatusCode);
         controller.HttpContext.Items["Ocharo.UserId"]="trusted-member";
         Assert.IsType<OkObjectResult>(await controller.Update(id,new(1,"contacted",null),default));

@@ -3,7 +3,6 @@ namespace OcharoMarketing.Infrastructure.Marketing;
 /// <summary>Configures bounded local storage and explicit provider execution opt-ins.</summary>
 public sealed class MarketingOptions
 {
-    public bool LocalPilot { get; set; } = true;
     public bool EnableLivePublishing { get; set; }
     public string DataDirectory { get; set; } = "App_Data";
     public long MaximumAssetBytes { get; set; } = 26_214_400;

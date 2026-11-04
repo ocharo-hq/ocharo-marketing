@@ -1,8 +1,8 @@
 namespace OcharoMarketing.Api.Marketing;
 
 /// <summary>
-/// Names the technical routes both access gates answer before sign-in: health, service status and the public runtime
-/// settings. The Ocharo SSO gate and the integration boundary read the same list, so neither can lag the other.
+/// Names the technical routes Marketing answers without a session: health, service status and the public runtime
+/// settings.
 /// </summary>
 public static class TechnicalRoutes
 {

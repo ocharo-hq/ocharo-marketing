@@ -10,8 +10,8 @@ public static partial class HostConfiguration
     {
         builder
             .AddSettingsFiles()
-            .AddPilotBoundary()
-            .AddIntegrationBoundary()
+            .AddProxyAwareForwarding()
+            .AddAccess()
             .AddSettings()
             .AddSqliteDatabase()
             .AddBlobStorage()

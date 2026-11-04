@@ -1,15 +1,16 @@
 using System.Collections.Concurrent;
 using System.Net;
 using System.Text.Json;
-using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Mvc.Testing;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection.Extensions;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 using OcharoMarketing.Api.RuntimeConfig.Settings;
+using OcharoMarketing.Persistence;
 using Xunit;
 
 namespace OcharoMarketing.Tests;
@@ -59,19 +60,19 @@ public sealed class RuntimeConfigTests
     [InlineData("/api/runtime-config")]
     [InlineData("/API/RUNTIME-CONFIG/")]
     [InlineData("/Api/Runtime-Config")]
-    public async Task RuntimeConfig_ShouldAnswerWithoutASession_WhenSsoGuardsTheRestOfTheApi(string path)
+    public async Task RuntimeConfig_ShouldAnswerWithoutASession_WhileSignInGuardsTheRestOfTheApi(string path)
     {
-        await using var host = MarketingHost.Create(EveryApp, sso: true);
-        using var client = host.Client(handleCookies: false);
+        await using var host = MarketingHost.Create(EveryApp);
+        using var client = host.Client();
         using var request = new HttpRequestMessage(HttpMethod.Get, path);
-        request.Headers.Add("Cookie", "__Host-ocharo-marketing=forged");
+        request.Headers.Add("Cookie", $"{MarketingTestIdentity.CookieName}=forged");
 
         using var response = await client.SendAsync(request);
 
         Assert.Equal(HttpStatusCode.OK, response.StatusCode);
         Assert.True(response.Headers.CacheControl!.NoStore);
         Assert.Contains("OCHARO_DESK_URL", (await ReadAsync(response)).Keys);
-        // The SSO boundary still holds for the private API.
+        // Sign-in still guards the private API.
         Assert.Equal(HttpStatusCode.Unauthorized, (await client.GetAsync("/api/marketing/workspace")).StatusCode);
     }
 
@@ -79,9 +80,9 @@ public sealed class RuntimeConfigTests
     [InlineData("/health/")]
     [InlineData("/API/SYSTEM/STATUS/")]
     [InlineData("/api/runtime-config/")]
-    public async Task TechnicalRoutes_ShouldAnswerTheSameVariantsThroughBothGates_WhenSsoIsOn(string path)
+    public async Task TechnicalRoutes_ShouldAnswerEveryVariantWithoutASession(string path)
     {
-        await using var host = MarketingHost.Create(EveryApp, sso: true);
+        await using var host = MarketingHost.Create(EveryApp);
         using var client = host.Client();
 
         using var response = await client.GetAsync(path);
@@ -89,59 +90,15 @@ public sealed class RuntimeConfigTests
         Assert.Equal(HttpStatusCode.OK, response.StatusCode);
     }
 
-    [Theory]
-    [InlineData("/api/runtime-config")]
-    [InlineData("/API/RUNTIME-CONFIG/")]
-    public async Task RuntimeConfig_ShouldAnswerInUnconfiguredConnectedMode_WhileBusinessApisFailClosed(string path)
+    [Fact]
+    public async Task RuntimeConfig_ShouldStayClosedToWrites()
     {
-        await using var host = MarketingHost.Create(new Dictionary<string, string?>(EveryApp)
-        {
-            ["PlatformIntegration:Mode"] = "connected",
-            ["PlatformIntegration:BaseUrl"] = "https://desk.test",
-            ["PlatformIntegration:OrganizationId"] = "",
-        });
-        using var client = host.Client();
-
-        using var response = await client.GetAsync(path);
-
-        Assert.Equal(HttpStatusCode.OK, response.StatusCode);
-        Assert.True(response.Headers.CacheControl!.NoStore);
-        Assert.Equal("https://ocharo-desk-dev.example.ts.net/", (await ReadAsync(response))["OCHARO_DESK_URL"]);
-        Assert.Equal(HttpStatusCode.ServiceUnavailable, (await client.GetAsync("/api/marketing/workspace")).StatusCode);
-    }
-
-    [Theory]
-    [InlineData(true, HttpStatusCode.Unauthorized)]
-    [InlineData(false, HttpStatusCode.ServiceUnavailable)]
-    public async Task RuntimeConfig_ShouldStayClosedToWrites(bool sso, HttpStatusCode expected)
-    {
-        var settings = new Dictionary<string, string?>(EveryApp);
-        if (!sso)
-        {
-            settings["PlatformIntegration:Mode"] = "connected";
-            settings["PlatformIntegration:BaseUrl"] = "https://desk.test";
-            settings["PlatformIntegration:OrganizationId"] = "";
-        }
-        await using var host = MarketingHost.Create(settings, sso);
+        await using var host = MarketingHost.Create(EveryApp);
         using var client = host.Client();
 
         using var response = await client.PostAsync("/api/runtime-config", null);
 
-        Assert.Equal(expected, response.StatusCode);
-    }
-
-    [Theory]
-    [InlineData(false)]
-    [InlineData(true)]
-    public async Task RuntimeConfig_ShouldKeepTheLoopbackPilotBoundary(bool sso)
-    {
-        await using var host = MarketingHost.Create(EveryApp, sso, remoteAddress: IPAddress.Parse("192.0.2.1"));
-        using var client = host.Client();
-
-        using var response = await client.GetAsync("/api/runtime-config");
-
-        Assert.Equal(HttpStatusCode.Forbidden, response.StatusCode);
-        Assert.DoesNotContain("ocharo-desk-dev", await response.Content.ReadAsStringAsync());
+        Assert.Equal(HttpStatusCode.Unauthorized, response.StatusCode);
     }
 
     [Fact]
@@ -220,85 +177,60 @@ public sealed class RuntimeConfigTests
     }
 }
 
-/// <summary>An isolated Marketing host with its own SQLite file and data folder, optionally behind enabled SSO.</summary>
+/// <summary>An isolated Marketing host with its own SQLite file and data folder, signed in through
+/// <see cref="MarketingTestIdentity"/>; <c>settings</c> apply last, so a test may change or clear (null) any default.</summary>
 internal sealed class MarketingHost : IAsyncDisposable
 {
-    private readonly string root;
-
     private MarketingHost(string root, WebApplicationFactory<Program> factory)
     {
-        this.root = root;
+        Root = root;
         Factory = factory;
     }
 
+    /// <summary>The host's data folder (<c>Marketing:DataDirectory</c>).</summary>
+    public string Root { get; }
+
     public WebApplicationFactory<Program> Factory { get; }
 
-    public static MarketingHost Create(
-        IReadOnlyDictionary<string, string?> settings, bool sso = false, CapturedLogs? logs = null, IPAddress? remoteAddress = null)
+    public static MarketingHost Create(IReadOnlyDictionary<string, string?> settings, CapturedLogs? logs = null, bool realCookieScheme = false)
     {
-        var root = Path.Combine(Path.GetTempPath(), "ocharo-marketing-runtime-config", Guid.NewGuid().ToString("N"));
+        var root = Path.Combine(Path.GetTempPath(), "ocharo-marketing-host", Guid.NewGuid().ToString("N"));
         Directory.CreateDirectory(root);
-        var configuration = new Dictionary<string, string?>
-        {
-            ["PlatformIntegration:Mode"] = "local",
-            ["Identity:Sso:Enabled"] = "false",
-        };
+        var configuration = MarketingTestIdentity.Settings();
         foreach (var (key, value) in settings) configuration[key] = value;
-        configuration["ConnectionStrings:OcharoMarketing"] = $"Data Source={Path.Combine(root, "api.db")};Pooling=False";
-        configuration["Marketing:DataDirectory"] = root;
-        configuration["Marketing:LocalPilot"] = "true";
-        if (sso)
-        {
-            configuration["Identity:Sso:Enabled"] = "true";
-            configuration["Identity:Sso:DeskOrigin"] = "https://desk.test";
-            configuration["Identity:Sso:ClientOrigin"] = "https://localhost";
-            configuration["Identity:Sso:ClientId"] = "fixture";
-            configuration["Identity:Sso:ClientSecret"] = new string('s', 32);
-            configuration["Identity:Sso:OrganizationId"] = Guid.NewGuid().ToString();
-        }
         var factory = new WebApplicationFactory<Program>().WithWebHostBuilder(builder =>
         {
             builder.UseEnvironment("Development");
+            // The host registers its store from builder.Configuration, which sees UseSetting; ConfigureAppConfiguration arrives only at Build.
+            builder.UseSetting("ConnectionStrings:OcharoMarketing", $"Data Source={Path.Combine(root, "api.db")};Pooling=False");
+            builder.UseSetting("Marketing:DataDirectory", root);
             builder.ConfigureAppConfiguration((_, config) => config.AddInMemoryCollection(configuration));
             builder.ConfigureServices(services =>
             {
                 services.RemoveAll<IHostedService>();
-                if (remoteAddress is not null) services.AddSingleton<IStartupFilter>(new RemoteAddressFilter(remoteAddress));
+                if (!realCookieScheme) MarketingTestIdentity.Use(services);
             });
             if (logs is not null) builder.ConfigureLogging(logging => logging.AddProvider(logs));
         });
         return new MarketingHost(root, factory);
     }
 
-    public HttpClient Client(bool handleCookies = true)
+    /// <summary>A host whose database is migrated, as the removed hosted runner does on a real boot.</summary>
+    public static async Task<MarketingHost> CreateWithDatabaseAsync()
     {
-        return Factory.CreateClient(new WebApplicationFactoryClientOptions
-        {
-            BaseAddress = new Uri("https://localhost"), AllowAutoRedirect = false, HandleCookies = handleCookies,
-        });
+        var host = Create(new Dictionary<string, string?>());
+        using var scope = host.Factory.Services.CreateScope();
+        await scope.ServiceProvider.GetRequiredService<OcharoMarketingDbContext>().Database.MigrateAsync();
+        return host;
     }
+
+    /// <summary>An anonymous client over HTTPS.</summary>
+    public HttpClient Client() => MarketingTestIdentity.Anonymous(Factory);
 
     public async ValueTask DisposeAsync()
     {
         await Factory.DisposeAsync();
-        try { Directory.Delete(root, true); } catch (IOException) { }
-    }
-}
-
-/// <summary>Makes every request arrive from one remote address, ahead of the host's own middleware.</summary>
-internal sealed class RemoteAddressFilter(IPAddress address) : IStartupFilter
-{
-    public Action<IApplicationBuilder> Configure(Action<IApplicationBuilder> next)
-    {
-        return app =>
-        {
-            app.Use((context, following) =>
-            {
-                context.Connection.RemoteIpAddress = address;
-                return following(context);
-            });
-            next(app);
-        };
+        try { Directory.Delete(Root, true); } catch (IOException) { }
     }
 }
 

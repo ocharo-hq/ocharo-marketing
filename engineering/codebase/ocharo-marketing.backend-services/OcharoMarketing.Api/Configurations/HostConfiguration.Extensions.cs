@@ -1,4 +1,3 @@
-using Ocharo.Sso;
 using System.Reflection;
 using System.Threading.RateLimiting;
 using Microsoft.AspNetCore.RateLimiting;
@@ -29,8 +28,8 @@ using OcharoMarketing.Persistence.Inquiries;
 using OcharoMarketing.Persistence.Marketing.Repositories;
 using OcharoMarketing.Persistence.Scanning;
 using WoW.Two.Sdk.Beta.Be.Data.Migrations.Ef;
-using WoW.Two.Sdk.Beta.Be.Foundation.Configuration;
 using WoW.Two.Sdk.Beta.Be.Foundation.Options;
+using WoW.Two.Sdk.Beta.Be.Identity.Bff;
 using WoW.Two.Sdk.Beta.Be.Mediator;
 using WoW.Two.Sdk.Beta.Be.Storage.FileSystem;
 using WoW.Two.Sdk.Beta.Be.Web.Hosting;
@@ -40,19 +39,9 @@ namespace OcharoMarketing.Api.Configurations;
 
 public static partial class HostConfiguration
 {
-    /// <summary>Configures the pilot startup boundary: a local run, or a public host, and forwarded headers from the ingress.</summary>
-    private static WebApplicationBuilder AddPilotBoundary(this WebApplicationBuilder builder)
+    /// <summary>Registers forwarded headers trusted only from loopback and <c>Deployment:TrustedProxies</c>.</summary>
+    private static WebApplicationBuilder AddProxyAwareForwarding(this WebApplicationBuilder builder)
     {
-        // A deployed host may run as Development too (DEPLOY_ENVIRONMENT set), so only a local run counts as local. Any
-        // other host runs only when public: the owner's decision of 2026-10-24, until the Ocharo identity server lands.
-        if (!builder.Configuration.GetValue("Marketing:LocalPilot", true)
-            || !builder.IsLocalRun() && !LocalPilotBoundaryMiddleware.IsPublic(builder.Configuration))
-        {
-            throw new InvalidOperationException(
-                "This pilot requires a local Development run or a public host (Marketing:PublicAccess). " +
-                "Remote hosting requires authenticated deployment configuration.");
-        }
-
         // Behind the TLS-terminating ingress, same-origin write checks need the forwarded scheme; any other sender keeps its own.
         var proxies = builder.Configuration.GetSection("Deployment:TrustedProxies").Get<string[]>() ?? [];
         builder.Services.AddProxyAwareHosting(options =>
@@ -60,15 +49,6 @@ public static partial class HostConfiguration
             foreach (var proxy in proxies)
                 options.TrustedProxies.Add(proxy);
         });
-        return builder;
-    }
-
-    /// <summary>Registers the platform access-ticket client.</summary>
-    private static WebApplicationBuilder AddIntegrationBoundary(this WebApplicationBuilder builder)
-    {
-        builder.Services.AddOcharoSso(builder.Configuration, "marketing", "ocharo-marketing", requireBoundOrganization: true);
-        builder.Services.AddHttpClient("ocharo-platform-tickets", client => client.Timeout = TimeSpan.FromSeconds(5))
-            .ConfigurePrimaryHttpMessageHandler(() => new HttpClientHandler { AllowAutoRedirect = false });
         return builder;
     }
 
@@ -305,33 +285,30 @@ public static partial class HostConfiguration
         return builder;
     }
 
-    /// <summary>Configures the existing request boundaries, static shell and public inquiry budget.</summary>
+    /// <summary>Configures the request boundary, sign-in, static shell and public inquiry budget.</summary>
     private static WebApplication UsePipeline(this WebApplication app)
     {
         app.UseProxyAwareHosting();
         app.UseHttpProblemDetails();
         app.UseMiddleware<MarketingExceptionMiddleware>();
-        app.UseMiddleware<LocalPilotBoundaryMiddleware>();
-        // Health, status and the public runtime settings answer before sign-in, as the integration boundary allows.
-        app.UseOcharoSso(http => http.Request.Path.StartsWithSegments("/api/public") || TechnicalRoutes.IsPublic(http.Request),
-            resolveSession: http => http.Request.Path.StartsWithSegments("/media") || http.Request.Path.StartsWithSegments("/preview"));
-        app.UseMiddleware<IntegrationBoundaryMiddleware>();
+        app.UseMiddleware<MarketingHttpBoundaryMiddleware>();
+        app.UseAccess();
         app.UseDefaultFiles();
         app.UseStaticFiles();
         app.UseRateLimiter();
         return app;
     }
 
-    /// <summary>Configures controller, status, API error and SPA endpoints.</summary>
+    /// <summary>Configures controller, Identity session, status, API error and SPA endpoints.</summary>
     private static WebApplication MapEndpoints(this WebApplication app)
     {
         app.WarnAboutRejectedRuntimeConfig();
         app.MapControllers();
+        app.MapIdentityBffEndpoints();
         app.MapGet("/health", () => Results.Ok(new
         {
             status = "healthy",
             service = "OcharoMarketing",
-            mode = "local-pilot",
             version = typeof(HostConfiguration).Assembly.GetCustomAttribute<AssemblyInformationalVersionAttribute>()
                 ?.InformationalVersion ?? "dev",
         }));
