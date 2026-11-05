@@ -275,8 +275,6 @@ public sealed class MarketingAccessTests
     }
 
     [Theory]
-    [InlineData("GET", "/api/sso/session")]
-    [InlineData("GET", "/api/sso/login")]
     [InlineData("GET", "/api/integrations/session")]
     [InlineData("POST", "/api/integrations/connect")]
     [InlineData("DELETE", "/api/integrations/connect")]

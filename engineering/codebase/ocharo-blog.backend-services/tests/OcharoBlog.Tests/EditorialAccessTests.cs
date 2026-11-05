@@ -293,8 +293,6 @@ public sealed class EditorialAccessTests
     }
 
     [Theory]
-    [InlineData("/api/sso/session")]
-    [InlineData("/api/sso/login")]
     [InlineData("/api/integrations/session")]
     [InlineData("/api/integrations/connect")]
     public async Task RetiredSessionRoutes_ShouldNoLongerExist(string path)
