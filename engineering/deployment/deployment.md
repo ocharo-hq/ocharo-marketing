@@ -76,7 +76,7 @@ Image and text preparation run only after explicit configuration and a user comm
 ## Wheelhouse
 
 `deploy.yml` (descriptor 2, `product: ocharo`) and `.github/workflows/publish-docker-image.yml` (the shared
-`delivery.yml` of `wow-two-platform.pipelines`, pinned to `v0.10.0`, and the only CI file) put Marketing in Wheelhouse
+`delivery.yml` of `wow-two-platform.pipelines`, pinned to commit `e134a47`, and the only CI file) put Marketing in Wheelhouse
 beside Platform and Studio. Both hosts sign in through Ocharo's Identity, which `ocharo-platform`'s descriptor deploys.
 
 | Service | Image | Serves | Site | Volume at `/data` |
