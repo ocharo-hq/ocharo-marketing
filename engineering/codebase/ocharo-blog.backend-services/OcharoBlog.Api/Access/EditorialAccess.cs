@@ -11,6 +11,12 @@ public static class EditorialAccess
     /// <summary>The scope a service token needs to read a live export.</summary>
     public const string ExportScope = "editorial.export";
 
+    /// <summary>The setting naming Editorial's <c>SignalUrl</c> as a resource at the instance, <c>{site}/signals/identity</c>; unset maps no route.</summary>
+    public const string SignalUrlKey = "Identity:Resource:SignalUrl";
+
+    /// <summary>The route that hears Identity's revocation signals for this resource.</summary>
+    public const string SignalPath = "/signals/identity";
+
     private const string PublicApiPrefix = "/api/public/";
 
     /// <summary>The live export routes, the only ones where a bearer token counts.</summary>

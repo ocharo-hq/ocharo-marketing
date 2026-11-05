@@ -7,6 +7,7 @@ using OcharoBlog.Api.Access;
 using OcharoBlog.Infrastructure.Blog;
 using WoW.Two.Sdk.Beta.Be.Identity.Bff;
 using WoW.Two.Sdk.Beta.Be.Identity.Jwt;
+using WoW.Two.Sdk.Beta.Be.Identity.Signals;
 
 namespace OcharoBlog.Api.Configurations;
 
@@ -25,6 +26,15 @@ public static partial class HostConfiguration
             options.Audience = RequiredAddress(builder.Configuration, "Identity:Resource:Uri");
             options.TrustedIssuers.Add(new TrustedIssuer { Issuer = RequiredAddress(builder.Configuration, "Identity:Client:Authority") });
         });
+        builder.Services.AddTokenDenyList();
+        if (builder.Configuration[EditorialAccess.SignalUrlKey] is { Length: > 0 } signalUrl)
+        {
+            builder.Services.AddIdentitySignalReceiver(options =>
+            {
+                options.Audience = signalUrl;
+                options.TrustedIssuers.Add(new TrustedIssuer { Issuer = RequiredAddress(builder.Configuration, "Identity:Client:Authority") });
+            });
+        }
         builder.Services.AddIdentityBff();
         // Resolve final configuration after test/deployment overrides have been applied.
         builder.Services.AddDataProtection();

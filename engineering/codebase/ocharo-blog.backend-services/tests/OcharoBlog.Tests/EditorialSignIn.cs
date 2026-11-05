@@ -9,6 +9,7 @@ using Microsoft.AspNetCore.Mvc.Testing;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
+using OcharoBlog.Api.Access;
 using WoW.Two.Sdk.Beta.Be.Identity.Bff;
 using WoW.Two.Sdk.Beta.Be.Identity.Core.Organizations;
 
@@ -59,9 +60,9 @@ internal static class EditorialSignIn
     public static void UseBootSettings(IWebHostBuilder builder, IReadOnlyDictionary<string, string?>? settings = null)
     {
         settings ??= Settings;
-        foreach (var key in new[] { "Identity:Client:Authority", "Identity:Resource:Uri" })
+        foreach (var key in new[] { "Identity:Client:Authority", "Identity:Resource:Uri", EditorialAccess.SignalUrlKey })
         {
-            if (settings[key] is { } value) builder.UseSetting(key, value);
+            if (settings.GetValueOrDefault(key) is { } value) builder.UseSetting(key, value);
         }
     }
 

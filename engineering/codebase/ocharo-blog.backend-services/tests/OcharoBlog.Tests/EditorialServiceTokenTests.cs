@@ -9,10 +9,12 @@ using Microsoft.AspNetCore.Mvc.Testing;
 using Microsoft.AspNetCore.WebUtilities;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.IdentityModel.JsonWebTokens;
+using OcharoBlog.Api.Access;
 using OcharoBlog.Application.Blog.Models;
 using OcharoBlog.Infrastructure.Blog;
 using WoW.Two.Sdk.Beta.Be.Http.Auth.OAuth2;
 using WoW.Two.Sdk.Beta.Be.Identity.Bff;
+using WoW.Two.Sdk.Beta.Be.Identity.Signals;
 using WoW.Two.Sdk.Beta.Be.Identity.Testing;
 using static OcharoBlog.Tests.EditorialSignIn;
 using Xunit;
@@ -354,6 +356,49 @@ public sealed class EditorialServiceTokenTests
         using var client = Bearer(host.Factory, issuer.IssueServiceToken("ocharo-platform", Resource, "editorial.export"));
 
         Assert.Equal(HttpStatusCode.OK, (await client.GetAsync("/api/blog/export/site.zip")).StatusCode);
+    }
+
+    [Fact]
+    public async Task SignedSignal_ShouldBeAccepted_AndADeniedSessionsTokenRefused()
+    {
+        const string signalUrl = "https://editorial.example.test/signals/identity";
+        using var issuer = new FakeTokenIssuer();
+        using var sender = new IdentitySignalSender(issuer.Issuer);
+        await using var host = EditorialHost.Create(new Dictionary<string, string?> { [EditorialAccess.SignalUrlKey] = signalUrl },
+            services: services =>
+            {
+                services.AddFakeTokenIssuer(issuer);
+                services.PostConfigure<IdentitySignalReceiverOptions>(options => options.TrustedIssuers.Add(sender.TrustedIssuer));
+            });
+        var person = new FakePerson { Id = Guid.NewGuid(), OrganizationId = Organization, SessionId = Guid.NewGuid() };
+        using var bearer = Bearer(host.Factory, issuer.IssuePersonToken(person, Resource, "fake-app", EditorialAccess.ExportScope));
+        // The token passes, and only then does the export refuse a person: that 403 is the "still counts" answer.
+        Assert.Equal(HttpStatusCode.Forbidden, (await bearer.GetAsync("/api/blog/export/site.zip")).StatusCode);
+
+        using var anonymous = Anonymous(host.Factory);
+        using var signal = await anonymous.SendAsync(sender.SessionEnded(signalUrl, person.SessionId!.Value.ToString("D"), person.Id.ToString("D")));
+        Assert.Equal(HttpStatusCode.Accepted, signal.StatusCode);
+
+        // This test host runs no hosted services, so the bus stays idle: the entry its handler would write goes in directly.
+        await host.Factory.Services.GetRequiredService<ITokenDenyList>().AddSessionAsync(issuer.Issuer, person.SessionId!.Value.ToString("D"), null);
+        Assert.Equal(HttpStatusCode.Unauthorized, (await bearer.GetAsync("/api/blog/export/site.zip")).StatusCode);
+    }
+
+    [Theory]
+    [InlineData("/signals/identity")]
+    [InlineData("/api/identity/signal")]
+    public async Task SignalRoutes_ShouldAnswer401_ForAnUnsignedPostWithoutASession(string path)
+    {
+        await using var host = EditorialHost.Create(new Dictionary<string, string?>
+        {
+            [EditorialAccess.SignalUrlKey] = "https://editorial.example.test/signals/identity",
+            ["Identity:Client:SignalUrl"] = "https://editorial.example.test/api/identity/signal",
+        });
+        using var client = Anonymous(host.Factory);
+
+        using var response = await client.PostAsync(path, new StringContent("{}", Encoding.UTF8, "application/json"));
+
+        Assert.Equal(HttpStatusCode.Unauthorized, response.StatusCode);
     }
 
     [Fact]

@@ -2,6 +2,7 @@ using System.Reflection;
 using Microsoft.Data.Sqlite;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Options;
+using OcharoBlog.Api.Access;
 using OcharoBlog.Api.Blog;
 using OcharoBlog.Api.RuntimeConfig.Settings;
 using OcharoBlog.Application;
@@ -18,6 +19,7 @@ using WoW.Two.Sdk.Beta.Be.Foundation.Configuration;
 using WoW.Two.Sdk.Beta.Be.Foundation.Options;
 using WoW.Two.Sdk.Beta.Be.Http.Auth.OAuth2ClientCredentials;
 using WoW.Two.Sdk.Beta.Be.Identity.Bff;
+using WoW.Two.Sdk.Beta.Be.Identity.Signals;
 using WoW.Two.Sdk.Beta.Be.Media.Images;
 using WoW.Two.Sdk.Beta.Be.Mediator;
 using WoW.Two.Sdk.Beta.Be.Storage.Core;
@@ -240,6 +242,7 @@ public static partial class HostConfiguration
         app.WarnAboutRejectedRuntimeConfig();
         app.MapControllers();
         app.MapIdentityBffEndpoints();
+        if (!string.IsNullOrEmpty(app.Configuration[EditorialAccess.SignalUrlKey])) app.MapIdentitySignals(EditorialAccess.SignalPath);
         app.MapGet("/health", () => Results.Ok(new
         {
             status = "healthy",
