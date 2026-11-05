@@ -19,7 +19,7 @@ Use Node 24, pnpm 10.33.2 and .NET 10. All frontend source is under `engineering
 | Blog | `pnpm build:blog` | `apps/blog/dist` |
 | Catalogue | `pnpm build:catalogue` | `apps/catalogue/dist` |
 
-Public builds consume a published export a signed-in editor downloaded, through `OCHARO_EXPORT_ARCHIVE`. The old static manuscript compiler remains `apps/blog` → `pnpm build:archive` for archival comparison only.
+Public builds consume a published export: an archive a signed-in editor downloaded (`OCHARO_EXPORT_ARCHIVE`), or a live fetch with `OCHARO_EXPORT_CLIENT_SECRET`, `OCHARO_EDITORIAL_URL`, `OCHARO_IDENTITY_URL` and optional `OCHARO_CA_FILE`. The old static manuscript compiler remains `apps/blog` → `pnpm build:archive` for archival comparison only.
 
 The APIs remain separate local processes: Marketing HTTPS 8276 and Editorial HTTPS 8280. Both sign in through Ocharo's Identity: configure `Identity:Client:*` and the owning `Marketing:OrganizationId` or `Blog:OrganizationId` on each, or startup refuses. A session from another organization gets 403.
 

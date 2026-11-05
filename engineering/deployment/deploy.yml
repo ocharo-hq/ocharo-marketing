@@ -67,6 +67,9 @@ services:
         Identity:Client:ClientSecret: { from: { repository: platform, key: Identity:Server:Clients:4:ClientSecret } }
         Identity:Client:CookieName: { default: __Host-ocharo-editorial }
         Identity:Client:PostSignOutRedirectPath: { default: "/" }
+        # Service tokens: Editorial's audience for live exports, and the Desk it calls as itself for background removal.
+        Identity:Resource:Uri: { from: Sites:blog:Url }
+        Blog:DeskBaseUrl: { from: { repository: platform, key: Sites:desk:Url } }
         Blog:OrganizationId: { required: true }              # Ocharo's organization id in that environment's Identity
         # The Catalogue, Brand and Marketing origins the public renderer and enquiry relay read; unset, those reads fail.
         Blog:CatalogueBaseUrl: { type: url }

@@ -86,6 +86,7 @@ beside Platform and Studio. Both hosts sign in through Ocharo's Identity, which 
 
 - Marketing is Identity client 3 and Editorial client 4, at fixed indexes in `ocharo-platform`'s `deploy.yml`. Each host
   links `Identity:Client:Authority` and `ClientSecret` with `from` to keys that descriptor declares.
+- `blog` links `Identity:Resource:Uri` to its own site, the audience of its export tokens, and `Blog:DeskBaseUrl` to Desk's site.
 - Owner keys, per environment: `Marketing:OrganizationId` and `Blog:OrganizationId`, Ocharo's organization id in that
   environment's Identity; on `identity`, each client's `RedirectUris:0` `{site}/api/identity/callback` and
   `PostSignOutRedirectUris:0` `{site}/`. A deploy refuses without them.
@@ -93,7 +94,8 @@ beside Platform and Studio. Both hosts sign in through Ocharo's Identity, which 
   `{marketing,editorial}:approve`. `/api/public/*`, the technical routes and the Blog's published pages and media stay
   anonymous; `/preview` and unpublished media stay private.
 - Sign-in sessions live in memory, so a restart or deploy signs everyone out once; the key ring stays at `/data/keys`.
-- Editorial's background removal stays unavailable until Desk's service credential is chosen; other image edits work.
+- Editorial calls Desk's background removal as itself with an Identity service token (`desk.remove-background`), having
+  checked the person's `editorial:edit` first. `Blog:DeskBaseUrl` links to Desk's site; unset, removal reads unavailable.
 - Cross-origin writes stay refused. Behind the ingress each host trusts forwarded headers from loopback and
   `Deployment:TrustedProxies` only.
 - Wheelhouse derives the two required settings, `AllowedHosts` and `Deployment:TrustedProxies`. Optional `url` keys:
@@ -101,9 +103,10 @@ beside Platform and Studio. Both hosts sign in through Ocharo's Identity, which 
   `Blog:MarketingBaseUrl` and the `OcharoApps:*` menu links; unset, cross-app reads keep their `localhost` defaults and fail.
 - The Marketing image has no browser, so card PNG/PDF rendering is unavailable on a deployed host; providers and live
   publishing stay off by default.
-- Atlas, Wear, Blog and Catalogue static builds take a published export a signed-in editor downloaded
-  (`scripts/build-public.py`, `OCHARO_EXPORT_ARCHIVE`); on a deployed host the Editorial's public renderer serves published
-  revisions at runtime. CI builds them from fixtures.
+- Atlas, Wear, Blog and Catalogue static builds take a published export: an archive a signed-in editor downloaded
+  (`OCHARO_EXPORT_ARCHIVE`), or a live fetch with the `public-build` client's service token (`editorial.export`,
+  `OCHARO_EXPORT_CLIENT_SECRET`), which nothing stores in CI. On a deployed host the Editorial's public renderer serves
+  published revisions at runtime. CI builds them from fixtures.
 - CI runs each backend's tests, both frontends' scripts, the fixture builds and the compose validation, each when its
   paths change; publication builds the changed images as `ghcr.io/ocharo-hq/ocharo-marketing/{marketing,blog}`, and a
   `main` build releases `vX.Y.Z`.

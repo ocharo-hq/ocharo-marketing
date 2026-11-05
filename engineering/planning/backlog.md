@@ -61,10 +61,6 @@ strategy with CSRF, the identity-change rule and the legacy ticket fallback; it 
 
 After the move to Ocharo's Identity (2026-11-04):
 
-- **Editorial background removal.** Unavailable until Desk's service credential is chosen (shared API key or Identity
-  client credentials); the previous call is in commit `67c4193`. Track: `ocharo-platform`'s `identity-cutover.md` #47.
-- **Live public builds.** `scripts/build-public.py` takes only `OCHARO_EXPORT_ARCHIVE`, because Editorial's export routes
-  need a session; a build fetching a live export needs the same kind of service credential.
 - **Sessions.** Both hosts keep BFF sessions in memory, so a restart signs everyone out; a durable SQLite or shared cache
   would end that.
 - **Local containers.** `deployment/docker-compose.yml` and `deployment/blog/docker-compose.yml` set no `Identity:Client:*`

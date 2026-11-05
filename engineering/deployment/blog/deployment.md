@@ -21,16 +21,18 @@ The file is gitignored and excluded from image builds; tests, review scripts and
       "ClientSecret": "<the editorial client's secret>",
       "CookieName": "__Host-ocharo-editorial",
       "PostSignOutRedirectPath": "/"
-    }
+    },
+    "Resource": { "Uri": "https://localhost:8280/" }
   },
   "Blog": {
     "OrganizationId": "<Ocharo's organization id in that Identity>",
     "PlatformBaseUrl": "https://localhost:8264",
+    "DeskBaseUrl": "https://localhost:8264",
     "SeedAssetRoot": "../../ocharo-marketing.frontend-services/apps/blog/public/assets"
   }
 }
 ```
 
-Startup refuses without the client block or `Blog:OrganizationId`. Without `Blog:PlatformBaseUrl`, catalogue and brand
+Startup refuses without the client block, `Identity:Resource:Uri` or `Blog:OrganizationId`. Without `Blog:DeskBaseUrl`, background removal reads unavailable. Without `Blog:PlatformBaseUrl`, catalogue and brand
 reads use the retained pilots (`Blog:CatalogueBaseUrl`, `Blog:BrandBaseUrl`); without `Blog:SeedAssetRoot`, a first seed
 of an empty database stores the stories without their cover images. The OpenAPI document maps only on a local run.

@@ -1,5 +1,5 @@
 """Build one standalone app from its revisioned published export."""
-import hashlib, html, io, json, os, re, shutil, sys, zipfile
+import hashlib, html, io, json, os, re, shutil, ssl, sys, urllib.parse, urllib.request, zipfile
 from pathlib import Path
 version=os.environ.get('APP_VERSION','dev')
 if version=='0.0.0': version='dev'
@@ -8,9 +8,22 @@ if app not in ('atlas','wear','blog','catalogue'): raise SystemExit('Unknown pub
 root=Path(__file__).resolve().parents[1]; target=root/'apps'/app/'dist'
 archive=os.environ.get('OCHARO_EXPORT_ARCHIVE')
 locale=os.environ.get('OCHARO_CATALOGUE_LOCALE') if app=='catalogue' else None
-# Editorial's export routes need a signed-in session, so a build takes an archive an editor downloaded.
-if not archive: raise SystemExit('Published export unavailable. Download it from Editorial and set OCHARO_EXPORT_ARCHIVE.')
-data=Path(archive).read_bytes()
+if archive: data=Path(archive).read_bytes()
+else:
+    # A live fetch reads Editorial's export as the public-build client, with a token bound to that one Editorial.
+    secret=os.environ.get('OCHARO_EXPORT_CLIENT_SECRET')
+    if not secret: raise SystemExit('Published export unavailable. Set OCHARO_EXPORT_ARCHIVE, or OCHARO_EXPORT_CLIENT_SECRET for a live export.')
+    origin=os.environ.get('OCHARO_EDITORIAL_URL','https://localhost:8280').rstrip('/')
+    authority=os.environ.get('OCHARO_IDENTITY_URL','https://localhost:8404').rstrip('/')
+    if not origin.startswith('https://') or not authority.startswith('https://'): raise SystemExit('Use HTTPS Editorial and Identity origins')
+    endpoint='/api/blog/export/site.zip' if app=='blog' else '/api/blog/export/'+app+'.zip'
+    if locale: endpoint+='?'+urllib.parse.urlencode({'locale':locale})
+    context=ssl.create_default_context(cafile=os.environ.get('OCHARO_CA_FILE'))
+    form=urllib.parse.urlencode({'grant_type':'client_credentials','client_id':os.environ.get('OCHARO_EXPORT_CLIENT_ID','public-build'),'client_secret':secret,'resource':origin+'/'}).encode()
+    try:
+        with urllib.request.urlopen(urllib.request.Request(authority+'/connect/token',data=form),context=context,timeout=30) as response: token=json.load(response)['access_token']
+        with urllib.request.urlopen(urllib.request.Request(origin+endpoint,headers={'Authorization':'Bearer '+token}),context=context,timeout=60) as response: data=response.read()
+    except Exception as e: raise SystemExit('Published export unavailable. Start Editorial and Identity, or set OCHARO_EXPORT_ARCHIVE. '+str(e))
 with zipfile.ZipFile(io.BytesIO(data)) as bundle:
     if app != 'blog' and ('publication.json' not in bundle.namelist() or json.loads(bundle.read('publication.json')).get('publication') != app): raise SystemExit('Export belongs to another publication')
     if app=='catalogue' and locale and json.loads(bundle.read('publication.json')).get('locale')!=locale: raise SystemExit('Catalogue export language does not match the requested language')
