@@ -74,9 +74,10 @@ services:
         Identity:Resource:SignalUrl: { from: { repository: platform, key: Identity:Server:Resources:1:SignalUrl } }
         Blog:DeskBaseUrl: { from: { repository: platform, key: Sites:desk:Url } }
         Blog:OrganizationId: { required: true }              # Ocharo's organization id in that environment's Identity
-        # The Catalogue, Brand and Marketing origins the public renderer and enquiry relay read; unset, those reads fail.
+        # Brand's public kit supplies the blog's logo and links, read from Brand's own site.
+        Blog:BrandBaseUrl: { from: { repository: platform, key: Sites:brand:Url } }
+        # The Catalogue and Marketing origins the public renderer and enquiry relay read; unset, those reads fail.
         Blog:CatalogueBaseUrl: { type: url }
-        Blog:BrandBaseUrl: { type: url }
         Blog:MarketingBaseUrl: { type: url }
         OcharoApps:Desk: { type: url }
         OcharoApps:Catalogue: { type: url }

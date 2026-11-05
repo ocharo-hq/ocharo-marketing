@@ -103,8 +103,9 @@ beside Platform and Studio. Both hosts sign in through Ocharo's Identity, which 
 - Cross-origin writes stay refused. Behind the ingress each host trusts forwarded headers from loopback and
   `Deployment:TrustedProxies` only.
 - Wheelhouse derives the two required settings, `AllowedHosts` and `Deployment:TrustedProxies`. Optional `url` keys:
-  `Marketing:CatalogueBaseUrl`, `Marketing:BlogBaseUrl`, `Blog:CatalogueBaseUrl`, `Blog:BrandBaseUrl`,
-  `Blog:MarketingBaseUrl` and the `OcharoApps:*` menu links; unset, cross-app reads keep their `localhost` defaults and fail.
+  `Marketing:CatalogueBaseUrl`, `Marketing:BlogBaseUrl`, `Blog:CatalogueBaseUrl`, `Blog:MarketingBaseUrl` and the
+  `OcharoApps:*` menu links; unset, cross-app reads keep their `localhost` defaults and fail. `Blog:BrandBaseUrl` links to
+  Brand's site, so Editorial reads Brand's public kit there.
 - The Marketing image has no browser, so card PNG/PDF rendering is unavailable on a deployed host; providers and live
   publishing stay off by default.
 - Atlas, Wear, Blog and Catalogue static builds take a published export: an archive a signed-in editor downloaded
