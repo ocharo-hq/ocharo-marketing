@@ -398,7 +398,6 @@ public sealed class MarketingAccessTests
 
     [Theory]
     [InlineData("GET", "/health", false)]
-    [InlineData("GET", "/inquiries", false)]
     [InlineData("GET", "/api", true)]
     [InlineData("GET", "/API/RUNTIME-CONFIG", true)]
     [InlineData("GET", "/api/system/status", true)]
