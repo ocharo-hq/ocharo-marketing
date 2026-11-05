@@ -60,7 +60,7 @@ public sealed class MarketingPersistenceTests : IAsyncLifetime
     {
         var now = DateTimeOffset.UtcNow;
         await using (var context = database.NewContext())
-            await new MarketingRepository(context).EnqueueAsync(Job("card-job", "card", now), "{}", default);
+            await new MarketingRepository(context).EnqueueAsync(Job("card-job", "card", now), "{}", null, default);
         await using var first = database.NewContext();
         var one = await new MarketingRepository(first).ClaimAsync(now, TimeSpan.FromMinutes(1), default);
         Assert.NotNull(one);
@@ -76,11 +76,11 @@ public sealed class MarketingPersistenceTests : IAsyncLifetime
         var now = DateTimeOffset.UtcNow;
         await using var db = database.NewContext();
         var repository = new MarketingRepository(db);
-        await repository.EnqueueAsync(Job("external", "image", now), "{}", default);
+        await repository.EnqueueAsync(Job("external", "image", now), "{}", null, default);
         Assert.NotNull(await repository.ClaimAsync(now, TimeSpan.FromSeconds(1), default));
         Assert.Null(await repository.ClaimAsync(now.AddSeconds(2), TimeSpan.FromSeconds(1), default));
         Assert.Equal("unknown", Assert.Single(await repository.GetJobsAsync(default)).Status);
-        await repository.EnqueueAsync(Job("local", "card", now), "{}", default);
+        await repository.EnqueueAsync(Job("local", "card", now), "{}", null, default);
         var local = await repository.ClaimAsync(now, TimeSpan.FromSeconds(1), default);
         Assert.NotNull(local);
         var recovered = await repository.ClaimAsync(now.AddSeconds(2), TimeSpan.FromSeconds(1), default);

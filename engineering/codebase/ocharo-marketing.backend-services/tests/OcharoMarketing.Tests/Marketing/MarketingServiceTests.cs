@@ -13,6 +13,7 @@ using OcharoMarketing.Infrastructure.Marketing;
 using OcharoMarketing.Infrastructure.Marketing.Services;
 using OcharoMarketing.Persistence;
 using OcharoMarketing.Persistence.Marketing.Repositories;
+using WoW.Two.Sdk.Beta.Be.Jobs.Core.PersonOperations;
 using WoW.Two.Sdk.Beta.Be.Storage.FileSystem;
 using Xunit;
 
@@ -90,7 +91,7 @@ public sealed class MarketingServiceTests : IAsyncLifetime
         await assets.SaveAsync(Png, "card-secret-job.png", "Internal provenance secret-job", "card", default, "rendered");
         var now = DateTimeOffset.UtcNow;
         await repository.EnqueueAsync(new("secret-job", "card", "local", "Nimcha in bone", "nimcha", "queued", now, [], null),
-            MarketingJson.Write(new CardRenderPayload("<html></html>", "t02-bone")), default);
+            MarketingJson.Write(new CardRenderPayload("<html></html>", "t02-bone")), null, default);
         var claim = await repository.ClaimAsync(now, TimeSpan.FromMinutes(1), default);
         await repository.CompleteAsync(claim!, ["rendered"], default);
         await service.ExportAtlasAsync(["rendered"], default);
@@ -109,6 +110,65 @@ public sealed class MarketingServiceTests : IAsyncLifetime
         Assert.Null(cards.AtlasItems);
     }
 
+    [Fact]
+    public async Task WorkerStopsAQueuedJob_WhenThePersonWhoAskedLostAccess()
+    {
+        var operations = Operations();
+        await using (var db = database.NewContext())
+            await Services(db).Repository.EnqueueAsync(new("access-job", "card", "local", "Title", "nimcha", "queued", DateTimeOffset.UtcNow.AddSeconds(-1), [], null),
+                MarketingJson.Write(new CardRenderPayload("<html></html>", "t02-bone")), new("person", "organization"), default);
+        operations.AccessLost("person", "organization");
+        cards.Failure = new InvalidOperationException("the render ran");
+
+        var job = await RunWorkerUntilFinishedAsync(operations);
+
+        Assert.Equal("failed", job.Status);
+        Assert.Contains("no longer has access", job.Message);
+    }
+
+    [Fact]
+    public async Task WorkerRunsAQueuedJob_WhenAnotherPersonLostAccessOrThePersonSignedOut()
+    {
+        var operations = Operations();
+        await using (var db = database.NewContext())
+            await Services(db).Repository.EnqueueAsync(new("kept-job", "card", "local", "Title", "nimcha", "queued", DateTimeOffset.UtcNow.AddSeconds(-1), [], null),
+                MarketingJson.Write(new CardRenderPayload("<html></html>", "t02-bone")), new("person", "organization"), default);
+        operations.AccessLost("someone-else", "organization");
+        operations.AccessLost("person", "another-organization");
+        operations.SessionEnded("session", "person");
+        cards.Failure = new CardRenderingException("the render ran");
+
+        var job = await RunWorkerUntilFinishedAsync(operations);
+
+        Assert.Equal("the render ran", job.Message);
+    }
+
+    private static IPersonOperationTracker Operations() =>
+        new ServiceCollection().AddLogging().AddPersonOperations().BuildServiceProvider().GetRequiredService<IPersonOperationTracker>();
+
+    private async Task<GenerationJobModel> RunWorkerUntilFinishedAsync(IPersonOperationTracker operations)
+    {
+        using var provider = new ServiceCollection()
+            .AddScoped(_ => database.NewContext())
+            .AddScoped<IMarketingRepository, MarketingRepository>()
+            .AddScoped<IAssetService>(services => Services(services.GetRequiredService<OcharoMarketingDbContext>()).Assets)
+            .AddSingleton<ICardRenderingService>(cards).BuildServiceProvider();
+        using var worker = new GenerationWorker(provider.GetRequiredService<IServiceScopeFactory>(), NullLogger<GenerationWorker>.Instance, new WorkerHealthService(TimeProvider.System), operations);
+        await worker.StartAsync(default);
+        try
+        {
+            using var timeout = new CancellationTokenSource(TimeSpan.FromSeconds(5));
+            while (true)
+            {
+                await using var check = database.NewContext();
+                var job = Assert.Single(await new MarketingRepository(check).GetJobsAsync(timeout.Token));
+                if (job.Status is not ("queued" or "running")) return job;
+                await Task.Delay(25, timeout.Token);
+            }
+        }
+        finally { await worker.StopAsync(default); }
+    }
+
     [Theory]
     [InlineData(true)]
     [InlineData(false)]
@@ -118,13 +178,13 @@ public sealed class MarketingServiceTests : IAsyncLifetime
         cards.Failure = controlled ? new CardRenderingException(guidance) : new InvalidOperationException("private-local-path");
         await using (var db = database.NewContext())
             await Services(db).Repository.EnqueueAsync(new("worker-job", "card", "local", "Title", "nimcha", "queued", DateTimeOffset.UtcNow, [], null),
-                MarketingJson.Write(new CardRenderPayload("<html></html>", "t02-bone")), default);
+                MarketingJson.Write(new CardRenderPayload("<html></html>", "t02-bone")), null, default);
         using var provider = new ServiceCollection()
             .AddScoped(_ => database.NewContext())
             .AddScoped<IMarketingRepository, MarketingRepository>()
             .AddScoped<IAssetService>(services => Services(services.GetRequiredService<OcharoMarketingDbContext>()).Assets)
             .AddSingleton<ICardRenderingService>(cards).BuildServiceProvider();
-        using var worker = new GenerationWorker(provider.GetRequiredService<IServiceScopeFactory>(), NullLogger<GenerationWorker>.Instance, new WorkerHealthService(TimeProvider.System));
+        using var worker = new GenerationWorker(provider.GetRequiredService<IServiceScopeFactory>(), NullLogger<GenerationWorker>.Instance, new WorkerHealthService(TimeProvider.System), Operations());
         await worker.StartAsync(default);
         try
         {

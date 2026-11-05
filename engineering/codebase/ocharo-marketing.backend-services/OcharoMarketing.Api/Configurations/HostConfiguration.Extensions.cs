@@ -12,6 +12,7 @@ using OcharoMarketing.Application.Marketing.Repositories;
 using OcharoMarketing.Application.Marketing.Services;
 using OcharoMarketing.Application.Providers;
 using OcharoMarketing.Application.Scanning;
+using WoW.Two.Sdk.Beta.Be.Jobs.Core.PersonOperations;
 using OcharoMarketing.Infrastructure.Automation;
 using OcharoMarketing.Infrastructure.Cards.Brokers;
 using OcharoMarketing.Infrastructure.Cards.Services;
@@ -96,6 +97,8 @@ public static partial class HostConfiguration
         builder.Services.AddScoped<IMarketingRepository, MarketingRepository>();
         builder.Services.AddScoped<MarketingService>();
         builder.Services.AddHostedService<SeedImportHostedService>();
+        // A job someone asked for stops when they lose access; signing out leaves it running. Signals reach it through the BFF's route.
+        builder.Services.AddPersonOperations();
         builder.Services.AddHostedService<GenerationWorker>();
         return builder;
     }

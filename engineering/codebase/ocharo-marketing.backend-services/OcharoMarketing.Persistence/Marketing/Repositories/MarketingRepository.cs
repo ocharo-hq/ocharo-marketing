@@ -131,10 +131,11 @@ public sealed class MarketingRepository(OcharoMarketingDbContext db) : IMarketin
         await db.SaveChangesAsync(ct);
     }
 
-    public async Task EnqueueAsync(GenerationJobModel job, string payloadJson, CancellationToken ct)
+    public async Task EnqueueAsync(GenerationJobModel job, string payloadJson, JobRequester? requestedBy, CancellationToken ct)
     {
         db.GenerationJobs.Add(new GenerationJobRecord { Id = job.Id, Kind = job.Kind, Status = job.Status,
-            CreatedAt = job.CreatedAt.ToUnixTimeMilliseconds(), Json = MarketingJson.Write(job), PayloadJson = payloadJson });
+            CreatedAt = job.CreatedAt.ToUnixTimeMilliseconds(), Json = MarketingJson.Write(job), PayloadJson = payloadJson,
+            RequestedBySubject = requestedBy?.Subject, RequestedInOrganization = requestedBy?.OrganizationId });
         await db.SaveChangesAsync(ct);
     }
 
@@ -165,7 +166,13 @@ public sealed class MarketingRepository(OcharoMarketingDbContext db) : IMarketin
             .ExecuteUpdateAsync(update => update.SetProperty(x => x.Status, "running").SetProperty(x => x.ClaimToken, token)
                 .SetProperty(x => x.LeaseExpiresAt, (long?)expiry).SetProperty(x => x.Attempts, x => x.Attempts + 1)
                 .SetProperty(x => x.Json, runningJson), ct);
-        return changed == 1 ? new JobClaim(candidate.Id, candidate.Kind, candidate.PayloadJson, token, candidate.Attempts + 1) : null;
+        return changed == 1
+            ? new JobClaim(candidate.Id, candidate.Kind, candidate.PayloadJson, token, candidate.Attempts + 1)
+            {
+                RequestedBy = candidate.RequestedBySubject is { } subject && candidate.RequestedInOrganization is { } organization ? new(subject, organization) : null,
+                AcceptedAt = DateTimeOffset.FromUnixTimeMilliseconds(candidate.CreatedAt),
+            }
+            : null;
     }
 
     public async Task CheckpointAsync(JobClaim claim, string checkpointJson, CancellationToken ct)

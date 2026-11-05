@@ -32,4 +32,10 @@ public sealed class GenerationJobRecord
 
     /// <summary>Gets or sets the Attempts value.</summary>
     public int Attempts { get; set; } = 0;
+
+    /// <summary>Gets or sets the <c>sub</c> of the person who asked for this job; null for a job from before they were recorded.</summary>
+    public string? RequestedBySubject { get; set; }
+
+    /// <summary>Gets or sets the organization that person asked in.</summary>
+    public string? RequestedInOrganization { get; set; }
 }

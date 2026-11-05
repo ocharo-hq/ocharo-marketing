@@ -78,14 +78,14 @@ public sealed class MarketingService(IMarketingRepository repository, IAssetServ
             input.Scale ?? 1, input.OffsetX ?? 0, input.OffsetY ?? 0));
     }
 
-    public async Task<GenerationJobModel> RenderAsync(CardInput input, CancellationToken ct)
+    public async Task<GenerationJobModel> RenderAsync(CardInput input, JobRequester? requestedBy, CancellationToken ct)
     {
         var preview = await PreviewAsync(input, ct);
         if (string.IsNullOrWhiteSpace(preview.Html)) throw new MarketingException(string.Join(" ", preview.Issues));
         var job = new GenerationJobModel(Guid.NewGuid().ToString("N"), "card", "local", input.Title, input.ProductId,
             "queued", DateTimeOffset.UtcNow, [], null);
         // Freeze the exact HTML so a later preset change cannot mutate this job's output.
-        await repository.EnqueueAsync(job, MarketingJson.Write(new CardRenderPayload(preview.Html, input.PresetId)), ct);
+        await repository.EnqueueAsync(job, MarketingJson.Write(new CardRenderPayload(preview.Html, input.PresetId)), requestedBy, ct);
         return job;
     }
 

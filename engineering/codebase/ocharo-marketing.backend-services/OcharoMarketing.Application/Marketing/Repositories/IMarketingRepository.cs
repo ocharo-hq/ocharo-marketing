@@ -22,7 +22,7 @@ public interface IMarketingRepository
     Task<ScheduleModel> ScheduleAsync(ScheduleModel schedule, CancellationToken cancellationToken);
     Task<ScheduleModel> CancelScheduleAsync(string id, CancellationToken cancellationToken);
     Task SaveAssetAsync(AssetModel asset, string blobPath, CancellationToken cancellationToken);
-    Task EnqueueAsync(GenerationJobModel job, string payloadJson, CancellationToken cancellationToken);
+    Task EnqueueAsync(GenerationJobModel job, string payloadJson, JobRequester? requestedBy, CancellationToken cancellationToken);
     Task<JobClaim?> ClaimAsync(DateTimeOffset now, TimeSpan lease, CancellationToken cancellationToken);
     Task CheckpointAsync(JobClaim claim, string checkpointJson, CancellationToken cancellationToken);
     Task CompleteAsync(JobClaim claim, string[] outputIds, CancellationToken cancellationToken);

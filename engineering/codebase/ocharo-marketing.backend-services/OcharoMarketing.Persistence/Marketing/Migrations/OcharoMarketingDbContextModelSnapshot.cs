@@ -15,7 +15,7 @@ namespace OcharoMarketing.Persistence.Marketing.Migrations
         protected override void BuildModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
-            modelBuilder.HasAnnotation("ProductVersion", "10.0.3");
+            modelBuilder.HasAnnotation("ProductVersion", "10.0.14");
 
             modelBuilder.Entity("OcharoMarketing.Domain.Marketing.Entities.AssetRecord", b =>
                 {
@@ -140,6 +140,12 @@ namespace OcharoMarketing.Persistence.Marketing.Migrations
 
                     b.Property<string>("PayloadJson")
                         .IsRequired()
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("RequestedBySubject")
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("RequestedInOrganization")
                         .HasColumnType("TEXT");
 
                     b.Property<string>("Status")

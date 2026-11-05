@@ -41,6 +41,17 @@ public sealed class MarketingAccessTests
     }
 
     [Fact]
+    public async Task SignalRoute_ShouldAnswer401_ForAnUnsignedPostWithoutASession()
+    {
+        await using var host = MarketingHost.Create(new Dictionary<string, string?> { ["Identity:Client:SignalUrl"] = "https://marketing.test/api/identity/signal" });
+        using var client = host.Client();
+
+        using var response = await client.PostAsJsonAsync("/api/identity/signal", new { });
+
+        Assert.Equal(HttpStatusCode.Unauthorized, response.StatusCode);
+    }
+
+    [Fact]
     public async Task PublicInquiry_ShouldBeAcceptedFromAnAnonymousVisitor()
     {
         await using var host = await MarketingHost.CreateWithDatabaseAsync();

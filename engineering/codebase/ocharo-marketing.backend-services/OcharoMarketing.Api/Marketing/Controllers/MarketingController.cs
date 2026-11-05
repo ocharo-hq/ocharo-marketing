@@ -196,6 +196,7 @@ public sealed class MarketingController(
     await repository.EnqueueAsync(
         job,
         MarketingJson.Write(input),
+        Requester(),
         ct);
     return Ok(job);
   }
@@ -206,10 +207,16 @@ public sealed class MarketingController(
     return Ok(await service.PreviewAsync(input, ct));
   }
 
+  /// <summary>The signed-in person the access middleware admitted, recorded on the job they ask for.</summary>
+  private JobRequester? Requester() =>
+    HttpContext.Items["Ocharo.UserId"] is string subject && HttpContext.Items["Ocharo.OrganizationId"] is string organization
+      ? new(subject, organization)
+      : null;
+
   [HttpPost("cards/render")]
   public async Task<IActionResult> Render(CardInput input, CancellationToken ct)
   {
-    return Ok(await service.RenderAsync(input, ct));
+    return Ok(await service.RenderAsync(input, Requester(), ct));
   }
 
   [HttpPost("atlas/export")]
