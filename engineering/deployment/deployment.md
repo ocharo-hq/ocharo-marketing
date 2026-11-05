@@ -94,6 +94,10 @@ beside Platform and Studio. Both hosts sign in through Ocharo's Identity, which 
   `{marketing,editorial}:approve`. `/api/public/*`, the technical routes and the Blog's published pages and media stay
   anonymous; `/preview` and unpublished media stay private.
 - Sign-in sessions live in memory, so a restart or deploy signs everyone out once; the key ring stays at `/data/keys`.
+- Revocation signals: each host links `Identity:Client:SignalUrl`, and `blog` also `Identity:Resource:SignalUrl`, with
+  `from` to the owner keys `ocharo-platform`'s `identity` declares. Marketing's generation jobs record who asked: losing
+  access stops one, and signing out leaves it running. Editorial's token deny list lives in memory, so a restart forgets it
+  and a token's own lifetime stays the limit.
 - Editorial calls Desk's background removal as itself with an Identity service token (`desk.remove-background`), having
   checked the person's `editorial:edit` first. `Blog:DeskBaseUrl` links to Desk's site; unset, removal reads unavailable.
 - Cross-origin writes stay refused. Behind the ingress each host trusts forwarded headers from loopback and
