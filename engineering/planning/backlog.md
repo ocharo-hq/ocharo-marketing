@@ -65,10 +65,12 @@ After the move to Ocharo's Identity (2026-11-04):
   would end that.
 - **Local containers.** `deployment/docker-compose.yml` and `deployment/blog/docker-compose.yml` set no `Identity:Client:*`
   or organization id, so neither boots alone.
-- **A removed person's queued publication.** `PublicationWorker` records no person: a publication is the organization's
+- **A removed person's queued publication.** Editorial's `ScheduledPublishingWorker` poses the same question: a person
+  schedules a story, is removed, and it still publishes, with no declared reaction, because the timer records no person.
+  `PublicationWorker` records no person either: a publication is the organization's
   approved plan, cutting a provider call midway leaves its state unknown, and a due date days away outlives the tracker's
-  one-hour signal memory. Whether a removal should withdraw that person's queued plans needs a decision before live
-  publishing turns on.
+  one-hour signal memory. Whether a removal should withdraw that person's queued plans and scheduled stories needs a
+  decision before live publishing turns on.
 - **Public writes in the BFF.** Each host branches `/api/public/*` around `UseIdentityBff`, whose antiforgery check would
   refuse a signed-in visitor's form; an SDK exemption for public writes would replace that branch.
 
