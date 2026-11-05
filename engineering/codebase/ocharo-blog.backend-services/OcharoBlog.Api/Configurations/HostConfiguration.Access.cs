@@ -20,7 +20,6 @@ public static partial class HostConfiguration
     /// <c>DataProtection:KeysPath</c>, else <c>{Blog:DataRoot}/keys</c>, which a deployed host keeps on its data volume.</remarks>
     private static WebApplicationBuilder AddAccess(this WebApplicationBuilder builder)
     {
-        // First: the JWT registration names its scheme the default, and the BFF's session cookie then takes that place back.
         builder.Services.AddJwtBearerAuthentication(options =>
         {
             options.Audience = RequiredAddress(builder.Configuration, "Identity:Resource:Uri");
