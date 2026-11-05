@@ -25,6 +25,7 @@ public sealed class LocalRunBoundaryTests
             {
                 builder.UseEnvironment("Development");
                 if (deployEnvironment is not null) builder.UseSetting("DEPLOY_ENVIRONMENT", deployEnvironment);
+                EditorialSignIn.UseBootSettings(builder);
                 builder.ConfigureAppConfiguration((_, config) => config.AddInMemoryCollection(new Dictionary<string, string?>(EditorialSignIn.Settings)
                 {
                     ["ConnectionStrings:OcharoBlog"] = $"Data Source={Path.Combine(root, "api.db")};Pooling=False",

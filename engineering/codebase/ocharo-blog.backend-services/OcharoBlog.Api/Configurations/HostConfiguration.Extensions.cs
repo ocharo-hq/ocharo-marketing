@@ -16,6 +16,7 @@ using OcharoBlog.Persistence;
 using OcharoBlog.Persistence.Blog;
 using WoW.Two.Sdk.Beta.Be.Foundation.Configuration;
 using WoW.Two.Sdk.Beta.Be.Foundation.Options;
+using WoW.Two.Sdk.Beta.Be.Http.Auth.OAuth2ClientCredentials;
 using WoW.Two.Sdk.Beta.Be.Identity.Bff;
 using WoW.Two.Sdk.Beta.Be.Media.Images;
 using WoW.Two.Sdk.Beta.Be.Mediator;
@@ -113,6 +114,23 @@ public static partial class HostConfiguration
             options.MaxOutputDimension = MediaEditingService.MaximumDimension;
         });
         builder.Services.AddHttpContextAccessor();
+        builder.Services.AddHttpClient(EditorialImageWorker.ClientName, client => client.Timeout = EditorialImageWorker.RemovalDeadline)
+            .ConfigurePrimaryHttpMessageHandler(() => new HttpClientHandler
+            {
+                AllowAutoRedirect = false,
+                UseCookies = false,
+            })
+            .AddOAuth2ClientCredentials(_ => { });
+        // Resolve late so test-host configuration overrides continue to win. Editorial calls as its own client; without a
+        // usable Blog:DeskBaseUrl the worker makes no call, so nothing here may fail the boot.
+        builder.Services.AddOptions<OAuth2ClientCredentialsOptions>(EditorialImageWorker.ClientName)
+            .Configure<IConfiguration>((options, configuration) =>
+            {
+                options.TokenEndpoint = Uri.TryCreate($"{configuration["Identity:Client:Authority"]?.TrimEnd('/')}/connect/token", UriKind.Absolute, out var endpoint) ? endpoint : null;
+                options.ClientId = configuration["Identity:Client:ClientId"] ?? "";
+                options.ClientSecret = configuration["Identity:Client:ClientSecret"] ?? "";
+                options.Resource = EditorialImageWorker.DeskOrigin(configuration["Blog:DeskBaseUrl"])?.AbsoluteUri;
+            });
         builder.Services.AddScoped<IEditorialImageWorker, EditorialImageWorker>();
         builder.Services.AddScoped<IMediaEditingService, MediaEditingService>();
         builder.Services.AddScoped<IMediaStore, MediaStore>();

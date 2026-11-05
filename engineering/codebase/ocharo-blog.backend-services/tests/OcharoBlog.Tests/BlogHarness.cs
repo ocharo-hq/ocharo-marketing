@@ -30,6 +30,7 @@ public sealed class BlogHarness : IAsyncDisposable
         Factory = new WebApplicationFactory<Program>().WithWebHostBuilder(builder =>
         {
             builder.UseEnvironment("Testing");
+            EditorialSignIn.UseBootSettings(builder);
             builder.ConfigureAppConfiguration((context, config) => config.AddInMemoryCollection(new Dictionary<string, string?>(EditorialSignIn.Settings)
             {
                 ["ConnectionStrings:OcharoBlog"] = $"Data Source={Path.Combine(Root, "blog.db")};Pooling=False",

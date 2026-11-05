@@ -15,6 +15,7 @@ using Xunit;
 
 namespace OcharoBlog.Tests;
 
+[Collection(MediaEditingCapacity.Name)]
 public sealed class MediaEditingTests
 {
     private static readonly MediaEditRecipe Recipe = new(new(0, 0, 20, 30), 90, false, false, null, new("png", 90), false);

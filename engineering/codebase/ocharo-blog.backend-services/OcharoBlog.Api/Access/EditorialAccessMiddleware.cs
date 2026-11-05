@@ -1,3 +1,5 @@
+using Microsoft.AspNetCore.Authentication;
+using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.Extensions.Options;
 using OcharoBlog.Api.Blog;
 using OcharoBlog.Application.Blog;
@@ -6,6 +8,7 @@ using OcharoBlog.Application.Blog.Services;
 using OcharoBlog.Domain.Blog;
 using OcharoBlog.Infrastructure.Blog;
 using WoW.Two.Sdk.Beta.Be.Identity.Core.Organizations;
+using WoW.Two.Sdk.Beta.Be.Identity.CurrentPrincipal;
 
 namespace OcharoBlog.Api.Access;
 
@@ -15,6 +18,7 @@ namespace OcharoBlog.Api.Access;
 /// <see cref="EditorialIdentity.EditPermission"/>, approval actions <see cref="EditorialIdentity.ApprovePermission"/> too.
 /// Runs after the BFF, which resolves the session and checks its <c>X-Csrf-Token</c>; technical, public and session routes
 /// pass untouched. Controllers read the admitted person from <c>Ocharo.CanApprove</c>, <c>Ocharo.OrganizationId</c> and <c>Ocharo.UserId</c>.
+/// A live export also admits a service token with <see cref="EditorialAccess.ExportScope"/>, setting no person.
 /// </summary>
 public sealed class EditorialAccessMiddleware(RequestDelegate next, IOptions<BlogOptions> options)
 {
@@ -24,6 +28,12 @@ public sealed class EditorialAccessMiddleware(RequestDelegate next, IOptions<Blo
         if (TechnicalRoutes.IsPublic(context.Request) || EditorialAccess.IsSessionRoute(path) || !await IsPrivateAsync(context, path))
         {
             await next(context);
+            return;
+        }
+
+        if (EditorialAccess.OffersExportToken(context.Request, path))
+        {
+            await AdmitExportTokenAsync(context);
             return;
         }
 
@@ -59,6 +69,26 @@ public sealed class EditorialAccessMiddleware(RequestDelegate next, IOptions<Blo
         context.Items["Ocharo.CanApprove"] = canApprove;
         context.Items["Ocharo.OrganizationId"] = organization.ToString("D");
         context.Items["Ocharo.UserId"] = subject;
+        await next(context);
+    }
+
+    private async Task AdmitExportTokenAsync(HttpContext context)
+    {
+        var token = await context.AuthenticateAsync(JwtBearerDefaults.AuthenticationScheme);
+        if (!token.Succeeded)
+        {
+            await ProblemAsync(context, StatusCodes.Status401Unauthorized, "Sign in to continue", "sign_in_required");
+            return;
+        }
+
+        // Only a service's own token counts here: a person reaches an export through the session's checks.
+        var caller = ClaimsPrincipalNormalizer.Normalize(token.Principal!);
+        if (caller.Kind != PrincipalKind.Service || !caller.Scopes.Contains(EditorialAccess.ExportScope))
+        {
+            await ProblemAsync(context, StatusCodes.Status403Forbidden, "This token may not read exports", "scope_required");
+            return;
+        }
+
         await next(context);
     }
 

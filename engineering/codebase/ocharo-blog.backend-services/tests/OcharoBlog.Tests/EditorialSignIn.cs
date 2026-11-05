@@ -4,6 +4,7 @@ using System.Security.Claims;
 using System.Text.Encodings.Web;
 using System.Text.Json;
 using Microsoft.AspNetCore.Authentication;
+using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Mvc.Testing;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
@@ -27,6 +28,9 @@ internal static class EditorialSignIn
     /// <summary>The organization the test hosts bind (<c>Blog:OrganizationId</c>).</summary>
     public static readonly Guid Organization = Guid.Parse("5f0c9b1e-4a7d-4c2e-9b8a-1d2e3f405162");
 
+    /// <summary>The audience the test hosts serve (<c>Identity:Resource:Uri</c>).</summary>
+    public const string Resource = "https://editorial.example.test/";
+
     /// <summary>A signed-in person; a null <paramref name="OrganizationId"/> carries no organization claims.</summary>
     public sealed record Person(string Subject, Guid? OrganizationId, string? Role);
 
@@ -46,8 +50,20 @@ internal static class EditorialSignIn
         ["Identity:Client:Authority"] = "https://identity.example.test/",
         ["Identity:Client:ClientId"] = "editorial",
         ["Identity:Client:CookieName"] = "__Host-ocharo-editorial",
+        ["Identity:Resource:Uri"] = Resource,
         ["Blog:OrganizationId"] = Organization.ToString("D"),
     };
+
+    /// <summary>Hands over the settings the host reads while it is being built, which <c>ConfigureAppConfiguration</c> reaches
+    /// too late for.</summary>
+    public static void UseBootSettings(IWebHostBuilder builder, IReadOnlyDictionary<string, string?>? settings = null)
+    {
+        settings ??= Settings;
+        foreach (var key in new[] { "Identity:Client:Authority", "Identity:Resource:Uri" })
+        {
+            if (settings[key] is { } value) builder.UseSetting(key, value);
+        }
+    }
 
     /// <summary>Replaces the BFF cookie scheme's handler with the header-driven test handler.</summary>
     public static void Use(IServiceCollection services)

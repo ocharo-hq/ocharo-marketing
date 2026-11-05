@@ -29,6 +29,9 @@ public sealed class BlogOptions
     /// <summary>Ocharo Brand origin; when reachable its logo and links replace the blog's own, e.g. https://localhost:8286.</summary>
     public string? BrandBaseUrl { get; set; }
 
+    /// <summary>Ocharo Desk origin for background removal, e.g. https://desk.example.com/; unset or not plain HTTPS leaves removal unavailable.</summary>
+    public string? DeskBaseUrl { get; set; }
+
     /// <summary>How often scheduled stories are checked.</summary>
     public int SchedulerSeconds { get; set; } = 30;
 

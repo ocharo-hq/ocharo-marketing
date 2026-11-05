@@ -6,18 +6,25 @@ using Microsoft.Extensions.Options;
 using OcharoBlog.Api.Access;
 using OcharoBlog.Infrastructure.Blog;
 using WoW.Two.Sdk.Beta.Be.Identity.Bff;
+using WoW.Two.Sdk.Beta.Be.Identity.Jwt;
 
 namespace OcharoBlog.Api.Configurations;
 
 public static partial class HostConfiguration
 {
-    /// <summary>Registers sign-in through Ocharo's Identity instance (BFF, section <c>Identity:Client</c>) and the Data
-    /// Protection key ring that encrypts the sessions.</summary>
+    /// <summary>Registers sign-in through Ocharo's Identity instance (BFF, section <c>Identity:Client</c>), the JWT check of
+    /// service tokens that read live exports, and the Data Protection key ring that encrypts the sessions.</summary>
     /// <remarks>The BFF keeps sessions in the SDK default, the in-memory distributed cache: Editorial stores in SQLite and no
     /// SQLite <c>IDistributedCache</c> exists, so a restart or deploy signs everyone out once. The key ring persists at
     /// <c>DataProtection:KeysPath</c>, else <c>{Blog:DataRoot}/keys</c>, which a deployed host keeps on its data volume.</remarks>
     private static WebApplicationBuilder AddAccess(this WebApplicationBuilder builder)
     {
+        // First: the JWT registration names its scheme the default, and the BFF's session cookie then takes that place back.
+        builder.Services.AddJwtBearerAuthentication(options =>
+        {
+            options.Audience = RequiredAddress(builder.Configuration, "Identity:Resource:Uri");
+            options.TrustedIssuers.Add(new TrustedIssuer { Issuer = RequiredAddress(builder.Configuration, "Identity:Client:Authority") });
+        });
         builder.Services.AddIdentityBff();
         // Resolve final configuration after test/deployment overrides have been applied.
         builder.Services.AddDataProtection();
@@ -33,6 +40,14 @@ public static partial class HostConfiguration
             options.ApplicationDiscriminator = configuration["DataProtection:ApplicationName"] ?? $"ocharo-editorial:{environment.EnvironmentName}");
         return builder;
     }
+
+    /// <summary>Reads a setting the service token check depends on, in the <c>Uri.AbsoluteUri</c> form Identity writes.</summary>
+    /// <remarks>The JWT registration takes its issuer and audience while the host is built, so a test host hands them over
+    /// with <c>UseSetting</c>; its own configuration arrives later.</remarks>
+    private static string RequiredAddress(IConfiguration configuration, string key) =>
+        Uri.TryCreate(configuration[key], UriKind.Absolute, out var uri) && uri.Scheme == Uri.UriSchemeHttps
+            ? uri.AbsoluteUri
+            : throw new InvalidOperationException($"{key} must name an absolute HTTPS address.");
 
     /// <summary>Configures the session pipeline: HTTPS for the session routes, the BFF (authentication, the <c>X-Csrf-Token</c>
     /// check, authorization), then the bound-organization membership and permission check.</summary>

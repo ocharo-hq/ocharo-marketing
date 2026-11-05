@@ -23,6 +23,7 @@ public sealed class ProblemDetailsContractTests
             await using var factory = new WebApplicationFactory<Program>().WithWebHostBuilder(builder =>
             {
                 builder.UseEnvironment("Testing");
+                EditorialSignIn.UseBootSettings(builder);
                 builder.ConfigureAppConfiguration((_, config) => config.AddInMemoryCollection(new Dictionary<string, string?>(EditorialSignIn.Settings)
                 {
                     ["ConnectionStrings:OcharoBlog"] = $"Data Source={Path.Combine(root, "api.db")};Pooling=False",

@@ -206,6 +206,7 @@ internal sealed class EditorialHost : IAsyncDisposable
         var factory = new WebApplicationFactory<Program>().WithWebHostBuilder(builder =>
         {
             builder.UseEnvironment("Development");
+            EditorialSignIn.UseBootSettings(builder, configuration);
             builder.ConfigureAppConfiguration((_, config) => config.AddInMemoryCollection(configuration));
             builder.ConfigureServices(collection =>
             {

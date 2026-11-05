@@ -4,10 +4,20 @@ namespace OcharoBlog.Api.Access;
 /// Classifies Editorial's routes for sign-in. A path here is the request path in lower case. The public API
 /// (<c>/api/public/*</c>), the public site and the Studio's files answer anonymously; the rest of <c>/api</c>, previews and
 /// non-public media need a session of the bound organization. <see cref="Blog.TechnicalRoutes"/> names the technical routes.
+/// The live export routes take a service token instead.
 /// </summary>
 public static class EditorialAccess
 {
+    /// <summary>The scope a service token needs to read a live export.</summary>
+    public const string ExportScope = "editorial.export";
+
     private const string PublicApiPrefix = "/api/public/";
+
+    /// <summary>The live export routes, the only ones where a bearer token counts.</summary>
+    private static readonly HashSet<string> ExportRoutes = new(StringComparer.Ordinal)
+    {
+        "/api/blog/export/site.zip", "/api/blog/export/atlas.zip", "/api/blog/export/wear.zip", "/api/blog/export/catalogue.zip",
+    };
 
     /// <summary>The path segments that make a write an approval action, so it needs the approve permission too.</summary>
     private static readonly HashSet<string> ApprovalSegments = new(StringComparer.Ordinal)
@@ -31,6 +41,11 @@ public static class EditorialAccess
 
     /// <summary>Whether a path names an approval action.</summary>
     public static bool IsApproval(string path) => path.Split('/').Any(ApprovalSegments.Contains);
+
+    /// <summary>Whether a request offers a bearer token to read a live export.</summary>
+    public static bool OffersExportToken(HttpRequest request, string path) =>
+        HttpMethods.IsGet(request.Method) && ExportRoutes.Contains(path)
+        && request.Headers.Authorization.ToString().StartsWith("Bearer ", StringComparison.OrdinalIgnoreCase);
 
     /// <summary>Whether a method may change state.</summary>
     public static bool IsWrite(string method) => !HttpMethods.IsGet(method) && !HttpMethods.IsHead(method) && !HttpMethods.IsOptions(method);

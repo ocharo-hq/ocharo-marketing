@@ -1,5 +1,6 @@
 using System.Security.Claims;
 using Microsoft.AspNetCore.Http;
+using Microsoft.Extensions.Logging.Abstractions;
 using Microsoft.Extensions.Options;
 using OcharoBlog.Application.Blog;
 using OcharoBlog.Application.Blog.Models;
@@ -9,15 +10,15 @@ using Xunit;
 
 namespace OcharoBlog.Tests;
 
-/// <summary>Background removal waits on Desk's service credential, so the worker makes no HTTP call: it reports itself
-/// unavailable and checks a saved edit against the current session's claims.</summary>
+/// <summary>With no Desk configured the worker makes no HTTP call and reports itself unavailable; it checks a saved edit against
+/// the current session's claims. Its calls to Desk have their own tests in <see cref="EditorialServiceTokenTests"/>.</summary>
 public sealed class EditorialImageWorkerTests
 {
     private static readonly Guid Bound = Guid.NewGuid();
     private static readonly MediaEditActor Actor = new(Bound.ToString("D"), "operator");
 
     [Fact]
-    public async Task Status_is_unavailable_and_removal_refuses_with_the_original_unchanged()
+    public async Task Without_a_desk_status_is_unavailable_and_removal_refuses_with_the_original_unchanged()
     {
         var worker = Build(Session(Bound, "editor", "editorial:edit"));
 
@@ -74,6 +75,11 @@ public sealed class EditorialImageWorkerTests
     {
         var accessor = new HttpContextAccessor();
         if (user is not null) accessor.HttpContext = new DefaultHttpContext { User = user };
-        return new EditorialImageWorker(Options.Create(new BlogOptions { OrganizationId = Bound }), accessor);
+        return new EditorialImageWorker(Options.Create(new BlogOptions { OrganizationId = Bound }), accessor, new NoClients(), NullLogger<EditorialImageWorker>.Instance);
+    }
+
+    private sealed class NoClients : IHttpClientFactory
+    {
+        public HttpClient CreateClient(string name) => throw new InvalidOperationException("No HTTP call is expected.");
     }
 }
