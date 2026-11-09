@@ -74,8 +74,10 @@ public sealed class PublicNotFoundTests
     [Fact]
     public async Task StudioRoute_ShouldServeTheShell_WhenThePublicCatchAllAlsoMatches()
     {
-        await using var harness = new BlogHarness();
-        using var client = harness.Client();
+        // A seeded bundle, as in StudioHostingTests: CI builds without the SPA, so wwwroot/studio is empty there.
+        using var studio = new StudioBundle();
+        await using var host = EditorialHost.Create(new Dictionary<string, string?>(), webRoot: studio.Root);
+        using var client = host.Client();
 
         using var shell = await client.GetAsync("/studio/");
         using var route = await client.GetAsync("/studio/x");
