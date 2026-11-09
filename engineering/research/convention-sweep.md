@@ -148,3 +148,6 @@ Each row's outcome: fixed (with the commit), excepted (with the reason) or waiti
 | M-17 | fixed | Marketing's automation and Blog's scheduler run through `AddPeriodicJob` |
 | M-18 | fixed | both own `IClock`s deleted; `TimeProvider` injected |
 | M-19 | fixed | production code reads `TimeProvider.GetUtcNow()` |
+| M-1 | fixed | `deploy.yml` declares a `migrate:` item per image, after ocharo-platform's identity item |
+| M-23 | fixed | both apps on PostgreSQL in `ocharo_{env}` (schemas `marketing`, `blog`; sessions in `*_cache`; key rings in each schema), Identity FKs as Studio keys them; the SQLite data moves once by `import-sqlite`, an operator verb outside `migrate` per `migrations.md` |
+| M-24 | fixed | EF migrations, `EnsureCreated` and the boot DDL replaced by bespoke SQL sets; a local run applies at boot, a deployed boot checks levels |

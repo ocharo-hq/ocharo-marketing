@@ -21,7 +21,10 @@ public sealed class CatalogueFeed(HttpClient http, IOptions<BlogOptions> options
         try
         {
             var path = canonical ? $"/api/public/v1/brands/{Uri.EscapeDataString(options.Value.BrandSlug)}/catalogue?locale={locale}" : $"/api/public/catalogue?locale={locale}";
+            // The SDK JSON envelope wraps the payload in `data`; a bare feed reads as before.
             var feed = await http.GetFromJsonAsync<JsonElement>(origin + path, ct);
+            if (feed.ValueKind == JsonValueKind.Object && !feed.TryGetProperty("products", out _)
+                && feed.TryGetProperty("data", out var data) && data.ValueKind == JsonValueKind.Object) feed = data;
             if (canonical && (!feed.TryGetProperty("schemaVersion", out var version) || version.GetInt32() != 1
                 || !feed.TryGetProperty("release", out var release) || release.ValueKind != JsonValueKind.Object
                 || !release.TryGetProperty("id", out var releaseId) || !Guid.TryParse(releaseId.GetString(), out _))) return new([]);

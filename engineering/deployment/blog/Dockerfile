@@ -1,7 +1,8 @@
 # syntax=docker/dockerfile:1
 
 # The `blog` service of deploy.yml: the Editorial API, its public renderer and the /studio/ editor. The renderer is
-# public; the editor signs in through Ocharo's Identity, and the Data Protection key ring stays under /data.
+# public; the editor signs in through Ocharo's Identity. State, sessions and the Data Protection key ring live in
+# PostgreSQL (schemas `blog`, `blog_cache`); /data keeps the SQLite store until `import-sqlite` retires it.
 #
 # Multi-stage build: ONE image serving the .NET API + the Editorial SPA. The build context MUST be
 # engineering/codebase/, which holds BOTH ocharo-blog.backend-services and ocharo-marketing.frontend-services, whose
@@ -11,7 +12,6 @@
 #
 #   docker run -d --name ocharoblog -p 127.0.0.1:8281:8080 -v ocharoblog-data:/data ocharoblog
 #
-# On first run the app creates /data/ocharo-blog.db automatically.
 
 # ---- Stage 1: build the Vue workspace ----
 FROM node:24.11.0-alpine AS spa
@@ -44,7 +44,7 @@ RUN arch="$(dpkg --print-architecture | sed 's/amd64/x64/')" \
     && test -f "$lib" \
     && ! ldd "$lib" | grep "not found"
 
-# SQLite store on a volume so data survives container replacement.
+# The SQLite store import-sqlite reads once, and blobs stored before WoW2 Files.
 ENV ConnectionStrings__OcharoBlog="Data Source=/data/ocharo-blog.db" \
     Blog__DataRoot=/data
 RUN mkdir -p /data && chown app:app /data

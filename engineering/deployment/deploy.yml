@@ -5,9 +5,12 @@
 #
 # Ocharo Marketing deploys the Marketing desk and the Editorial (Blog) host as a repository of the one `ocharo` product
 # (Wheelhouse decision 70), so its service, site and volume names stay unique across Ocharo's repositories. Both sign in
-# through Ocharo's Identity, which ocharo-platform's descriptor declares (deployment.md § Wheelhouse); each keeps its
-# SQLite store, blobs and Data Protection key ring on its own volume. Their sign-in sessions live in memory, so a restart
-# or deploy signs everyone out once. The product's name and description come from Ocharo's catalog entry (a product of
+# through Ocharo's Identity, which ocharo-platform's descriptor declares (deployment.md § Wheelhouse). Each keeps its state
+# in the product database (`ocharo_{env}`, shared with Desk and Identity): Marketing in schema `marketing`, its sessions in
+# `marketing_cache`; Blog in `blog` and `blog_cache`. Data Protection key rings live in each app's schema, so a restart or
+# deploy keeps everyone signed in. Each volume keeps the retired SQLite store and the blobs stored before WoW2 Files.
+# The SQLite data moves once per environment, after the deploy that brings PostgreSQL, with each image's
+# `import-sqlite --dry-run` then `import-sqlite` (deployment.md § PostgreSQL move); until then data routes answer 503. The product's name and description come from Ocharo's catalog entry (a product of
 # several repositories); this file names only its two services.
 descriptor: 2
 product: ocharo
@@ -30,6 +33,17 @@ verify:
       "$VERIFY_SERVICE_BLOG/"
       && echo "marketing and blog answered health, status and the Blog home"
   timeout: 1m
+# Each image applies its own sets before any service restarts: Marketing's `marketing` set and Blog's `blog` set, each
+# with its session cache's `distributed_cache` set in `marketing_cache` / `blog_cache`. The sets key into Identity's
+# published organizations and people, so ocharo-platform's identity item runs first; Wheelhouse fills
+# Migrations:ConnectionString from the target's database.
+migrate:
+  - service: marketing
+    command: [dotnet, OcharoMarketing.Api.dll, migrate]
+    timeout: 5m
+  - service: blog
+    command: [dotnet, OcharoBlog.Api.dll, migrate]
+    timeout: 5m
 # Each service checks the settings the deploy applies before any restart (ServiceHost's built-in verb).
 configCheck:
   - service: marketing
@@ -50,8 +64,9 @@ services:
     health: /health
     settings:
       # Wheelhouse derives AllowedHosts and Deployment:TrustedProxies (the ingress, whose forwarded scheme the
-      # same-origin write check needs); nobody types them.
-      required: [AllowedHosts, Deployment:TrustedProxies]
+      # same-origin write check needs), and fills DatabaseSettings:ConnectionString from the target's own PostgreSQL;
+      # nobody types them.
+      required: [DatabaseSettings:ConnectionString, AllowedHosts, Deployment:TrustedProxies]
       keys:
         # Sign-in through Ocharo's Identity as client 3, whose keys ocharo-platform's descriptor declares; reads need
         # membership of the bound organization, writes marketing:edit, publication actions marketing:approve.
@@ -80,8 +95,9 @@ services:
         OcharoApps:Atlas: { type: url }
         OcharoApps:Wear: { type: url }
         OcharoApps:Blog: { type: url }
+    needs: [postgres]
     volumes:
-      marketing-data: /data             # SQLite store (ocharomarketing.db) and private blobs stored before WoW2 Files
+      marketing-data: /data             # the SQLite store until import-sqlite retires it, and blobs stored before Files
     sites:
       marketing: {}
   blog:
@@ -93,7 +109,7 @@ services:
       - codebase/ocharo-marketing.frontend-services/**   # the /studio/ editor is apps/editorial of this workspace
     health: /health
     settings:
-      required: [AllowedHosts, Deployment:TrustedProxies]
+      required: [DatabaseSettings:ConnectionString, AllowedHosts, Deployment:TrustedProxies]
       keys:
         # The /studio/ editor signs in through Ocharo's Identity as client 4, whose keys ocharo-platform's descriptor
         # declares; reads need membership of the bound organization, writes editorial:edit, publication actions
@@ -126,7 +142,8 @@ services:
         OcharoApps:Atlas: { type: url }
         OcharoApps:Wear: { type: url }
         OcharoApps:Blog: { type: url }
+    needs: [postgres]
     volumes:
-      blog-data: /data                  # SQLite store (ocharo-blog.db) and blobs stored before WoW2 Files
+      blog-data: /data                  # the SQLite store until import-sqlite retires it, and blobs stored before Files
     sites:
       blog: {}

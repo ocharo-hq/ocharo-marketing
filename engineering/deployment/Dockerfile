@@ -1,7 +1,7 @@
 # syntax=docker/dockerfile:1
 
-# The `marketing` service of deploy.yml. The host signs in through Ocharo's Identity and keeps its Data Protection key
-# ring under /data. The image has no browser, so card PNG/PDF rendering stays unavailable on a deployed host.
+# The `marketing` service of deploy.yml. The host signs in through Ocharo's Identity; state, sessions and the Data
+# Protection key ring live in PostgreSQL (schemas `marketing`, `marketing_cache`). The image has no browser, so card PNG/PDF rendering stays unavailable on a deployed host.
 #
 # Multi-stage build: ONE image serving the .NET API + the Vue SPA. The build
 # context MUST be engineering/codebase/, which holds BOTH ocharo-marketing.backend-services
@@ -40,7 +40,7 @@ RUN arch="$(dpkg --print-architecture | sed 's/amd64/x64/')" \
     && test -f "$lib" \
     && ! ldd "$lib" | grep "not found"
 
-# SQLite store on a volume so data survives container replacement.
+# The SQLite store import-sqlite reads once, and blobs stored before WoW2 Files.
 ENV ConnectionStrings__OcharoMarketing="Data Source=/data/ocharomarketing.db"
 ENV Marketing__DataDirectory="/data"
 RUN mkdir -p /data && chown app:app /data

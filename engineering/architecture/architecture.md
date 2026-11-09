@@ -2,7 +2,7 @@
 
 *Last updated: 2026-11-09*
 
-Use .NET Clean Architecture: Domain values, Application interfaces/models, Infrastructure behavior/brokers, Persistence row access, and API host composition. Use the five-layer Vue source arrangement and public wow-two Vue SDK exports. SQLite is an explicit single-operator pilot choice; durable jobs are database-backed, not an in-memory queue.
+Use .NET Clean Architecture: Domain values, Application interfaces/models, Infrastructure behavior/brokers, Persistence row access, and API host composition. Use the five-layer Vue source arrangement and public wow-two Vue SDK exports. State lives in PostgreSQL, one schema per app in the product database `ocharo_{env}`, keyed into Identity's organizations and people; durable jobs are database-backed, not an in-memory queue.
 
 - [Marketing contract](marketing-contract.md): HTTP models, states, invariants, lane ownership.
 - [SDK extraction](sdk-extraction.md): neutral capability inventory and exit criteria.
