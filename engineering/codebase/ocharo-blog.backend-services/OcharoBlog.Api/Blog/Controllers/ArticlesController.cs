@@ -1,151 +1,157 @@
 using Microsoft.AspNetCore.Mvc;
+using OcharoBlog.Api.Blog.Errors;
+using OcharoBlog.Application.Blog.Commands;
 using OcharoBlog.Application.Blog.Models;
-using OcharoBlog.Application.Blog.Services;
-using OcharoBlog.Application.Blog.Site;
+using OcharoBlog.Application.Blog.Queries;
+using WoW.Two.Sdk.Beta.Be.Mediator;
 using WoW.Two.Sdk.Beta.Be.Web.SecureHeaders;
 
 namespace OcharoBlog.Api.Blog.Controllers;
-/// <summary>Story editor API: CRUD, lifecycle (publish, schedule, unpublish, archive) and history.</summary>
+
+/// <summary>Exposes stories over HTTP: CRUD, lifecycle (publish, schedule, unpublish, archive) and history.</summary>
 [ApiController]
 [Route("api/blog/articles")]
-public sealed class ArticlesController(
-    ArticleService articles,
-    SiteService site,
-    PublicationSiteService publications) : ControllerBase
+public sealed class ArticlesController(ISender sender) : ControllerBase
 {
-  [HttpGet]
-  public async Task<IActionResult> List(
-      [FromQuery] string? status,
-      [FromQuery] string? topic,
-      [FromQuery] string? q,
-      [FromQuery] string? language,
-      [FromQuery] string? publication,
-      CancellationToken ct)
-  {
-    return Ok(await articles.ListAsync(
-        status,
-        topic,
-        q,
-        ct,
-        language,
-        publication));
-  }
+    [HttpGet]
+    public async Task<IActionResult> List(
+        [FromQuery] string? status,
+        [FromQuery] string? topic,
+        [FromQuery] string? q,
+        [FromQuery] string? language,
+        [FromQuery] string? publication,
+        CancellationToken ct)
+    {
+        var query = new ArticleGetAllQuery
+        {
+            Status = status,
+            Topic = topic,
+            Search = q,
+            Language = language,
+            Publication = publication,
+        };
+        var result = await sender.SendAsync(query, ct);
 
-  [HttpGet("{id:guid}")]
-  public async Task<IActionResult> Get(Guid id, CancellationToken ct)
-  {
-    return Ok(await articles.GetAsync(id, ct));
-  }
+        return result.Match<IActionResult>(ok => Ok(ok.Data), fail => this.ToBlogProblem(fail.Error));
+    }
 
-  [HttpPost]
-  public async Task<IActionResult> Create(ArticleInput input, CancellationToken ct)
-  {
-    return Ok(await articles.CreateAsync(input, ct));
-  }
+    [HttpGet("{id:guid}")]
+    public async Task<IActionResult> Get(Guid id, CancellationToken ct)
+    {
+        var result = await sender.SendAsync(new ArticleGetByIdQuery { Id = id }, ct);
 
-  [HttpPut("{id:guid}")]
-  public async Task<IActionResult> Update(
-      Guid id,
-      ArticleInput input,
-      CancellationToken ct)
-  {
-    var current = await articles.GetAsync(id, ct);
-    if (current.Document.Status is "published" or "scheduled" && HttpContext.Items["Ocharo.CanApprove"] is not true)
-      return Problem(statusCode: 403, detail: "Editing published or scheduled content requires approval permission.");
-    return Ok(await articles.UpdateAsync(
-        id,
-        input,
-        ct));
-  }
+        return Detail(result);
+    }
 
-  [HttpPost("{id:guid}/publish")]
-  public async Task<IActionResult> Publish(
-      Guid id,
-      LifecycleInput input,
-      CancellationToken ct)
-  {
-    return Ok(await articles.PublishAsync(
-        id,
-        input.ExpectedRevision,
-        ct));
-  }
+    [HttpPost]
+    public async Task<IActionResult> Create(ArticleInput input, CancellationToken ct)
+    {
+        var result = await sender.SendAsync(new ArticleCreateCommand { Input = input }, ct);
 
-  [HttpPost("{id:guid}/schedule")]
-  public async Task<IActionResult> Schedule(
-      Guid id,
-      LifecycleInput input,
-      CancellationToken ct)
-  {
-    return Ok(await articles.ScheduleAsync(
-        id,
-        input.ExpectedRevision,
-        input.PublishAt ?? throw new Application.Blog.BlogException("Choose a publication time."),
-        ct));
-  }
+        return Detail(result);
+    }
 
-  [HttpPost("{id:guid}/unpublish")]
-  public async Task<IActionResult> Unpublish(
-      Guid id,
-      LifecycleInput input,
-      CancellationToken ct)
-  {
-    return Ok(await articles.UnpublishAsync(
-        id,
-        input.ExpectedRevision,
-        ct));
-  }
+    [HttpPut("{id:guid}")]
+    public async Task<IActionResult> Update(Guid id, ArticleInput input, CancellationToken ct)
+    {
+        var command = new ArticleUpdateCommand
+        {
+            Id = id,
+            Input = input,
+            CanApprove = HttpContext.Items["Ocharo.CanApprove"] is true,
+        };
+        var result = await sender.SendAsync(command, ct);
 
-  [HttpPost("{id:guid}/archive")]
-  public async Task<IActionResult> Archive(
-      Guid id,
-      LifecycleInput input,
-      CancellationToken ct)
-  {
-    return Ok(await articles.ArchiveAsync(
-        id,
-        input.ExpectedRevision,
-        ct));
-  }
+        return Detail(result);
+    }
 
-  [HttpPost("{id:guid}/translate")]
-  public async Task<IActionResult> Translate(
-      Guid id,
-      TranslateInput input,
-      CancellationToken ct)
-  {
-    return Ok(await articles.TranslateAsync(
-        id,
-        input.Language,
-        ct));
-  }
+    [HttpPost("{id:guid}/publish")]
+    public async Task<IActionResult> Publish(Guid id, LifecycleInput input, CancellationToken ct)
+    {
+        var command = new ArticlePublishCommand { Id = id, ExpectedRevision = input.ExpectedRevision };
+        var result = await sender.SendAsync(command, ct);
 
-  [HttpGet("{id:guid}/revisions")]
-  public async Task<IActionResult> Revisions(Guid id, CancellationToken ct)
-  {
-    return Ok(await articles.RevisionsAsync(id, ct));
-  }
+        return Detail(result);
+    }
 
-  [HttpPost("{id:guid}/revisions/{revision:int}/restore")]
-  public async Task<IActionResult> Restore(
-      Guid id,
-      int revision,
-      LifecycleInput input,
-      CancellationToken ct)
-  {
-    return Ok(await articles.RestoreAsync(
-        id,
-        revision,
-        input.ExpectedRevision,
-        ct));
-  }
+    [HttpPost("{id:guid}/schedule")]
+    public async Task<IActionResult> Schedule(Guid id, LifecycleInput input, CancellationToken ct)
+    {
+        var command = new ArticleScheduleCommand
+        {
+            Id = id,
+            ExpectedRevision = input.ExpectedRevision,
+            PublishAt = input.PublishAt,
+        };
+        var result = await sender.SendAsync(command, ct);
 
-  /// <summary>Server-rendered preview of any story, exactly as the public page would look.</summary>
-  [HttpGet("/preview/{id:guid}")]
-  [SecureHeaderOverride(StudioPreviewFraming.FrameOptionsHeader, StudioPreviewFraming.SameOrigin)]
-  [SecureHeaderOverride(StudioPreviewFraming.PolicyHeader, StudioPreviewFraming.Policy)]
-  public async Task<IActionResult> Preview(Guid id, CancellationToken ct)
-  {
-    var item = await articles.GetAsync(id, ct);
-    return Content(item.Document.Publication == "blog" ? await site.PreviewAsync(id, ct) : await publications.PreviewAsync(id, ct), "text/html; charset=utf-8");
-  }
+        return Detail(result);
+    }
+
+    [HttpPost("{id:guid}/unpublish")]
+    public async Task<IActionResult> Unpublish(Guid id, LifecycleInput input, CancellationToken ct)
+    {
+        var command = new ArticleUnpublishCommand { Id = id, ExpectedRevision = input.ExpectedRevision };
+        var result = await sender.SendAsync(command, ct);
+
+        return Detail(result);
+    }
+
+    [HttpPost("{id:guid}/archive")]
+    public async Task<IActionResult> Archive(Guid id, LifecycleInput input, CancellationToken ct)
+    {
+        var command = new ArticleArchiveCommand { Id = id, ExpectedRevision = input.ExpectedRevision };
+        var result = await sender.SendAsync(command, ct);
+
+        return Detail(result);
+    }
+
+    [HttpPost("{id:guid}/translate")]
+    public async Task<IActionResult> Translate(Guid id, TranslateInput input, CancellationToken ct)
+    {
+        var command = new ArticleTranslateCommand { Id = id, Language = input.Language };
+        var result = await sender.SendAsync(command, ct);
+
+        return Detail(result);
+    }
+
+    [HttpGet("{id:guid}/revisions")]
+    public async Task<IActionResult> Revisions(Guid id, CancellationToken ct)
+    {
+        var result = await sender.SendAsync(new ArticleRevisionGetAllQuery { ArticleId = id }, ct);
+
+        return result.Match<IActionResult>(ok => Ok(ok.Data), fail => this.ToBlogProblem(fail.Error));
+    }
+
+    [HttpPost("{id:guid}/revisions/{revision:int}/restore")]
+    public async Task<IActionResult> Restore(Guid id, int revision, LifecycleInput input, CancellationToken ct)
+    {
+        var command = new ArticleRevisionRestoreCommand
+        {
+            Id = id,
+            Revision = revision,
+            ExpectedRevision = input.ExpectedRevision,
+        };
+        var result = await sender.SendAsync(command, ct);
+
+        return Detail(result);
+    }
+
+    /// <summary>Server-rendered preview of any story, exactly as the public page would look.</summary>
+    [HttpGet("/preview/{id:guid}")]
+    [SecureHeaderOverride(StudioPreviewFraming.FrameOptionsHeader, StudioPreviewFraming.SameOrigin)]
+    [SecureHeaderOverride(StudioPreviewFraming.PolicyHeader, StudioPreviewFraming.Policy)]
+    public async Task<IActionResult> Preview(Guid id, CancellationToken ct)
+    {
+        var result = await sender.SendAsync(new ArticlePreviewGetQuery { Id = id }, ct);
+
+        return result.Match<IActionResult>(
+            ok => Content(ok.Data, "text/html; charset=utf-8"),
+            fail => this.ToBlogProblem(fail.Error));
+    }
+
+    private IActionResult Detail(WoW.Two.Sdk.Beta.Be.Mediator.Result.AppResult<ArticleDetail> result)
+    {
+        return result.Match<IActionResult>(ok => Ok(ok.Data), fail => this.ToBlogProblem(fail.Error));
+    }
 }

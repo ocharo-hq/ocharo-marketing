@@ -14,7 +14,8 @@ public static class TechnicalRoutes
         "/api/runtime-config",
     };
 
-    /// <summary>True for a GET or HEAD of a technical route, in any letter case, with or without a trailing slash.</summary>
+    /// <summary>True for a GET or HEAD of a technical route, in any letter case, with or without a trailing
+    /// slash.</summary>
     public static bool IsPublic(HttpRequest request)
     {
         return (HttpMethods.IsGet(request.Method) || HttpMethods.IsHead(request.Method))

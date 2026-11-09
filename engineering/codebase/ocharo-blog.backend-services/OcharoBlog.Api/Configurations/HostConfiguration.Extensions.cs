@@ -6,14 +6,16 @@ using Npgsql;
 using OcharoBlog.Api.Access;
 using OcharoBlog.Api.Blog;
 using OcharoBlog.Api.RuntimeConfig.Settings;
-using OcharoBlog.Application;
+using OcharoBlog.Api.Blog.Errors;
 using OcharoBlog.Application.Blog.Repositories;
 using OcharoBlog.Application.Blog.Services;
 using OcharoBlog.Application.Blog.Settings;
 using OcharoBlog.Application.Blog.Site;
+using OcharoBlog.Infrastructure;
 using OcharoBlog.Infrastructure.Blog;
 using OcharoBlog.Persistence;
 using OcharoBlog.Persistence.Blog;
+using OcharoBlog.Persistence.Blog.Errors;
 using OcharoBlog.Persistence.Import;
 using WoW.Two.Sdk.Beta.Be.Data.Abstractions;
 using WoW.Two.Sdk.Beta.Be.Data.EntityFrameworkCore;
@@ -21,6 +23,7 @@ using WoW.Two.Sdk.Beta.Be.Data.EntityFrameworkCore.Postgres;
 using WoW.Two.Sdk.Beta.Be.Data.Migrations.Bespoke;
 using WoW.Two.Sdk.Beta.Be.Files.Client;
 using WoW.Two.Sdk.Beta.Be.Foundation.Configuration.ConfigCheck;
+using WoW.Two.Sdk.Beta.Be.Foundation.Errors;
 using WoW.Two.Sdk.Beta.Be.Foundation.Options;
 using WoW.Two.Sdk.Beta.Be.Http.Auth.OAuth2ClientCredentials;
 using WoW.Two.Sdk.Beta.Be.Identity.Bff;
@@ -32,6 +35,7 @@ using WoW.Two.Sdk.Beta.Be.Meta;
 using WoW.Two.Sdk.Beta.Be.Observability.HealthChecks;
 using WoW.Two.Sdk.Beta.Be.Storage.Core;
 using WoW.Two.Sdk.Beta.Be.Storage.FileSystem;
+using WoW.Two.Sdk.Beta.Be.Web.ErrorMapping;
 using WoW.Two.Sdk.Beta.Be.Web.Hosting;
 using WoW.Two.Sdk.Beta.Be.Web.Json;
 using WoW.Two.Sdk.Beta.Be.Web.ProblemDetails;
@@ -195,19 +199,28 @@ public static partial class HostConfiguration
             options.MaxOutputDimension = MediaEditingService.MaximumDimension;
         });
         builder.Services.AddHttpContextAccessor();
-        builder.Services.AddHttpClient(EditorialImageWorker.ClientName, client => client.Timeout = EditorialImageWorker.RemovalDeadline)
+        builder.Services.AddHttpClient(
+            EditorialImageWorker.ClientName,
+            client => client.Timeout = EditorialImageWorker.RemovalDeadline)
             .ConfigurePrimaryHttpMessageHandler(() => new HttpClientHandler
             {
                 AllowAutoRedirect = false,
                 UseCookies = false,
             })
             .AddOAuth2ClientCredentials(_ => { });
-        // Resolve late so test-host configuration overrides continue to win. Editorial calls as its own client; without a
+        // Resolve late so test-host configuration overrides continue to win. Editorial calls as its own client; without
+        // a
         // usable Blog:DeskBaseUrl the worker makes no call, so nothing here may fail the boot.
         builder.Services.AddOptions<OAuth2ClientCredentialsOptions>(EditorialImageWorker.ClientName)
             .Configure<IConfiguration>((options, configuration) =>
             {
-                options.TokenEndpoint = Uri.TryCreate($"{configuration["Identity:Client:Authority"]?.TrimEnd('/')}/connect/token", UriKind.Absolute, out var endpoint) ? endpoint : null;
+                options.TokenEndpoint =
+                    Uri.TryCreate(
+                        $"{configuration["Identity:Client:Authority"]?.TrimEnd('/')}/connect/token",
+                        UriKind.Absolute,
+                        out var endpoint)
+                        ? endpoint
+                        : null;
                 options.ClientId = configuration["Identity:Client:ClientId"] ?? "";
                 options.ClientSecret = configuration["Identity:Client:ClientSecret"] ?? "";
                 options.Resource = EditorialImageWorker.DeskOrigin(configuration["Blog:DeskBaseUrl"])?.AbsoluteUri;
@@ -218,12 +231,14 @@ public static partial class HostConfiguration
         return builder;
     }
 
-    /// <summary>Holds the root URL of the WoW2 Files instance Editorial stores its media in; unset, media stay in the local
+    /// <summary>Holds the root URL of the WoW2 Files instance Editorial stores its media in; unset, media stay in the
+    /// local
     /// blob folder.</summary>
     private const string FilesBaseUrlKey = "Files:BaseUrl";
 
     /// <summary>Registers the media store: WoW2 Files over HTTP when <see cref="FilesBaseUrlKey"/> is set, by tokens of
-    /// Editorial's own Identity client (a person's exchanged within their BFF session, Editorial's own otherwise), else the
+    /// Editorial's own Identity client (a person's exchanged within their BFF session, Editorial's own otherwise), else
+    /// the
     /// local blob folder. Both read at resolve time, so a test host's settings decide.</summary>
     private static WebApplicationBuilder AddEditorialFiles(this WebApplicationBuilder builder)
     {
@@ -255,16 +270,21 @@ public static partial class HostConfiguration
     private static bool UsesFiles(IServiceProvider provider) =>
         provider.GetRequiredService<IConfiguration>()[FilesBaseUrlKey] is { Length: > 0 };
 
-    /// <summary>Fills the file ids the migration made; an unreachable Files leaves those files on local bytes, never the boot.</summary>
+    /// <summary>Fills the file ids the migration made; an unreachable Files leaves those files on local bytes, never
+    /// the boot.</summary>
     private static async Task BackfillFileIdsAsync(this IServiceProvider services, ILogger logger)
     {
         try
         {
             await services.GetRequiredService<FilesMediaBackfill>().RunAsync(CancellationToken.None);
         }
-        catch (Exception exception) when (exception is HttpRequestException or TaskCanceledException or InvalidOperationException)
+        catch (Exception exception) when (exception is HttpRequestException
+            or TaskCanceledException
+            or InvalidOperationException)
         {
-            logger.LogWarning(exception, "Editorial's file ids stay unfilled: WoW2 Files could not be reached at boot.");
+            logger.LogWarning(
+                exception,
+                "Editorial's file ids stay unfilled: WoW2 Files could not be reached at boot.");
         }
     }
 
@@ -296,18 +316,28 @@ public static partial class HostConfiguration
         return builder;
     }
 
-    /// <summary>Registers the mediator against the application assembly.</summary>
+    /// <summary>Registers the mediator against the Infrastructure assembly, which holds the handlers; a save that lost
+    /// a
+    /// race as the 409 Editorial has always answered it; and Editorial's error statuses for the problem
+    /// factory.</summary>
     private static WebApplicationBuilder AddMediator(this WebApplicationBuilder builder)
     {
-        builder.Services.AddMediator(typeof(ApplicationAssembly).Assembly);
+        builder.Services.AddMediator(typeof(InfrastructureAssembly).Assembly);
+        // Registered after the mediator's mapping, so it wins over the SDK's data rule for the same exceptions.
+        builder.Services.AddExceptionMappingRule<BlogSaveRaceExceptionRule>();
+        builder.Services.AddSingleton<IErrorHttpStatusCodeMapper, BlogErrorHttpStatusCodeMapper>();
         return builder;
     }
 
-    /// <summary>Registers the public runtime settings the SPA reads at startup: the Ocharo app and site addresses.</summary>
+    /// <summary>Registers the public runtime settings the SPA reads at startup: the Ocharo app and site
+    /// addresses.</summary>
     private static WebApplicationBuilder AddRuntimeConfig(this WebApplicationBuilder builder)
     {
         // Every address is optional, and a malformed one is left out rather than failing the host over a menu link.
-        builder.Services.AddValidatedSettings<OcharoAppsSettings>(builder.Configuration, OcharoAppsSettings.SectionName, _ => { });
+        builder.Services.AddValidatedSettings<OcharoAppsSettings>(
+            builder.Configuration,
+            OcharoAppsSettings.SectionName,
+            _ => { });
         return builder;
     }
 
@@ -316,7 +346,9 @@ public static partial class HostConfiguration
     {
         var rejected = app.Services.GetRequiredService<OcharoAppsSettings>().RejectedSettings();
         if (rejected.Count > 0)
-            app.Logger.LogWarning("Runtime config leaves out {Settings}: each must be a plain HTTPS address.", string.Join(", ", rejected));
+            app.Logger.LogWarning(
+                "Runtime config leaves out {Settings}: each must be a plain HTTPS address.",
+                string.Join(", ", rejected));
     }
 
     /// <summary>Registers the controllers with the SDK wire JSON.</summary>
@@ -344,18 +376,18 @@ public static partial class HostConfiguration
     {
         // Outermost: every error status, MVC error result and thrown exception leaves as a problem document.
         app.UseHttpProblemDetails();
-        // Forwarded headers, secure headers and compression, the Studio's files before routing; then blog errors,
-        // Editorial's response headers and cross-origin write check, sign-in and access, ahead of the endpoints.
+        // Forwarded headers, secure headers and compression, the Studio's files before routing; then the pending
+        // import, Editorial's response headers and cross-origin write check, sign-in and access, ahead of the
+        // endpoints.
         app.UseApiDefaults(pipeline => pipeline.UseEditorialBoundary());
         return app;
     }
 
-    /// <summary>Configures the pending-import refusal, blog errors as problems, Editorial's response headers and
-    /// cross-origin write check, then sign-in and access.</summary>
+    /// <summary>Configures the pending-import refusal, Editorial's response headers and cross-origin write check, then
+    /// sign-in and access. Refused requests leave as problems from the handlers' results.</summary>
     private static void UseEditorialBoundary(this IApplicationBuilder pipeline)
     {
         pipeline.UseMiddleware<SqliteImportPendingMiddleware>();
-        pipeline.UseMiddleware<BlogExceptionMiddleware>();
         pipeline.UseMiddleware<EditorialHttpBoundaryMiddleware>();
         pipeline.UseAccess();
     }
@@ -369,7 +401,8 @@ public static partial class HostConfiguration
         app.WarnAboutRejectedRuntimeConfig();
         app.MapControllers();
         app.MapIdentityBffEndpoints();
-        if (!string.IsNullOrEmpty(app.Configuration[EditorialAccess.SignalUrlKey])) app.MapIdentitySignals(EditorialAccess.SignalPath);
+        if (!string.IsNullOrEmpty(app.Configuration[EditorialAccess.SignalUrlKey]))
+            app.MapIdentitySignals(EditorialAccess.SignalPath);
         app.MapGet("/api/system/status", () => Results.Ok(new
         {
             status = "healthy",

@@ -14,7 +14,10 @@ public sealed class EditorialHttpBoundaryMiddleware(RequestDelegate next, BlogOp
     {
         context.Response.Headers.XContentTypeOptions = "nosniff";
         var path = (context.Request.Path.Value ?? "/").ToLowerInvariant();
-        if (path == "/api" || path.StartsWith("/api/", StringComparison.Ordinal) || path.StartsWith("/preview", StringComparison.Ordinal) || path.StartsWith("/media/", StringComparison.Ordinal))
+        if (path == "/api"
+            || path.StartsWith("/api/", StringComparison.Ordinal)
+            || path.StartsWith("/preview", StringComparison.Ordinal)
+            || path.StartsWith("/media/", StringComparison.Ordinal))
             NoStore(context);
 
         if (EditorialAccess.IsWrite(context.Request.Method) && !IsAllowedOrigin(context.Request))
@@ -41,11 +44,14 @@ public sealed class EditorialHttpBoundaryMiddleware(RequestDelegate next, BlogOp
     private bool IsAllowedOrigin(HttpRequest request)
     {
         var origin = request.Headers.Origin.ToString();
-        if (origin.Length == 0) return !request.Headers.ContainsKey("Sec-Fetch-Site") || request.Headers["Sec-Fetch-Site"] == "same-origin";
-        if (!Uri.TryCreate(origin, UriKind.Absolute, out var uri) || uri.Scheme != Uri.UriSchemeHttps || uri.UserInfo.Length > 0
+        if (origin.Length == 0)
+            return !request.Headers.ContainsKey("Sec-Fetch-Site") || request.Headers["Sec-Fetch-Site"] == "same-origin";
+        if (!Uri.TryCreate(origin, UriKind.Absolute, out var uri)
+            || uri.Scheme != Uri.UriSchemeHttps || uri.UserInfo.Length > 0
             || uri.AbsolutePath != "/" || uri.Query.Length > 0 || uri.Fragment.Length > 0) return false;
         var authority = uri.GetLeftPart(UriPartial.Authority);
-        if (string.Equals(authority, $"{request.Scheme}://{request.Host.Value}", StringComparison.OrdinalIgnoreCase)) return true;
+        if (string.Equals(authority, $"{request.Scheme}://{request.Host.Value}", StringComparison.OrdinalIgnoreCase))
+            return true;
         return options.TrustedOrigins.Contains(authority, StringComparer.OrdinalIgnoreCase);
     }
 }

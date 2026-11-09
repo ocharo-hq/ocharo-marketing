@@ -3,7 +3,9 @@ using Markdig;
 using Markdig.Syntax;
 using Markdig.Syntax.Inlines;
 using Microsoft.Extensions.Options;
+using OcharoBlog.Application.Blog.Errors;
 using OcharoBlog.Domain.Blog;
+using WoW.Two.Sdk.Beta.Be.Foundation.Results;
 using WoW.Two.Sdk.Beta.Be.Media.Markdown;
 
 namespace OcharoBlog.Application.Blog.Services;
@@ -12,26 +14,39 @@ namespace OcharoBlog.Application.Blog.Services;
 public static class ArticleFormatting
 {
     public const int MaximumMarkdownCharacters = 32000;
-    private static readonly MarkdownPipeline Pipeline = new MarkdownPipelineBuilder().UseAdvancedExtensions().UseYamlFrontMatter().DisableHtml().Build();
+    private static readonly MarkdownPipeline Pipeline = new MarkdownPipelineBuilder()
+        .UseAdvancedExtensions()
+        .UseYamlFrontMatter()
+        .DisableHtml()
+        .Build();
     private static readonly IMarkdownService Markdown = new MarkdigMarkdownService(new SafeOptions());
 
     /// <summary>Rejects unsupported formats and images that bypass the reviewed media workflow.</summary>
-    public static void Validate(string? format, IReadOnlyList<string> paragraphs)
+    public static Result Validate(string? format, IReadOnlyList<string> paragraphs)
     {
-        if (format is not (null or "plain" or "markdown")) throw new BlogException("Section format must be plain or markdown.");
-        if (format != "markdown") return;
+        if (format is not (null or "plain" or "markdown"))
+            return Result.Fail(BlogErrors.Invalid("Section format must be plain or markdown."));
+        if (format != "markdown") return Result.Ok();
         var source = string.Join("\n\n", paragraphs);
-        if (source.Length > MaximumMarkdownCharacters) throw new BlogException($"Formatted text is longer than {MaximumMarkdownCharacters} characters.");
+        if (source.Length > MaximumMarkdownCharacters)
+            return Result.Fail(
+                BlogErrors.Invalid($"Formatted text is longer than {MaximumMarkdownCharacters} characters."));
         if (Markdig.Markdown.Parse(source, Pipeline).Descendants<LinkInline>().Any(link => link.IsImage))
-            throw new BlogException("Inline Markdown images are not supported. Use the cover image editor and media library.");
+            return Result.Fail(BlogErrors.Invalid(
+                "Inline Markdown images are not supported. Use the cover image editor and media library."));
+        return Result.Ok();
     }
 
     /// <summary>Uses the same safe rendering for Blog, Atlas, Wear, previews and static exports.</summary>
+    /// <remarks>A page renders inside a framework callback that reads failures as exceptions, so stored text that no
+    /// longer validates leaves through the SDK's error bridge.</remarks>
     public static string Render(ArticleSection section)
     {
-        if (section.Format != "markdown") return string.Concat(section.Paragraphs.Select(value => $"<p>{WebUtility.HtmlEncode(value)}</p>"));
-        Validate(section.Format, section.Paragraphs);
-        return "<div class=\"formatted-section\">" + Markdown.Render(string.Join("\n\n", section.Paragraphs)).Html + "</div>";
+        if (section.Format != "markdown")
+            return string.Concat(section.Paragraphs.Select(value => $"<p>{WebUtility.HtmlEncode(value)}</p>"));
+        Validate(section.Format, section.Paragraphs).ThrowIfFailure();
+        var html = Markdown.Render(string.Join("\n\n", section.Paragraphs)).Html;
+        return "<div class=\"formatted-section\">" + html + "</div>";
     }
 
     /// <summary>Counts visible text without treating Markdown punctuation as words.</summary>

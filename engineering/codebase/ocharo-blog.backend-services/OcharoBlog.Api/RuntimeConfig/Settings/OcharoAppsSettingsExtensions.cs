@@ -17,7 +17,8 @@ public static class OcharoAppsSettingsExtensions
         (nameof(OcharoAppsSettings.Blog), "OCHARO_BLOG_URL", settings => settings.Blog),
     ];
 
-    /// <summary>Returns the configured, plain HTTPS addresses keyed for runtime config; any other value is left out.</summary>
+    /// <summary>Returns the configured, plain HTTPS addresses keyed for runtime config; any other value is left
+    /// out.</summary>
     public static IReadOnlyDictionary<string, string> ToRuntimeConfig(this OcharoAppsSettings settings)
     {
         var values = new Dictionary<string, string>(StringComparer.Ordinal);
@@ -29,16 +30,19 @@ public static class OcharoAppsSettingsExtensions
         return values;
     }
 
-    /// <summary>Names the settings that are configured but not plain HTTPS addresses, so the host can warn about them.</summary>
+    /// <summary>Names the settings that are configured but not plain HTTPS addresses, so the host can warn about
+    /// them.</summary>
     public static IReadOnlyList<string> RejectedSettings(this OcharoAppsSettings settings)
     {
         return Addresses
-            .Where(address => !string.IsNullOrWhiteSpace(address.Read(settings)) && !IsPublicAddress(address.Read(settings)))
+            .Where(address =>
+                !string.IsNullOrWhiteSpace(address.Read(settings)) && !IsPublicAddress(address.Read(settings)))
             .Select(address => $"{OcharoAppsSettings.SectionName}:{address.Setting}")
             .ToArray();
     }
 
-    /// <summary>Accepts an absolute HTTPS address without credentials, query or fragment that could carry a token.</summary>
+    /// <summary>Accepts an absolute HTTPS address without credentials, query or fragment that could carry a
+    /// token.</summary>
     public static bool IsPublicAddress(string? value)
     {
         return Uri.TryCreate(value, UriKind.Absolute, out var uri)

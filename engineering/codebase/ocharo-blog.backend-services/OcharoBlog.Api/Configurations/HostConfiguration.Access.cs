@@ -51,7 +51,10 @@ public static partial class HostConfiguration
             builder.Services.AddIdentitySignalReceiver(options =>
             {
                 options.Audience = signalUrl;
-                options.TrustedIssuers.Add(new TrustedIssuer { Issuer = RequiredAddress(builder.Configuration, "Identity:Client:Authority") });
+                options.TrustedIssuers.Add(new TrustedIssuer
+                    {
+                        Issuer = RequiredAddress(builder.Configuration, "Identity:Client:Authority")
+                    });
             });
         }
         builder.Services.AddIdentityBff();
@@ -69,8 +72,10 @@ public static partial class HostConfiguration
         return builder;
     }
 
-    /// <summary>Reads a setting the service token check depends on, in the <c>Uri.AbsoluteUri</c> form Identity writes.</summary>
-    /// <remarks>The JWT registration takes its issuer and audience while the host is built, so a test host hands them over
+    /// <summary>Reads a setting the service token check depends on, in the <c>Uri.AbsoluteUri</c> form Identity
+    /// writes.</summary>
+    /// <remarks>The JWT registration takes its issuer and audience while the host is built, so a test host hands them
+    /// over
     /// with <c>UseSetting</c>; its own configuration arrives later.</remarks>
     private static string RequiredAddress(IConfiguration configuration, string key) =>
         HttpsAddress(configuration, key) ?? throw new InvalidOperationException($"{key} {AddressRule}");
@@ -94,7 +99,8 @@ public static partial class HostConfiguration
     /// <summary>Stands for the Identity addresses a serving boot checks when the host composed without them.</summary>
     private sealed class IdentityAddresses;
 
-    /// <summary>Configures the session pipeline: HTTPS for the session routes, the BFF (authentication, the <c>X-Csrf-Token</c>
+    /// <summary>Configures the session pipeline: HTTPS for the session routes, the BFF (authentication, the
+    /// <c>X-Csrf-Token</c>
     /// check, authorization), then the bound-organization membership and permission check.</summary>
     private static IApplicationBuilder UseAccess(this IApplicationBuilder app)
     {
@@ -111,7 +117,8 @@ public static partial class HostConfiguration
         });
         // The BFF's antiforgery check answers 400 for any session's unsafe request under /api, so the public API, which
         // anyone may post to, skips the BFF. A branch's middleware does not count for the host, which would then add
-        // authentication and authorization at the head of the pipeline, ahead of the proxy headers: they are set here too.
+        // authentication and authorization at the head of the pipeline, ahead of the proxy headers: they are set here
+        // too.
         app.UseAuthentication();
         app.UseAuthorization();
         app.UseWhen(context => !EditorialAccess.IsPublicApi(context.Request.Path), branch => branch.UseIdentityBff());

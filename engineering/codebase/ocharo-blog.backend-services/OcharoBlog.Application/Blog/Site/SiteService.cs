@@ -1,9 +1,11 @@
 using System.IO.Compression;
 using System.Text;
+using OcharoBlog.Application.Blog.Errors;
 using OcharoBlog.Application.Blog.Models;
 using OcharoBlog.Application.Blog.Repositories;
 using OcharoBlog.Application.Blog.Services;
 using OcharoBlog.Domain.Blog;
+using WoW.Two.Sdk.Beta.Be.Foundation.Results;
 
 namespace OcharoBlog.Application.Blog.Site;
 
@@ -11,7 +13,8 @@ namespace OcharoBlog.Application.Blog.Site;
 public sealed record SitePage(string Content, string ContentType);
 
 /// <summary>Serves the public site from live data, renders previews, and exports a static copy.</summary>
-public sealed class SiteService(IBlogRepository repository, TopicService topics, SiteSettingsService settings, ICatalogueFeed catalogue,
+public sealed class SiteService(IBlogRepository repository, TopicService topics, SiteSettingsService settings,
+    ICatalogueFeed catalogue,
     IBrandKit brand, IMediaStore media, TimeProvider time)
 {
     private static readonly Lazy<string> Theme = new(() =>
@@ -25,8 +28,13 @@ public sealed class SiteService(IBlogRepository repository, TopicService topics,
     /// <summary>The public stylesheet (approved journal theme plus platform additions).</summary>
     public static string Css => Theme.Value;
 
-    /// <summary>Everything a render needs; <paramref name="live"/> false (static export) leaves out time-bounded event badges.</summary>
-    public async Task<SiteModel> ModelAsync(Func<string, string> mediaUrl, CancellationToken ct, string language = "en", bool live = true)
+    /// <summary>Everything a render needs; <paramref name="live"/> false (static export) leaves out time-bounded event
+    /// badges.</summary>
+    public async Task<SiteModel> ModelAsync(
+        Func<string, string> mediaUrl,
+        CancellationToken ct,
+        string language = "en",
+        bool live = true)
     {
         var editions = (await repository.GetArticlesAsync(ct))
             .Where(r => r.Status == ArticleStatus.Published)
@@ -41,29 +49,42 @@ public sealed class SiteService(IBlogRepository repository, TopicService topics,
             : new Dictionary<string, CatalogueProduct>();
         var kit = await brand.GetAsync(ct);
         var badge = live && kit?.Event is { } ev && ev.EndsAt > time.GetUtcNow() ? ev : null;
-        return new SiteModel(await BrandedAsync((await settings.GetAsync(ct)).Settings, kit, ct), await topics.ListAsync(ct), stories, products,
+        return new SiteModel(await BrandedAsync(
+            (await settings.GetAsync(ct)).Settings,
+            kit,
+            ct), await topics.ListAsync(ct), stories, products,
             mediaUrl, time.GetUtcNow(), language, editions, available, badge);
     }
 
     /// <summary>
-    /// The published brand kit wins over the blog's own logo and links. Its logo enters the blog's media index under the
-    /// same SHA-256, so live pages and the static export share one path: on WoW2 Files as a reference to Brand's own file,
+    /// The published brand kit wins over the blog's own logo and links. Its logo enters the blog's media index under
+    /// the
+    /// same SHA-256, so live pages and the static export share one path: on WoW2 Files as a reference to Brand's own
+    /// file,
     /// otherwise as a copy of its bytes. An unreachable Brand service keeps the settings.
     /// </summary>
     private async Task<SiteSettings> BrandedAsync(SiteSettings site, BrandSnapshot? snapshot, CancellationToken ct)
     {
         if (snapshot is not { } kit) return site;
-        return site with { LogoSha256 = await BrandLogoAsync(kit, ct) ?? site.LogoSha256, Links = kit.Links.Count > 0 ? kit.Links : site.Links };
+        return site with
+        {
+            LogoSha256 = await BrandLogoAsync(kit, ct) ?? site.LogoSha256,
+            Links = kit.Links.Count > 0 ? kit.Links : site.Links
+        };
     }
 
-    /// <summary>The brand logo's SHA-256 once the media index holds it; none when it can be neither referenced nor copied.</summary>
+    /// <summary>The brand logo's SHA-256 once the media index holds it; none when it can be neither referenced nor
+    /// copied.</summary>
     private async Task<string?> BrandLogoAsync(BrandSnapshot kit, CancellationToken ct)
     {
         if (kit.LogoSha256 is not { } sha) return null;
         var name = $"ocharo-logo-r{kit.Release}.png";
         if (kit.LogoFileId is { } fileId && await media.ReferenceAsync(sha, fileId, name, ct) is not null) return sha;
         if (await repository.FindMediaAsync(sha, ct) is not null) return sha;
-        return kit.LogoUrl is { } url && await brand.DownloadAsync(url, ct) is { } bytes ? (await media.StoreAsync(bytes, name, ct)).Sha256 : null;
+        if (kit.LogoUrl is not { } url || await brand.DownloadAsync(url, ct) is not { } bytes) return null;
+        // A page renders inside a framework callback that reads failures as exceptions: a logo the store refuses
+        // leaves through the SDK's error bridge.
+        return (await media.StoreAsync(bytes, name, ct)).ValueOrThrow().Sha256;
     }
 
     /// <summary>Resolves a public path to a page, or null for 404.</summary>
@@ -79,29 +100,35 @@ public sealed class SiteService(IBlogRepository repository, TopicService topics,
         {
             [] => Html(renderer.Home()),
             ["journal"] => Html(renderer.Archive()),
-            ["journal", var slug] => model.Stories.FirstOrDefault(s => s.Slug == slug) is { } story ? Html(renderer.Article(story)) : null,
+            ["journal", var slug] =>
+                model.Stories.FirstOrDefault(s => s.Slug == slug) is { } story ? Html(renderer.Article(story)) : null,
             ["topics", var key] => renderer.Topic(key) is { } topic ? Html(topic) : null,
             ["feed.xml"] => new SitePage(renderer.Feed(), "application/rss+xml; charset=utf-8"),
-            ["sitemap.xml"] when language == "en" => new SitePage(renderer.Sitemap(model.AvailableLanguages!), "application/xml; charset=utf-8"),
+            ["sitemap.xml"] when language == "en" =>
+                new SitePage(renderer.Sitemap(model.AvailableLanguages!), "application/xml; charset=utf-8"),
             ["robots.txt"] when language == "en" => new SitePage(renderer.Robots(), "text/plain; charset=utf-8"),
             ["site.css"] when language == "en" => new SitePage(Css, "text/css; charset=utf-8"),
-            ["boot-splash.css"] when language == "en" => new SitePage(PublicDocumentPaint.Css, "text/css; charset=utf-8"),
+            ["boot-splash.css"] when language == "en" =>
+                new SitePage(PublicDocumentPaint.Css, "text/css; charset=utf-8"),
             _ => null,
         };
     }
 
     /// <summary>Renders any story (draft, scheduled, archived) as a non-indexed preview.</summary>
-    public async Task<string> PreviewAsync(Guid id, CancellationToken ct)
+    public async Task<Result<string>> PreviewAsync(Guid id, CancellationToken ct)
     {
-        var record = await repository.FindArticleAsync(id, ct) ?? throw BlogException.NotFound("Story");
+        if (await repository.FindArticleAsync(id, ct) is not { } record)
+            return Result<string>.Fail(BlogErrors.NotFound("Story"));
         var story = BlogJson.Read<ArticleDocument>(record.Json);
         var model = await ModelAsync(LiveMedia, ct, story.Language);
         if (story.ProductIds.Count > 0 && model.Products.Count == 0)
             model = model with { Products = (await catalogue.GetProductsAsync(ct)).ToDictionary(p => p.Id) };
-        return new SiteRenderer(model).Article(story, preview: record.Status != ArticleStatus.Published);
+        return Result<string>.Ok(new SiteRenderer(model)
+            .Article(story, preview: record.Status != ArticleStatus.Published));
     }
 
-    /// <summary>A static copy of the published site (HTML, CSS, feed, sitemap, robots and every referenced image).</summary>
+    /// <summary>A static copy of the published site (HTML, CSS, feed, sitemap, robots and every referenced
+    /// image).</summary>
     public async Task<byte[]> ExportAsync(CancellationToken ct)
     {
         var used = new Dictionary<string, string>();
@@ -129,19 +156,23 @@ public sealed class SiteService(IBlogRepository repository, TopicService topics,
         {
             void Text(string entry, string content)
             {
-                using var writer = new StreamWriter(zip.CreateEntry(entry, CompressionLevel.Optimal).Open(), new UTF8Encoding(false));
+                using var writer =
+                    new StreamWriter(zip.CreateEntry(entry, CompressionLevel.Optimal).Open(), new UTF8Encoding(false));
                 writer.Write(content);
             }
 
             foreach (var language in model.AvailableLanguages!)
             {
-                var localized = Localize(language == "en" ? model : await ModelAsync(ExportMedia, ct, language, live: false));
+                var localized =
+                    Localize(language == "en" ? model : await ModelAsync(ExportMedia, ct, language, live: false));
                 var renderer = new SiteRenderer(localized);
                 var folder = language == "en" ? "" : language + "/";
                 Text($"{folder}index.html", renderer.Home());
                 Text($"{folder}journal/index.html", renderer.Archive());
-                foreach (var topic in localized.Topics) Text($"{folder}topics/{topic.Key}/index.html", renderer.Topic(topic.Key)!);
-                foreach (var story in localized.Stories) Text($"{folder}journal/{story.Slug}/index.html", renderer.Article(story));
+                foreach (var topic in localized.Topics)
+                    Text($"{folder}topics/{topic.Key}/index.html", renderer.Topic(topic.Key)!);
+                foreach (var story in localized.Stories)
+                    Text($"{folder}journal/{story.Slug}/index.html", renderer.Article(story));
                 Text($"{folder}feed.xml", renderer.Feed());
             }
 

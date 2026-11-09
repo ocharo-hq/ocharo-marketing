@@ -16,11 +16,11 @@ Architecture: [Public catalogue versions](../architecture/catalogue-web.md).
 Executed with Node 24.11.0 on PATH, from `engineering/codebase/ocharo-blog.backend-services`:
 
 ```sh
-dotnet test tests/OcharoBlog.Tests/OcharoBlog.Tests.csproj --no-restore -v:q
+dotnet test tests/OcharoBlog.Tests.E2E/OcharoBlog.Tests.E2E.csproj --no-restore -v:q
 ```
 
 **Result: 161 passed, 0 failed, 0 skipped.** The 11 cases in
-[`WebCatalogueTests.cs`](../codebase/ocharo-blog.backend-services/tests/OcharoBlog.Tests/WebCatalogueTests.cs)
+[`WebCatalogueTests.cs`](../codebase/ocharo-blog.backend-services/tests/OcharoBlog.Tests.E2E/WebCatalogueTests.cs)
 cover these boundaries:
 
 | Case | Result |

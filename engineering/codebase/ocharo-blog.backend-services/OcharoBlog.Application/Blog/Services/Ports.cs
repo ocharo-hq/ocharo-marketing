@@ -1,27 +1,38 @@
 using OcharoBlog.Application.Blog.Models;
 using OcharoBlog.Domain.Blog;
+using WoW.Two.Sdk.Beta.Be.Foundation.Results;
 
 namespace OcharoBlog.Application.Blog.Services;
 
 /// <summary>Content-addressed image storage with a web preview per image.</summary>
 public interface IMediaStore
 {
-    /// <summary>Stores bytes once per SHA-256 (idempotent) and returns the index row.</summary>
-    Task<MediaBlobRecord> StoreAsync(byte[] bytes, string fileName, CancellationToken ct);
+    /// <summary>Stores bytes once per SHA-256 (idempotent) and returns the index row; refuses an empty, oversized or
+    /// unreadable image, and a call WoW2 Files refuses.</summary>
+    Task<Result<MediaBlobRecord>> StoreAsync(byte[] bytes, string fileName, CancellationToken ct);
 
-    /// <summary>Stores an edited derivative once per SHA-256 together with its immutable receipt.</summary>
-    Task<MediaBlobRecord> StoreEditedAsync(byte[] bytes, string fileName, MediaEditRecord edit, CancellationToken ct);
+    /// <summary>Stores an edited derivative once per SHA-256 together with its immutable receipt; refuses as
+    /// <see cref="StoreAsync"/> does, and a receipt that names other bytes.</summary>
+    Task<Result<MediaBlobRecord>> StoreEditedAsync(
+        byte[] bytes,
+        string fileName,
+        MediaEditRecord edit,
+        CancellationToken ct);
 
-    /// <summary>Opens a stored file for a media route: a Files link to redirect to, or local bytes; null when unknown.</summary>
+    /// <summary>Opens a stored file for a media route: a Files link to redirect to, or local bytes; null when unknown.
+    /// A call WoW2 Files refuses leaves through the SDK's error bridge.</summary>
     Task<MediaContent?> OpenAsync(string sha256, bool preview, CancellationToken ct);
 
     /// <summary>Reads a stored file's bytes on the server, for editing and static exports: the original, or its WebP
     /// preview; null when unknown or gone.</summary>
     Task<(MediaBlobRecord Record, Stream Content)?> ReadAsync(string sha256, bool preview, CancellationToken ct);
 
-    /// <summary>Records another Ocharo app's WoW2 Files file under its SHA-256 by attaching Editorial's reference to it,
-    /// with no bytes downloaded or uploaded (planning/files-adoption.md #11). A row that already has a file id is returned
-    /// as it is. Null when this run keeps no Files, or the file is gone or holds other bytes, so the caller copies instead.</summary>
+    /// <summary>Records another Ocharo app's WoW2 Files file under its SHA-256 by attaching Editorial's reference to
+    /// it,
+    /// with no bytes downloaded or uploaded (planning/files-adoption.md #11). A row that already has a file id is
+    /// returned
+    /// as it is. Null when this run keeps no Files, or the file is gone or holds other bytes, so the caller copies
+    /// instead.</summary>
     Task<MediaBlobRecord?> ReferenceAsync(string sha256, string fileId, string fileName, CancellationToken ct);
 }
 
@@ -40,11 +51,13 @@ public sealed record MediaContent(MediaBlobRecord Record, string ContentType, Ur
 /// <summary>Whether a stored image has a web preview.</summary>
 public static class MediaPreview
 {
-    /// <summary>A local file has one once its preview was written; a file in WoW2 Files always has one, as a variant.</summary>
+    /// <summary>A local file has one once its preview was written; a file in WoW2 Files always has one, as a
+    /// variant.</summary>
     public static bool Exists(MediaBlobRecord record) => record.PreviewPath is not null || record.FileId is not null;
 }
 
-/// <summary>Read-only access to the Ocharo Catalogue public feed; an unavailable catalogue yields an empty list.</summary>
+/// <summary>Read-only access to the Ocharo Catalogue public feed; an unavailable catalogue yields an empty
+/// list.</summary>
 public interface ICatalogueFeed
 {
     Task<IReadOnlyList<CatalogueProduct>> GetProductsAsync(CancellationToken ct);
@@ -57,11 +70,15 @@ public interface ICatalogueFeed
 }
 
 /// <summary>The published Ocharo brand kit as the blog uses it: the on-light logo file and the public links.
-/// <paramref name="LogoFileId"/> names the WoW2 Files file Brand keeps the logo in; none while Brand keeps it locally.</summary>
-public sealed record BrandSnapshot(int Release, string? LogoSha256, string? LogoUrl, IReadOnlyList<SiteLink> Links, BrandEvent? Event = null,
+/// <paramref name="LogoFileId"/> names the WoW2 Files file Brand keeps the logo in; none while Brand keeps it
+/// locally.</summary>
+public sealed record BrandSnapshot(int Release, string? LogoSha256, string? LogoUrl, IReadOnlyList<SiteLink> Links,
+    BrandEvent? Event =
+    null,
     string? LogoFileId = null);
 
-/// <summary>An active brand appearance's event badge: shown beside the logo on live pages until <see cref="EndsAt"/>.</summary>
+/// <summary>An active brand appearance's event badge: shown beside the logo on live pages until
+/// <see cref="EndsAt"/>.</summary>
 public sealed record BrandEvent(string Name, string Label, string Url, DateTimeOffset EndsAt);
 
 /// <summary>Read-only access to the Ocharo Brand service; null when it is not configured or unreachable.</summary>

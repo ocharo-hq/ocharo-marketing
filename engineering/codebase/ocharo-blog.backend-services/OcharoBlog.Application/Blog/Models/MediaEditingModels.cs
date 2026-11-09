@@ -13,5 +13,11 @@ public sealed record ImageResize(int Width, int Height);
 [JsonUnmappedMemberHandling(JsonUnmappedMemberHandling.Disallow)]
 public sealed record ImageEncoding(string Format, int Quality);
 public sealed record MediaEditActor(string OrganizationId, string UserId);
-public sealed record EditedImage(byte[] Bytes, string ContentType, string Extension, int Width, int Height, string? Model);
+public sealed record EditedImage(
+    byte[] Bytes,
+    string ContentType,
+    string Extension,
+    int Width,
+    int Height,
+    string? Model);
 public sealed record ImageWorkerStatus(bool Available, string? Model = null);

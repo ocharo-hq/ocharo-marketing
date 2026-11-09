@@ -24,7 +24,14 @@ public sealed record ArticleSummary(
     string Kind = "story");
 
 /// <summary>A story with its revision stamp.</summary>
-public sealed record ArticleDetail(Guid Id, ArticleDocument Document, int Revision, DateTimeOffset CreatedAt, DateTimeOffset UpdatedAt, int ReadMinutes, int Words);
+public sealed record ArticleDetail(
+    Guid Id,
+    ArticleDocument Document,
+    int Revision,
+    DateTimeOffset CreatedAt,
+    DateTimeOffset UpdatedAt,
+    int ReadMinutes,
+    int Words);
 
 /// <summary>Create/update payload; lifecycle changes use the dedicated commands.</summary>
 public sealed record ArticleInput
@@ -71,17 +78,32 @@ public sealed record LifecycleInput(int ExpectedRevision, DateTimeOffset? Publis
 public sealed record RevisionSummary(int Revision, DateTimeOffset SavedAt, string Summary);
 
 /// <summary>Stored media as returned to the admin.</summary>
-public sealed record MediaView(string Sha256, string FileName, string ContentType, long ByteLength, int? Width, int? Height, string Url, string? PreviewUrl);
+public sealed record MediaView(
+    string Sha256,
+    string FileName,
+    string ContentType,
+    long ByteLength,
+    int? Width,
+    int? Height,
+    string Url,
+    string? PreviewUrl);
 
 /// <summary>A catalogue product as the blog needs it (from the Ocharo Catalogue public feed).</summary>
-public sealed record CatalogueProduct(string Id, string Name, string GarmentName, string? Fabric, long? RetailPrice, string? ImageUrl, string? PreviewUrl,
+public sealed record CatalogueProduct(string Id, string Name, string GarmentName, string? Fabric, long? RetailPrice,
+    string? ImageUrl, string? PreviewUrl,
     string? Slug = null, string? Description = null, string? Category = null, string? Availability = null,
     IReadOnlyList<string>? Sizes = null, IReadOnlyList<string>? CollectionIds = null,
     decimal? PriceAmount = null, string? Currency = null, string? ImageAlt = null,
     string? ImageKind = null, string? ImageCredit = null, string? ImageRights = null,
     IReadOnlyList<CatalogueImage>? Images = null, CataloguePricing? Pricing = null);
 
-public sealed record CatalogueImage(string Url, string Alt, string? Kind, string? Credit, string? Rights, string? Sha256 = null);
+public sealed record CatalogueImage(
+    string Url,
+    string Alt,
+    string? Kind,
+    string? Credit,
+    string? Rights,
+    string? Sha256 = null);
 
 
 /// <summary>Settings plus revision stamp.</summary>

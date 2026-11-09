@@ -4,12 +4,17 @@
     <Platform Name="x64" />
     <Platform Name="x86" />
   </Configurations>
-  <Folder Name="/tests/">
-    <Project Path="tests/OcharoBlog.Tests/OcharoBlog.Tests.csproj" />
+  <Folder Name="/Services/">
+    <Project Path="OcharoBlog.Api/OcharoBlog.Api.csproj" />
+    <Project Path="OcharoBlog.Application/OcharoBlog.Application.csproj" />
+    <Project Path="OcharoBlog.Domain/OcharoBlog.Domain.csproj" />
+    <Project Path="OcharoBlog.Infrastructure/OcharoBlog.Infrastructure.csproj" />
+    <Project Path="OcharoBlog.Persistence/OcharoBlog.Persistence.csproj" />
   </Folder>
-  <Project Path="OcharoBlog.Api/OcharoBlog.Api.csproj" />
-  <Project Path="OcharoBlog.Application/OcharoBlog.Application.csproj" />
-  <Project Path="OcharoBlog.Domain/OcharoBlog.Domain.csproj" />
-  <Project Path="OcharoBlog.Infrastructure/OcharoBlog.Infrastructure.csproj" />
-  <Project Path="OcharoBlog.Persistence/OcharoBlog.Persistence.csproj" />
+  <Folder Name="/Tests/">
+    <Project Path="tests/OcharoBlog.Tests.E2E/OcharoBlog.Tests.E2E.csproj" />
+    <Project Path="tests/OcharoBlog.Tests.Integration/OcharoBlog.Tests.Integration.csproj" />
+    <Project Path="tests/OcharoBlog.Tests.Support/OcharoBlog.Tests.Support.csproj" />
+    <Project Path="tests/OcharoBlog.Tests.Unit/OcharoBlog.Tests.Unit.csproj" />
+  </Folder>
 </Solution>

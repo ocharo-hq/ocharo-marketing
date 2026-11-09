@@ -1,0 +1,33 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <IsPackable>false</IsPackable>
+    <IsTestProject>true</IsTestProject>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <FrameworkReference Include="Microsoft.AspNetCore.App" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="AwesomeAssertions" />
+    <PackageReference Include="Microsoft.NET.Test.Sdk" />
+    <PackageReference Include="xunit" />
+    <PackageReference Include="xunit.runner.visualstudio" />
+    <PackageReference Include="Microsoft.AspNetCore.Mvc.Testing" />
+    <PackageReference Include="Microsoft.Extensions.TimeProvider.Testing" />
+    <PackageReference Include="SkiaSharp" />
+    <PackageReference Include="WoW2.Sdk.Beta.Be.Identity.Testing" />
+    <PackageReference Include="WoW2.Sdk.Beta.Be.Testing" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\..\OcharoBlog.Api\OcharoBlog.Api.csproj" />
+    <ProjectReference Include="..\..\OcharoBlog.Application\OcharoBlog.Application.csproj" />
+    <ProjectReference Include="..\..\OcharoBlog.Domain\OcharoBlog.Domain.csproj" />
+    <ProjectReference Include="..\..\OcharoBlog.Infrastructure\OcharoBlog.Infrastructure.csproj" />
+    <ProjectReference Include="..\..\OcharoBlog.Persistence\OcharoBlog.Persistence.csproj" />
+    <ProjectReference Include="..\OcharoBlog.Tests.Support\OcharoBlog.Tests.Support.csproj" />
+  </ItemGroup>
+
+</Project>

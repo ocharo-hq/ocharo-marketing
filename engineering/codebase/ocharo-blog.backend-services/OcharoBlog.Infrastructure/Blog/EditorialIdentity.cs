@@ -15,10 +15,12 @@ public static class EditorialIdentity
     /// <summary>The claim naming the person: their Identity subject.</summary>
     public const string SubjectClaim = "sub";
 
-    /// <summary>Whether <paramref name="user"/> is signed in with <paramref name="organization"/> as the active organization
+    /// <summary>Whether <paramref name="user"/> is signed in with <paramref name="organization"/> as the active
+    /// organization
     /// and holds a role there.</summary>
     public static bool IsMember(ClaimsPrincipal user, Guid organization) =>
         user.Identity?.IsAuthenticated == true
-        && Guid.TryParse(user.FindFirstValue(OrganizationClaimTypeConstants.Id), out var active) && active == organization
+        && Guid.TryParse(user.FindFirstValue(OrganizationClaimTypeConstants.Id), out var active)
+            && active == organization
         && user.GetOrganizationRole(organization) is not null;
 }

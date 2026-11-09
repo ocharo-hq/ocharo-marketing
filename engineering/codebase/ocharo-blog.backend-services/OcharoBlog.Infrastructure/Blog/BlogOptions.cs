@@ -8,13 +8,15 @@ public sealed class BlogOptions
     /// <summary>The fewest seconds between scheduled-publishing passes; <c>0</c> turns the passes off.</summary>
     public const int MinimumSchedulerSeconds = 5;
 
-    /// <summary>The Identity organization this Editorial instance belongs to; only its members reach the private routes. Required.</summary>
+    /// <summary>The Identity organization this Editorial instance belongs to; only its members reach the private
+    /// routes. Required.</summary>
     public Guid OrganizationId { get; set; }
 
     public string? PlatformBaseUrl { get; set; }
     public string BrandSlug { get; set; } = "ocharo";
 
-    /// <summary>Explicit HTTPS entry to the catalogue operator app; absent by default and excluded from static exports.</summary>
+    /// <summary>Explicit HTTPS entry to the catalogue operator app; absent by default and excluded from static
+    /// exports.</summary>
     public string? CatalogueAdminUrl { get; set; }
 
     /// <summary>Runtime data root for blobs; relative paths resolve against the content root.</summary>
@@ -29,10 +31,12 @@ public sealed class BlogOptions
     /// <summary>Ocharo Catalogue origin for the public feed, e.g. https://localhost:8278.</summary>
     public string? CatalogueBaseUrl { get; set; }
 
-    /// <summary>Ocharo Brand origin; when reachable its logo and links replace the blog's own, e.g. https://localhost:8286.</summary>
+    /// <summary>Ocharo Brand origin; when reachable its logo and links replace the blog's own, e.g.
+    /// https://localhost:8286.</summary>
     public string? BrandBaseUrl { get; set; }
 
-    /// <summary>Ocharo Desk origin for background removal, e.g. https://desk.example.com/; unset or not plain HTTPS leaves removal unavailable.</summary>
+    /// <summary>Ocharo Desk origin for background removal, e.g. https://desk.example.com/; unset or not plain HTTPS
+    /// leaves removal unavailable.</summary>
     public string? DeskBaseUrl { get; set; }
 
     /// <summary>Ocharo Marketing origin the public enquiry relay posts to; unset or not plain HTTPS answers enquiries

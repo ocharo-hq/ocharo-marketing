@@ -1,40 +1,54 @@
 using Microsoft.EntityFrameworkCore;
-using OcharoBlog.Application.Blog;
+using OcharoBlog.Application.Blog.Errors;
 using OcharoBlog.Application.Blog.Repositories;
 using OcharoBlog.Domain.Blog;
+using WoW.Two.Sdk.Beta.Be.Foundation.Results;
 
 namespace OcharoBlog.Persistence.Blog;
 
 /// <summary>PostgreSQL-backed blog state with revision checks enforced inside one transaction.</summary>
 public sealed class BlogRepository(OcharoBlogDbContext db) : IBlogRepository
 {
-    public async Task<IReadOnlyList<ArticleRecord>> GetArticlesAsync(CancellationToken ct) => await db.Articles.AsNoTracking().ToListAsync(ct);
+    public async Task<IReadOnlyList<ArticleRecord>> GetArticlesAsync(CancellationToken ct) =>
+        await db.Articles.AsNoTracking().ToListAsync(ct);
 
-    public Task<ArticleRecord?> FindArticleAsync(Guid id, CancellationToken ct) => db.Articles.AsNoTracking().FirstOrDefaultAsync(a => a.Id == id, ct);
+    public Task<ArticleRecord?> FindArticleAsync(Guid id, CancellationToken ct) =>
+        db.Articles.AsNoTracking().FirstOrDefaultAsync(a => a.Id == id, ct);
 
     public Task<ArticleRecord?> FindArticleBySlugAsync(string slug, CancellationToken ct) =>
         db.Articles.AsNoTracking().FirstOrDefaultAsync(a => a.Slug == slug, ct);
 
-    public async Task<ArticleRecord> InsertArticleAsync(ArticleRecord record, string summary, CancellationToken ct)
+    public async Task<Result<ArticleRecord>> InsertArticleAsync(
+        ArticleRecord record,
+        string summary,
+        CancellationToken ct)
     {
         await using var transaction = await db.Database.BeginTransactionAsync(ct);
-        if (await db.Articles.AnyAsync(a => a.Slug == record.Slug, ct)) throw BlogException.Conflict($"Another story already uses '{record.Slug}'.");
+        if (await db.Articles.AnyAsync(a => a.Slug == record.Slug, ct))
+            return SlugTaken(record.Slug);
         db.Articles.Add(record);
         db.ArticleRevisions.Add(Snapshot(record, summary));
         await db.SaveChangesAsync(ct);
         await transaction.CommitAsync(ct);
         db.ChangeTracker.Clear();
-        return record;
+        return Result<ArticleRecord>.Ok(record);
     }
 
-    public async Task<ArticleRecord> UpdateArticleAsync(ArticleRecord record, int expectedRevision, string summary, CancellationToken ct)
+    public async Task<Result<ArticleRecord>> UpdateArticleAsync(
+        ArticleRecord record,
+        int expectedRevision,
+        string summary,
+        CancellationToken ct)
     {
         await using var transaction = await db.Database.BeginTransactionAsync(ct);
-        var current = await db.Articles.FirstOrDefaultAsync(a => a.Id == record.Id, ct) ?? throw BlogException.NotFound("Story");
+        if (await db.Articles.FirstOrDefaultAsync(a => a.Id == record.Id, ct) is not { } current)
+            return Result<ArticleRecord>.Fail(BlogErrors.NotFound("Story"));
         if (current.Revision != expectedRevision)
-            throw BlogException.Conflict($"The story was saved elsewhere (now revision {current.Revision}). Reload before saving.");
-        if (current.Slug != record.Slug && await db.Articles.AnyAsync(a => a.Slug == record.Slug && a.Id != record.Id, ct))
-            throw BlogException.Conflict($"Another story already uses '{record.Slug}'.");
+            return Result<ArticleRecord>.Fail(BlogErrors.Conflict(
+                $"The story was saved elsewhere (now revision {current.Revision}). Reload before saving."));
+        if (current.Slug != record.Slug
+            && await db.Articles.AnyAsync(a => a.Slug == record.Slug && a.Id != record.Id, ct))
+            return SlugTaken(record.Slug);
         current.Slug = record.Slug;
         current.Topic = record.Topic;
         current.Status = record.Status;
@@ -47,16 +61,18 @@ public sealed class BlogRepository(OcharoBlogDbContext db) : IBlogRepository
         await db.SaveChangesAsync(ct);
         await transaction.CommitAsync(ct);
         db.ChangeTracker.Clear();
-        return current;
+        return Result<ArticleRecord>.Ok(current);
     }
 
     public async Task<IReadOnlyList<ArticleRevisionRecord>> GetRevisionsAsync(Guid articleId, CancellationToken ct) =>
         await db.ArticleRevisions.AsNoTracking().Where(r => r.ArticleId == articleId).ToListAsync(ct);
 
     public Task<ArticleRevisionRecord?> FindRevisionAsync(Guid articleId, int revision, CancellationToken ct) =>
-        db.ArticleRevisions.AsNoTracking().FirstOrDefaultAsync(r => r.ArticleId == articleId && r.Revision == revision, ct);
+        db.ArticleRevisions.AsNoTracking()
+            .FirstOrDefaultAsync(r => r.ArticleId == articleId && r.Revision == revision, ct);
 
-    public async Task<IReadOnlyList<TopicRecord>> GetTopicsAsync(CancellationToken ct) => await db.Topics.AsNoTracking().ToListAsync(ct);
+    public async Task<IReadOnlyList<TopicRecord>> GetTopicsAsync(CancellationToken ct) =>
+        await db.Topics.AsNoTracking().ToListAsync(ct);
 
     public async Task SaveTopicAsync(TopicRecord record, CancellationToken ct)
     {
@@ -72,16 +88,23 @@ public sealed class BlogRepository(OcharoBlogDbContext db) : IBlogRepository
         db.ChangeTracker.Clear();
     }
 
-    public async Task DeleteTopicAsync(string key, CancellationToken ct) => await db.Topics.Where(t => t.Key == key).ExecuteDeleteAsync(ct);
+    public async Task DeleteTopicAsync(string key, CancellationToken ct) =>
+        await db.Topics.Where(t => t.Key == key).ExecuteDeleteAsync(ct);
 
     public Task<SiteSettingsRecord?> FindSettingsAsync(CancellationToken ct) =>
-        db.Settings.AsNoTracking().FirstOrDefaultAsync(s => s.Id == Application.Blog.Services.SiteSettingsService.SettingsId, ct);
+        db.Settings.AsNoTracking()
+            .FirstOrDefaultAsync(s => s.Id == Application.Blog.Services.SiteSettingsService.SettingsId, ct);
 
-    public async Task<SiteSettingsRecord> SaveSettingsAsync(SiteSettingsRecord record, int expectedRevision, CancellationToken ct)
+    public async Task<Result<SiteSettingsRecord>> SaveSettingsAsync(
+        SiteSettingsRecord record,
+        int expectedRevision,
+        CancellationToken ct)
     {
         await using var transaction = await db.Database.BeginTransactionAsync(ct);
         var current = await db.Settings.FirstOrDefaultAsync(s => s.Id == record.Id, ct);
-        if ((current?.Revision ?? 0) != expectedRevision) throw BlogException.Conflict("Settings were saved elsewhere. Reload before saving.");
+        if ((current?.Revision ?? 0) != expectedRevision)
+            return Result<SiteSettingsRecord>.Fail(
+                BlogErrors.Conflict("Settings were saved elsewhere. Reload before saving."));
         if (current is null)
         {
             record.Revision = 1;
@@ -97,10 +120,11 @@ public sealed class BlogRepository(OcharoBlogDbContext db) : IBlogRepository
         await db.SaveChangesAsync(ct);
         await transaction.CommitAsync(ct);
         db.ChangeTracker.Clear();
-        return record;
+        return Result<SiteSettingsRecord>.Ok(record);
     }
 
-    public Task<MediaBlobRecord?> FindMediaAsync(string sha256, CancellationToken ct) => db.MediaBlobs.AsNoTracking().FirstOrDefaultAsync(m => m.Sha256 == sha256, ct);
+    public Task<MediaBlobRecord?> FindMediaAsync(string sha256, CancellationToken ct) =>
+        db.MediaBlobs.AsNoTracking().FirstOrDefaultAsync(m => m.Sha256 == sha256, ct);
 
     public async Task<IReadOnlyList<MediaBlobRecord>> GetMediaAsync(CancellationToken ct) =>
         await db.MediaBlobs.AsNoTracking().OrderByDescending(m => m.StoredAt).ToListAsync(ct);
@@ -118,7 +142,8 @@ public sealed class BlogRepository(OcharoBlogDbContext db) : IBlogRepository
 
     public async Task SetMediaFileAsync(string sha256, string fileId, CancellationToken ct)
     {
-        await db.MediaBlobs.Where(m => m.Sha256 == sha256).ExecuteUpdateAsync(set => set.SetProperty(m => m.FileId, fileId), ct);
+        await db.MediaBlobs.Where(m => m.Sha256 == sha256)
+            .ExecuteUpdateAsync(set => set.SetProperty(m => m.FileId, fileId), ct);
         db.ChangeTracker.Clear();
     }
 
@@ -131,7 +156,16 @@ public sealed class BlogRepository(OcharoBlogDbContext db) : IBlogRepository
     }
 
     public async Task<IReadOnlyList<MediaEditRecord>> GetMediaEditsAsync(string sha, CancellationToken ct) =>
-        await db.MediaEdits.AsNoTracking().Where(e => e.Sha256 == sha).OrderByDescending(e => e.CreatedAt).Take(100).ToListAsync(ct);
+        await db.MediaEdits.AsNoTracking()
+            .Where(e => e.Sha256 == sha)
+            .OrderByDescending(e => e.CreatedAt)
+            .Take(100)
+            .ToListAsync(ct);
+
+    private static Result<ArticleRecord> SlugTaken(string slug)
+    {
+        return Result<ArticleRecord>.Fail(BlogErrors.Conflict($"Another story already uses '{slug}'."));
+    }
 
     private static ArticleRevisionRecord Snapshot(ArticleRecord record, string summary) => new()
     {

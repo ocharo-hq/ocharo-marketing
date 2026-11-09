@@ -4,17 +4,24 @@ using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using OcharoBlog.Application.Blog;
+using OcharoBlog.Application.Blog.Errors;
 using OcharoBlog.Application.Blog.Models;
 using OcharoBlog.Application.Blog.Services;
 using WoW.Two.Sdk.Beta.Be.Foundation.Errors;
+using WoW.Two.Sdk.Beta.Be.Foundation.Results;
 using WoW.Two.Sdk.Beta.Be.Identity.Core.Organizations;
 
 namespace OcharoBlog.Infrastructure.Blog;
 
 /// <summary>Asks Desk to remove backgrounds and checks a saved edit against the current session.</summary>
-/// <remarks>Editorial calls Desk as its own client: <see cref="ClientName"/> carries a service token and no person travels on
+/// <remarks>Editorial calls Desk as its own client: <see cref="ClientName"/> carries a service token and no person
+/// travels on
 /// the call. The access middleware has checked the person's <c>editorial:edit</c> by then.</remarks>
-public sealed class EditorialImageWorker(IOptions<BlogOptions> options, IHttpContextAccessor accessor, IHttpClientFactory clients, ILogger<EditorialImageWorker> logger) : IEditorialImageWorker
+public sealed class EditorialImageWorker(
+    IOptions<BlogOptions> options,
+    IHttpContextAccessor accessor,
+    IHttpClientFactory clients,
+    ILogger<EditorialImageWorker> logger) : IEditorialImageWorker
 {
     /// <summary>The HTTP client that reaches Desk.</summary>
     public const string ClientName = "ocharo-image-processing";
@@ -35,64 +42,87 @@ public sealed class EditorialImageWorker(IOptions<BlogOptions> options, IHttpCon
         try
         {
             using var request = new HttpRequestMessage(HttpMethod.Get, new Uri(desk, CapabilitiesPath));
-            using var response = await clients.CreateClient(ClientName).SendAsync(request, HttpCompletionOption.ResponseHeadersRead, deadline.Token);
+            using var response = await clients.CreateClient(ClientName)
+                .SendAsync(request, HttpCompletionOption.ResponseHeadersRead, deadline.Token);
             if (IsRefused(response) || !response.IsSuccessStatusCode) return new(false);
-            var bytes = await ReadAsync(response.Content, 4096, deadline.Token);
+            if (await ReadAsync(response.Content, 4096, deadline.Token) is not { } bytes)
+            {
+                logger.LogWarning("Could not read Desk's background removal status: {Failure}", Unavailable().Message);
+                return new(false);
+            }
             return JsonSerializer.Deserialize<ImageWorkerStatus>(bytes, BlogJson.Options) ?? new(false);
         }
-        catch (Exception e) when (e is BlogException || IsCallFailure(e, ct))
+        catch (Exception e) when (IsCallFailure(e, ct))
         {
             logger.LogWarning("Could not read Desk's background removal status: {Failure}", e.Message);
             return new(false);
         }
     }
 
-    public async Task<(byte[] Bytes, string Model)> RemoveAsync(byte[] bytes, string contentType, CancellationToken ct)
+    public async Task<Result<(byte[] Bytes, string Model)>> RemoveAsync(
+        byte[] bytes,
+        string contentType,
+        CancellationToken ct)
     {
-        if (DeskOrigin(options.Value.DeskBaseUrl) is not { } desk) throw Unavailable();
+        if (DeskOrigin(options.Value.DeskBaseUrl) is not { } desk) return Removal(Unavailable());
         using var deadline = CancellationTokenSource.CreateLinkedTokenSource(ct);
         deadline.CancelAfter(RemovalDeadline);
         try
         {
-            using var request = new HttpRequestMessage(HttpMethod.Post, new Uri(desk, RemovalPath)) { Content = new ByteArrayContent(bytes) };
+            using var request = new HttpRequestMessage(HttpMethod.Post, new Uri(desk, RemovalPath))
+            {
+                Content = new ByteArrayContent(bytes),
+            };
             request.Content.Headers.ContentType = new(contentType);
-            using var response = await clients.CreateClient(ClientName).SendAsync(request, HttpCompletionOption.ResponseHeadersRead, deadline.Token);
-            if (IsRefused(response)) throw Unavailable();
-            if (response.StatusCode == HttpStatusCode.TooManyRequests) throw new BlogException("Image processing is busy. Try again shortly.", 429);
-            if (!response.IsSuccessStatusCode || response.Content.Headers.ContentType?.MediaType != "image/png") throw Unavailable();
+            using var response = await clients.CreateClient(ClientName)
+                .SendAsync(request, HttpCompletionOption.ResponseHeadersRead, deadline.Token);
+            if (IsRefused(response)) return Removal(Unavailable());
+            if (response.StatusCode == HttpStatusCode.TooManyRequests)
+                return Removal(BlogErrors.Busy("Image processing is busy. Try again shortly."));
+            if (!response.IsSuccessStatusCode || response.Content.Headers.ContentType?.MediaType != "image/png")
+                return Removal(Unavailable());
             var models = response.Headers.TryGetValues("X-Image-Model", out var values) ? values.ToArray() : [];
-            if (models.Length != 1 || models[0].Length is 0 or > 100 || !models[0].All(c => char.IsAsciiLetterOrDigit(c) || c is '-' or '_' or '.')) throw Unavailable();
-            return (await ReadAsync(response.Content, MediaEditingService.MaximumBytes, deadline.Token), models[0]);
+            if (models.Length != 1 || !IsModelName(models[0])) return Removal(Unavailable());
+            if (await ReadAsync(response.Content, MediaEditingService.MaximumBytes, deadline.Token) is not { } removed)
+                return Removal(Unavailable());
+            return Result<(byte[] Bytes, string Model)>.Ok((removed, models[0]));
         }
         catch (Exception e) when (IsCallFailure(e, ct))
         {
             logger.LogWarning("Background removal through Desk failed: {Failure}", e.Message);
-            throw Unavailable();
+            return Removal(Unavailable());
         }
     }
 
-    public Task EnsureEditableAsync(MediaEditActor actor, CancellationToken ct)
+    public Task<Result> EnsureEditableAsync(MediaEditActor actor, CancellationToken ct)
     {
         var organization = options.Value.OrganizationId;
         if (accessor.HttpContext?.User is not { } user
             || !EditorialIdentity.IsMember(user, organization)
             || !Guid.TryParse(actor.OrganizationId, out var actorOrganization) || actorOrganization != organization
             || user.FindFirst(EditorialIdentity.SubjectClaim)?.Value != actor.UserId)
-            throw new BlogException("Your connection expired. Your original image is unchanged.", 401);
+            return Task.FromResult(
+                Result.Fail(BlogErrors.Unauthorized("Your connection expired. Your original image is unchanged.")));
         if (!user.HasOrganizationPermission(organization, EditorialIdentity.EditPermission))
-            throw new BlogException("Editor access is required.", 403);
-        return Task.CompletedTask;
+            return Task.FromResult(Result.Fail(BlogErrors.Forbidden("Editor access is required.")));
+        return Task.FromResult(Result.Ok());
     }
 
-    /// <summary>Reads Desk's origin from <c>Blog:DeskBaseUrl</c>: HTTPS with no credentials, path, query or fragment; any other value names none.</summary>
+    /// <summary>Reads Desk's origin from <c>Blog:DeskBaseUrl</c>: HTTPS with no credentials, path, query or fragment;
+    /// any other value names none.</summary>
     public static Uri? DeskOrigin(string? value) =>
-        Uri.TryCreate(value, UriKind.Absolute, out var uri) && uri.AbsoluteUri == $"https://{uri.Authority}/" ? uri : null;
+        Uri.TryCreate(value, UriKind.Absolute, out var uri) && uri.AbsoluteUri == $"https://{uri.Authority}/"
+            ? uri
+            : null;
 
-    /// <summary>Whether Desk refused the service token: the client's registration is wrong, whoever is signed in.</summary>
+    /// <summary>Whether Desk refused the service token: the client's registration is wrong, whoever is signed
+    /// in.</summary>
     private bool IsRefused(HttpResponseMessage response)
     {
         if (response.StatusCode is not (HttpStatusCode.Unauthorized or HttpStatusCode.Forbidden)) return false;
-        logger.LogWarning("Desk refused Editorial's service token with {Status}; check the client's registration for Desk.", (int)response.StatusCode);
+        logger.LogWarning(
+            "Desk refused Editorial's service token with {Status}; check the client's registration for Desk.",
+            (int)response.StatusCode);
         return true;
     }
 
@@ -103,20 +133,37 @@ public sealed class EditorialImageWorker(IOptions<BlogOptions> options, IHttpCon
         e is HttpRequestException or AppException or JsonException or InvalidOperationException
         || e is OperationCanceledException && !ct.IsCancellationRequested;
 
-    private static async Task<byte[]> ReadAsync(HttpContent content, int maximum, CancellationToken ct)
+    /// <summary>Reads a response body up to <paramref name="maximum"/> bytes; none when it is longer.</summary>
+    private static async Task<byte[]?> ReadAsync(HttpContent content, int maximum, CancellationToken ct)
     {
-        if (content.Headers.ContentLength > maximum) throw Unavailable();
+        if (content.Headers.ContentLength > maximum) return null;
         await using var stream = await content.ReadAsStreamAsync(ct);
         using var buffer = new MemoryStream();
         var chunk = new byte[8192];
         int count;
         while ((count = await stream.ReadAsync(chunk, ct)) > 0)
         {
-            if (buffer.Length + count > maximum) throw Unavailable();
+            if (buffer.Length + count > maximum) return null;
             buffer.Write(chunk, 0, count);
         }
         return buffer.ToArray();
     }
 
-    private static BlogException Unavailable() => new("Background removal is unavailable. Your original image is unchanged.", 503);
+    /// <summary>Tells whether Desk named its model plainly: 1 to 100 ASCII letters, digits, <c>-</c>, <c>_</c> or
+    /// <c>.</c>.</summary>
+    private static bool IsModelName(string model)
+    {
+        return model.Length is > 0 and <= 100
+            && model.All(c => char.IsAsciiLetterOrDigit(c) || c is '-' or '_' or '.');
+    }
+
+    private static Result<(byte[] Bytes, string Model)> Removal(AppError error)
+    {
+        return Result<(byte[] Bytes, string Model)>.Fail(error);
+    }
+
+    private static AppError Unavailable()
+    {
+        return BlogErrors.Unavailable("Background removal is unavailable. Your original image is unchanged.");
+    }
 }

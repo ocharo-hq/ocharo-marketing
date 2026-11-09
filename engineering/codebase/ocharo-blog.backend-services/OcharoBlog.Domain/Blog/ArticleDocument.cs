@@ -75,7 +75,8 @@ public static class SiteLanguages
 }
 
 /// <summary>A headed section: paragraphs, an optional list, and indexes into the story's sources.</summary>
-public sealed record ArticleSection(string Heading, IReadOnlyList<string> Paragraphs, IReadOnlyList<string>? List, IReadOnlyList<int>? SourceIndexes,
+public sealed record ArticleSection(string Heading, IReadOnlyList<string> Paragraphs, IReadOnlyList<string>? List,
+    IReadOnlyList<int>? SourceIndexes,
     string? Format = null);
 
 /// <summary>A cited source; <see cref="Supports"/> explains what claim it backs.</summary>
@@ -95,13 +96,16 @@ public static class ArticleStatus
     public static readonly IReadOnlySet<string> All = new HashSet<string> { Draft, Scheduled, Published, Archived };
 }
 
-/// <summary>A reading section of the site (<c>/topics/{key}/</c>); <see cref="Translations"/> holds uz/ru labels.</summary>
+/// <summary>A reading section of the site (<c>/topics/{key}/</c>); <see cref="Translations"/> holds uz/ru
+/// labels.</summary>
 public sealed record TopicDocument(string Key, string Name, string Short, string Description, int SortOrder,
     IReadOnlyDictionary<string, TopicText>? Translations = null)
 {
     /// <summary>The topic's labels in a language, falling back to English.</summary>
     public TopicText In(string language) =>
-        language != "en" && Translations?.GetValueOrDefault(language) is { } text && !string.IsNullOrWhiteSpace(text.Name)
+        language != "en"
+            && Translations?.GetValueOrDefault(language) is { } text
+            && !string.IsNullOrWhiteSpace(text.Name)
             ? text
             : new TopicText(Name, Short, Description);
 }
@@ -114,9 +118,15 @@ public sealed record SiteSettings
 {
     public string Title { get; init; } = "Ocharo Blog";
     public string Eyebrow { get; init; } = "Clothes. Curiosity. Everyday life.";
-    public string MastheadDescription { get; init; } = "For the clothes you keep thinking about, and the questions a photograph cannot answer.";
+    public string MastheadDescription
+    {
+        get; init;
+    } = "For the clothes you keep thinking about, and the questions a photograph cannot answer.";
     public string HomeTitle { get; init; } = "Stories about clothes and the lives we wear them in";
-    public string HomeDescription { get; init; } = "Wardrobe puzzles, styling experiments, and textile stories from the Ocharo Blog.";
+    public string HomeDescription
+    {
+        get; init;
+    } = "Wardrobe puzzles, styling experiments, and textile stories from the Ocharo Blog.";
     public string FooterTagline { get; init; } = "Contemporary Uzbek clothing";
     public string EditionNote { get; init; } = "Preview edition · Editorial drafts";
 
@@ -135,7 +145,10 @@ public sealed record SiteSettings
     public string? FeaturedSlug { get; init; }
     public string? LogoSha256 { get; init; }
     public string? HeroSha256 { get; init; }
-    public string HeroAlt { get; init; } = "A collection visualisation of patterned Ocharo nimcha designs on mannequins.";
+    public string HeroAlt
+    {
+        get; init;
+    } = "A collection visualisation of patterned Ocharo nimcha designs on mannequins.";
     public string? BandSha256 { get; init; }
     public string BandAlt { get; init; } = "A visual study bringing different patterned nimcha designs together.";
 }

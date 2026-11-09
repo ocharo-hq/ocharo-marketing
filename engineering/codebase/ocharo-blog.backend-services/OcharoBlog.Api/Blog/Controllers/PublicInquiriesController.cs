@@ -42,7 +42,10 @@ public sealed class PublicInquiriesController(BlogOptions options, IHttpClientFa
     }
     catch (Exception e) when (!ct.IsCancellationRequested && (e is HttpRequestException or TaskCanceledException))
     {
-      return Problem(statusCode: 503, detail: "We could not confirm delivery. Your enquiry may already be saved. Keep your details unchanged and retry to recover the same reference.");
+      return Problem(
+          statusCode: 503,
+          detail: "We could not confirm delivery. Your enquiry may already be saved. Keep your details unchanged and "
+              + "retry to recover the same reference.");
     }
   }
 }

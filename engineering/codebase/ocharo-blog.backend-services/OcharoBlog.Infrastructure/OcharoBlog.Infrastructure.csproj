@@ -5,7 +5,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <!-- Kit: local blob storage (IBlobRepository). -->
+    <!-- Kit: local blob storage (IBlobRepository), mediator handlers and AppResult. -->
     <PackageReference Include="WoW2.Sdk.Beta.Be" />
     <!-- The organization claims the image worker's final write check reads. -->
     <PackageReference Include="WoW2.Sdk.Beta.Be.Identity.Abstractions" />
@@ -21,6 +21,10 @@
 
   <ItemGroup>
     <InternalsVisibleTo Include="OcharoBlog.Api" />
+    <!-- Let the test projects reach internal handlers for direct tests. -->
+    <InternalsVisibleTo Include="OcharoBlog.Tests.Unit" />
+    <InternalsVisibleTo Include="OcharoBlog.Tests.Integration" />
+    <InternalsVisibleTo Include="OcharoBlog.Tests.E2E" />
   </ItemGroup>
 
 </Project>
