@@ -8,9 +8,10 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection.Extensions;
 using Microsoft.Extensions.Hosting;
-using Microsoft.Extensions.Logging;
 using OcharoMarketing.Api.RuntimeConfig.Settings;
 using OcharoMarketing.Persistence;
+using Serilog.Core;
+using Serilog.Events;
 using Xunit;
 
 namespace OcharoMarketing.Tests;
@@ -196,6 +197,9 @@ internal sealed class MarketingHost : IAsyncDisposable
     {
         var root = Path.Combine(Path.GetTempPath(), "ocharo-marketing-host", Guid.NewGuid().ToString("N"));
         Directory.CreateDirectory(root);
+        // The store file exists, as the migration runner (removed with the hosted services) leaves it on a real
+        // boot, so /health's database check answers healthy; an empty file is an empty SQLite database.
+        File.WriteAllBytes(Path.Combine(root, "api.db"), []);
         var configuration = MarketingTestIdentity.Settings();
         foreach (var (key, value) in settings) configuration[key] = value;
         var factory = new WebApplicationFactory<Program>().WithWebHostBuilder(builder =>
@@ -209,8 +213,9 @@ internal sealed class MarketingHost : IAsyncDisposable
             {
                 services.RemoveAll<IHostedService>();
                 if (!realCookieScheme) MarketingTestIdentity.Use(services);
+                // The host logs through Serilog, which reads its sinks from the services.
+                if (logs is not null) services.AddSingleton<ILogEventSink>(logs);
             });
-            if (logs is not null) builder.ConfigureLogging(logging => logging.AddProvider(logs));
         });
         return new MarketingHost(root, factory);
     }
@@ -235,27 +240,14 @@ internal sealed class MarketingHost : IAsyncDisposable
 }
 
 /// <summary>Keeps every warning the host logs, so a test can count the startup warnings.</summary>
-internal sealed class CapturedLogs : ILoggerProvider
+internal sealed class CapturedLogs : ILogEventSink
 {
     private readonly ConcurrentQueue<string> warnings = new();
 
     public IReadOnlyCollection<string> Warnings => warnings.ToArray();
 
-    public ILogger CreateLogger(string categoryName) => new Logger(warnings);
-
-    public void Dispose()
+    public void Emit(LogEvent logEvent)
     {
-    }
-
-    private sealed class Logger(ConcurrentQueue<string> warnings) : ILogger
-    {
-        public IDisposable? BeginScope<TState>(TState state) where TState : notnull => null;
-
-        public bool IsEnabled(LogLevel logLevel) => logLevel >= LogLevel.Warning;
-
-        public void Log<TState>(LogLevel logLevel, EventId eventId, TState state, Exception? exception, Func<TState, Exception?, string> formatter)
-        {
-            if (logLevel == LogLevel.Warning) warnings.Enqueue(formatter(state, exception));
-        }
+        if (logEvent.Level == LogEventLevel.Warning) warnings.Enqueue(logEvent.RenderMessage());
     }
 }

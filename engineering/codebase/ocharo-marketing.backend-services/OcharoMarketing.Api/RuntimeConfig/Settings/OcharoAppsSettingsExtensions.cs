@@ -1,33 +1,38 @@
+using OcharoMarketing.Api.RuntimeConfig.Models;
+
 namespace OcharoMarketing.Api.RuntimeConfig.Settings;
 
 /// <summary>Projects the Ocharo app addresses onto the runtime-config keys the Marketing SPA declares.</summary>
 public static class OcharoAppsSettingsExtensions
 {
-    /// <summary>Pairs each setting with its runtime-config key, in the app menu's order.</summary>
-    private static readonly (string Setting, string Key, Func<OcharoAppsSettings, string?> Read)[] Addresses =
+    /// <summary>Pairs each setting with its reader, in the app menu's order.</summary>
+    private static readonly (string Setting, Func<OcharoAppsSettings, string?> Read)[] Addresses =
     [
-        (nameof(OcharoAppsSettings.Desk), "OCHARO_DESK_URL", settings => settings.Desk),
-        (nameof(OcharoAppsSettings.Catalogue), "OCHARO_CATALOGUE_URL", settings => settings.Catalogue),
-        (nameof(OcharoAppsSettings.Studio), "OCHARO_STUDIO_URL", settings => settings.Studio),
-        (nameof(OcharoAppsSettings.Marketing), "OCHARO_MARKETING_URL", settings => settings.Marketing),
-        (nameof(OcharoAppsSettings.Editorial), "OCHARO_EDITORIAL_URL", settings => settings.Editorial),
-        (nameof(OcharoAppsSettings.Brand), "OCHARO_BRAND_URL", settings => settings.Brand),
-        (nameof(OcharoAppsSettings.Atlas), "OCHARO_ATLAS_URL", settings => settings.Atlas),
-        (nameof(OcharoAppsSettings.Wear), "OCHARO_WEAR_URL", settings => settings.Wear),
-        (nameof(OcharoAppsSettings.Blog), "OCHARO_BLOG_URL", settings => settings.Blog),
+        (nameof(OcharoAppsSettings.Desk), settings => settings.Desk),
+        (nameof(OcharoAppsSettings.Catalogue), settings => settings.Catalogue),
+        (nameof(OcharoAppsSettings.Studio), settings => settings.Studio),
+        (nameof(OcharoAppsSettings.Marketing), settings => settings.Marketing),
+        (nameof(OcharoAppsSettings.Editorial), settings => settings.Editorial),
+        (nameof(OcharoAppsSettings.Brand), settings => settings.Brand),
+        (nameof(OcharoAppsSettings.Atlas), settings => settings.Atlas),
+        (nameof(OcharoAppsSettings.Wear), settings => settings.Wear),
+        (nameof(OcharoAppsSettings.Blog), settings => settings.Blog),
     ];
 
-    /// <summary>Returns the configured, plain HTTPS addresses keyed for runtime config; any other value is left out.</summary>
-    public static IReadOnlyDictionary<string, string> ToRuntimeConfig(this OcharoAppsSettings settings)
+    /// <summary>Returns the configured, plain HTTPS addresses for runtime config; any other value is left
+    /// out.</summary>
+    public static OcharoRuntimeConfig ToRuntimeConfig(this OcharoAppsSettings settings) => new()
     {
-        var values = new Dictionary<string, string>(StringComparer.Ordinal);
-        foreach (var (_, key, read) in Addresses)
-        {
-            if (read(settings) is { } value && IsPublicAddress(value))
-                values[key] = value;
-        }
-        return values;
-    }
+        DeskUrl = Public(settings.Desk),
+        CatalogueUrl = Public(settings.Catalogue),
+        StudioUrl = Public(settings.Studio),
+        MarketingUrl = Public(settings.Marketing),
+        EditorialUrl = Public(settings.Editorial),
+        BrandUrl = Public(settings.Brand),
+        AtlasUrl = Public(settings.Atlas),
+        WearUrl = Public(settings.Wear),
+        BlogUrl = Public(settings.Blog),
+    };
 
     /// <summary>Names the settings that are configured but not plain HTTPS addresses, so the host can warn about them.</summary>
     public static IReadOnlyList<string> RejectedSettings(this OcharoAppsSettings settings)
@@ -48,4 +53,7 @@ public static class OcharoAppsSettingsExtensions
             && value.IndexOfAny(['?', '#']) < 0
             && !value.Any(char.IsWhiteSpace);
     }
+
+    /// <summary>Keeps <paramref name="value"/> when it is a public address, else nothing.</summary>
+    private static string? Public(string? value) => IsPublicAddress(value) ? value : null;
 }

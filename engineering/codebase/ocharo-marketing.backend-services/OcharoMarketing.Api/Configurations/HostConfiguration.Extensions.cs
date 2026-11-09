@@ -12,7 +12,6 @@ using OcharoMarketing.Application.Marketing.Repositories;
 using OcharoMarketing.Application.Marketing.Services;
 using OcharoMarketing.Application.Providers;
 using OcharoMarketing.Application.Scanning;
-using WoW.Two.Sdk.Beta.Be.Jobs.Core.PersonOperations;
 using OcharoMarketing.Infrastructure.Automation;
 using OcharoMarketing.Infrastructure.Cards.Brokers;
 using OcharoMarketing.Infrastructure.Cards.Services;
@@ -30,39 +29,52 @@ using OcharoMarketing.Persistence.Marketing.Repositories;
 using OcharoMarketing.Persistence.Scanning;
 using WoW.Two.Sdk.Beta.Be.Data.Migrations.Ef;
 using WoW.Two.Sdk.Beta.Be.Files.Client;
+using WoW.Two.Sdk.Beta.Be.Foundation.Configuration.ConfigCheck;
 using WoW.Two.Sdk.Beta.Be.Foundation.Options;
-using WoW.Two.Sdk.Beta.Be.Identity.Bff;
+using WoW.Two.Sdk.Beta.Be.Jobs.Core;
+using WoW.Two.Sdk.Beta.Be.Jobs.Core.PersonOperations;
 using WoW.Two.Sdk.Beta.Be.Mediator;
+using WoW.Two.Sdk.Beta.Be.Observability.HealthChecks;
 using WoW.Two.Sdk.Beta.Be.Storage.FileSystem;
-using WoW.Two.Sdk.Beta.Be.Web.Hosting;
+using WoW.Two.Sdk.Beta.Be.Web.Json;
 using WoW.Two.Sdk.Beta.Be.Web.ProblemDetails;
 
 namespace OcharoMarketing.Api.Configurations;
 
 public static partial class HostConfiguration
 {
-    /// <summary>Registers forwarded headers trusted only from loopback and <c>Deployment:TrustedProxies</c>.</summary>
-    private static WebApplicationBuilder AddProxyAwareForwarding(this WebApplicationBuilder builder)
-    {
-        // Behind the TLS-terminating ingress, same-origin write checks need the forwarded scheme; any other sender keeps its own.
-        var proxies = builder.Configuration.GetSection("Deployment:TrustedProxies").Get<string[]>() ?? [];
-        builder.Services.AddProxyAwareHosting(options =>
-        {
-            foreach (var proxy in proxies)
-                options.TrustedProxies.Add(proxy);
-        });
-        return builder;
-    }
-
-    /// <summary>Registers the host-wide marketing options and system time provider.</summary>
+    /// <summary>Registers the host-wide <c>Marketing</c> settings and declares the section Marketing's own root, so
+    /// <c>config check</c> and every boot refuse an invalid value or a key no record binds.</summary>
     private static WebApplicationBuilder AddSettings(this WebApplicationBuilder builder)
     {
-        builder.Services.Configure<MarketingOptions>(builder.Configuration.GetSection("Marketing"));
-        builder.Services.AddSingleton(TimeProvider.System);
+        builder.Services.AddValidatedSettings<MarketingOptions>(
+            builder.Configuration, MarketingOptions.SectionName, rules => rules
+            .ValidateSetting(nameof(MarketingOptions.DataDirectory), "required",
+                options => !string.IsNullOrWhiteSpace(options.DataDirectory), "must name the data folder")
+            .ValidateSetting(nameof(MarketingOptions.MaximumAssetBytes), "range",
+                options => options.MaximumAssetBytes > 0, "must be above zero")
+            .ValidateSetting(nameof(MarketingOptions.MaximumMetricReadsPerHour), "range",
+                options => options.MaximumMetricReadsPerHour is >= 0 and <= 100, "must be from 0 to 100")
+            .ValidateSetting(nameof(MarketingOptions.MetricRefreshCooldownSeconds), "range",
+                options => options.MetricRefreshCooldownSeconds >= 1, "must be at least 1")
+            .ValidateSetting(nameof(MarketingOptions.PlatformBaseUrl), "url",
+                options => IsOrigin(options.PlatformBaseUrl), "must be an absolute http(s) address")
+            .ValidateSetting(nameof(MarketingOptions.CatalogueBaseUrl), "url",
+                options => IsOrigin(options.CatalogueBaseUrl), "must be an absolute http(s) address")
+            .ValidateSetting(nameof(MarketingOptions.BlogBaseUrl), "url",
+                options => IsOrigin(options.BlogBaseUrl), "must be an absolute http(s) address"));
+        builder.Services.AddSettingsRoot(MarketingOptions.SectionName);
         return builder;
     }
 
-    /// <summary>Registers the SQLite database and its migration runner.</summary>
+    /// <summary>Tells whether an optional origin setting is unset or an absolute HTTP(S) address.</summary>
+    private static bool IsOrigin(string? value) =>
+        string.IsNullOrWhiteSpace(value)
+        || Uri.TryCreate(value, UriKind.Absolute, out var uri)
+            && (uri.Scheme == Uri.UriSchemeHttps || uri.Scheme == Uri.UriSchemeHttp);
+
+    /// <summary>Registers the SQLite database, its migration runner and its readiness check on
+    /// <c>/health</c>.</summary>
     private static WebApplicationBuilder AddSqliteDatabase(this WebApplicationBuilder builder)
     {
         var dataRoot = Path.GetFullPath(builder.Configuration["Marketing:DataDirectory"] ?? "App_Data");
@@ -71,6 +83,7 @@ public static partial class HostConfiguration
             ?? $"Data Source={Path.Combine(dataRoot, "marketing.db")};Default Timeout=30";
         builder.Services.AddDbContext<OcharoMarketingDbContext>(options => options.UseSqlite(connectionString));
         builder.Services.AddEfMigrationsRunner<OcharoMarketingDbContext>(options => options.MaxConnectAttempts = 1);
+        builder.Services.AddHealthChecks().AddDatabaseReadinessCheck<OcharoMarketingDbContext>();
         return builder;
     }
 
@@ -186,14 +199,22 @@ public static partial class HostConfiguration
         return builder;
     }
 
-    /// <summary>Registers automation orchestration, catalogue and story clients, and scheduled work.</summary>
+    /// <summary>Registers automation orchestration, catalogue and story clients, and the unattended pass every
+    /// <c>Marketing:AutomationInterval</c>.</summary>
     private static WebApplicationBuilder AddAutomation(this WebApplicationBuilder builder)
     {
         builder.Services.AddScoped<AutomationService>();
         builder.Services.AddScoped<AutomationRunner>();
         builder.Services.AddHttpClient<CatalogueSyncService>(client => client.Timeout = TimeSpan.FromSeconds(60));
         builder.Services.AddHttpClient<BlogStoryService>(client => client.Timeout = TimeSpan.FromSeconds(15));
-        builder.Services.AddHostedService<AutomationWorker>();
+        // A pass syncs the catalogue over HTTP and renders drafts; the worker health marks it stale after 11 minutes.
+        builder.Services.AddPeriodicJob<AutomationRunner>(
+            "marketing-automation", (runner, ct) => runner.RunScheduledAsync(ct),
+            (options, root) =>
+            {
+                options.Interval = root.GetRequiredService<MarketingOptions>().AutomationInterval;
+                options.PassTimeout = TimeSpan.FromMinutes(10);
+            });
         return builder;
     }
 
@@ -209,8 +230,8 @@ public static partial class HostConfiguration
     /// <summary>Registers OpenAI settings, image generation and content assistance.</summary>
     private static WebApplicationBuilder AddOpenAi(this WebApplicationBuilder builder)
     {
-        builder.Services.AddSingleton(builder.Configuration.GetSection("Providers:OpenAi")
-            .Get<OpenAiProviderOptions>() ?? new());
+        builder.Services.AddValidatedSettings<OpenAiProviderOptions>(
+            builder.Configuration, "Providers:OpenAi", _ => { });
         builder.AddProvider<OpenAiImageGenerationBroker>();
         builder.AddProvider<OpenAiContentAssistanceBroker>();
         builder.Services.AddTransient<IImageGenerationBroker>(
@@ -223,8 +244,8 @@ public static partial class HostConfiguration
     /// <summary>Registers Gemini settings and image generation.</summary>
     private static WebApplicationBuilder AddGemini(this WebApplicationBuilder builder)
     {
-        builder.Services.AddSingleton(builder.Configuration.GetSection("Providers:Gemini")
-            .Get<GeminiProviderOptions>() ?? new());
+        builder.Services.AddValidatedSettings<GeminiProviderOptions>(
+            builder.Configuration, "Providers:Gemini", _ => { });
         builder.AddProvider<GeminiImageGenerationBroker>();
         builder.Services.AddTransient<IImageGenerationBroker>(
             provider => provider.GetRequiredService<GeminiImageGenerationBroker>());
@@ -234,8 +255,8 @@ public static partial class HostConfiguration
     /// <summary>Registers Telegram settings, account verification, publishing and receipt reconciliation.</summary>
     private static WebApplicationBuilder AddTelegram(this WebApplicationBuilder builder)
     {
-        builder.Services.AddSingleton(builder.Configuration.GetSection("Providers:Telegram")
-            .Get<TelegramProviderOptions>() ?? new());
+        builder.Services.AddValidatedSettings<TelegramProviderOptions>(
+            builder.Configuration, "Providers:Telegram", _ => { });
         builder.AddProvider<TelegramAccountVerificationBroker>();
         builder.AddProvider<TelegramSocialPublishingBroker>();
         builder.Services.AddSingleton<IReceiptReconciliationBroker, TelegramReceiptReconciliationBroker>();
@@ -249,7 +270,8 @@ public static partial class HostConfiguration
     /// <summary>Registers X settings, account verification, publishing, metrics and receipt reconciliation.</summary>
     private static WebApplicationBuilder AddX(this WebApplicationBuilder builder)
     {
-        builder.Services.AddSingleton(builder.Configuration.GetSection("Providers:X").Get<XProviderOptions>() ?? new());
+        builder.Services.AddValidatedSettings<XProviderOptions>(
+            builder.Configuration, "Providers:X", _ => { });
         builder.AddProvider<XAccountVerificationBroker>();
         builder.AddProvider<XSocialMetricsBroker>();
         builder.AddProvider<XReceiptReconciliationBroker>();
@@ -268,8 +290,8 @@ public static partial class HostConfiguration
     /// <summary>Registers Instagram settings and publishing.</summary>
     private static WebApplicationBuilder AddInstagram(this WebApplicationBuilder builder)
     {
-        builder.Services.AddSingleton(builder.Configuration.GetSection("Providers:Instagram")
-            .Get<InstagramProviderOptions>() ?? new());
+        builder.Services.AddValidatedSettings<InstagramProviderOptions>(
+            builder.Configuration, "Providers:Instagram", _ => { });
         builder.AddProvider<InstagramSocialPublishingBroker>();
         builder.Services.AddTransient<ISocialPublishingBroker>(
             provider => provider.GetRequiredService<InstagramSocialPublishingBroker>());
@@ -279,8 +301,8 @@ public static partial class HostConfiguration
     /// <summary>Registers WhatsApp settings and publishing.</summary>
     private static WebApplicationBuilder AddWhatsApp(this WebApplicationBuilder builder)
     {
-        builder.Services.AddSingleton(builder.Configuration.GetSection("Providers:WhatsApp")
-            .Get<WhatsAppProviderOptions>() ?? new());
+        builder.Services.AddValidatedSettings<WhatsAppProviderOptions>(
+            builder.Configuration, "Providers:WhatsApp", _ => { });
         builder.AddProvider<WhatsAppSocialPublishingBroker>();
         builder.Services.AddTransient<ISocialPublishingBroker>(
             provider => provider.GetRequiredService<WhatsAppSocialPublishingBroker>());
@@ -319,42 +341,26 @@ public static partial class HostConfiguration
             app.Logger.LogWarning("Runtime config leaves out {Settings}: each must be a plain HTTPS address.", string.Join(", ", rejected));
     }
 
-    /// <summary>Registers HTTP problem details, controllers and OpenAPI.</summary>
+    /// <summary>Registers HTTP problem details and controllers on the SDK wire contract.</summary>
     private static WebApplicationBuilder AddControllers(this WebApplicationBuilder builder)
     {
         builder.Services.AddHttpProblemDetails();
-        builder.Services.AddControllers();
-        builder.Services.AddOpenApi();
+        builder.Services.AddControllersWithSdkJson();
         return builder;
     }
 
-    /// <summary>Configures the request boundary, sign-in, static shell and public inquiry budget.</summary>
-    private static WebApplication UsePipeline(this WebApplication app)
+    /// <summary>Configures Marketing's request boundary: rejected commands as ProblemDetails, then the response headers
+    /// and the same-origin write check, ahead of sign-in.</summary>
+    private static IApplicationBuilder UseMarketingBoundary(this IApplicationBuilder app)
     {
-        app.UseProxyAwareHosting();
-        app.UseHttpProblemDetails();
         app.UseMiddleware<MarketingExceptionMiddleware>();
         app.UseMiddleware<MarketingHttpBoundaryMiddleware>();
-        app.UseAccess();
-        app.UseDefaultFiles();
-        app.UseStaticFiles();
-        app.UseRateLimiter();
         return app;
     }
 
-    /// <summary>Configures controller, Identity session, status, API error and SPA endpoints.</summary>
-    private static WebApplication MapEndpoints(this WebApplication app)
+    /// <summary>Configures the anonymous service status the desk reads its version from.</summary>
+    private static WebApplication MapSystemStatus(this WebApplication app)
     {
-        app.WarnAboutRejectedRuntimeConfig();
-        app.MapControllers();
-        app.MapIdentityBffEndpoints();
-        app.MapGet("/health", () => Results.Ok(new
-        {
-            status = "healthy",
-            service = "OcharoMarketing",
-            version = typeof(HostConfiguration).Assembly.GetCustomAttribute<AssemblyInformationalVersionAttribute>()
-                ?.InformationalVersion ?? "dev",
-        }));
         app.MapGet("/api/system/status", () => Results.Ok(new
         {
             status = "healthy",
@@ -362,8 +368,6 @@ public static partial class HostConfiguration
             version = typeof(HostConfiguration).Assembly.GetCustomAttribute<AssemblyInformationalVersionAttribute>()
                 ?.InformationalVersion ?? "dev",
         }));
-        app.MapFallback("/api/{**slug}", () => Results.Problem(statusCode: 404, title: "API route not found"));
-        app.MapFallbackToFile("index.html");
         return app;
     }
 }

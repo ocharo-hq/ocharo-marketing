@@ -13,7 +13,12 @@ using WoW.Two.Sdk.Beta.Be.Jobs.Core.PersonOperations;
 namespace OcharoMarketing.Infrastructure.Marketing.BackgroundServices;
 
 /// <summary>Processes durable local jobs with a fresh dependency scope and conservative external recovery.</summary>
-public sealed class GenerationWorker(IServiceScopeFactory scopeFactory, ILogger<GenerationWorker> logger, WorkerHealthService health, IPersonOperationTracker operations) : BackgroundService
+public sealed class GenerationWorker(
+    IServiceScopeFactory scopeFactory,
+    ILogger<GenerationWorker> logger,
+    WorkerHealthService health,
+    IPersonOperationTracker operations,
+    TimeProvider time) : BackgroundService
 {
     private const string AccessLostMessage = "This job stopped because the person who asked for it no longer has access.";
 
@@ -26,7 +31,7 @@ public sealed class GenerationWorker(IServiceScopeFactory scopeFactory, ILogger<
             {
                 using var scope = scopeFactory.CreateScope();
                 var repository = scope.ServiceProvider.GetRequiredService<IMarketingRepository>();
-                var claim = await repository.ClaimAsync(DateTimeOffset.UtcNow, TimeSpan.FromMinutes(15), stoppingToken);
+                var claim = await repository.ClaimAsync(time.GetUtcNow(), TimeSpan.FromMinutes(15), stoppingToken);
                 health.Completed("generation");
                 if (claim is null)
                 {

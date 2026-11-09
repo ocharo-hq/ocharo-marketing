@@ -406,7 +406,8 @@ public sealed class MarketingAccessTests
     }
 
     [Theory]
-    [InlineData("GET", "/health", false)]
+    // The boot bundle's health endpoint is never cached.
+    [InlineData("GET", "/health", true)]
     [InlineData("GET", "/api", true)]
     [InlineData("GET", "/API/RUNTIME-CONFIG", true)]
     [InlineData("GET", "/api/system/status", true)]

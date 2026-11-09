@@ -153,7 +153,9 @@ public sealed class MarketingServiceTests : IAsyncLifetime
             .AddScoped<IMarketingRepository, MarketingRepository>()
             .AddScoped<IAssetService>(services => Services(services.GetRequiredService<OcharoMarketingDbContext>()).Assets)
             .AddSingleton<ICardRenderingService>(cards).BuildServiceProvider();
-        using var worker = new GenerationWorker(provider.GetRequiredService<IServiceScopeFactory>(), NullLogger<GenerationWorker>.Instance, new WorkerHealthService(TimeProvider.System), operations);
+        using var worker = new GenerationWorker(provider.GetRequiredService<IServiceScopeFactory>(),
+            NullLogger<GenerationWorker>.Instance, new WorkerHealthService(TimeProvider.System), operations,
+            TimeProvider.System);
         await worker.StartAsync(default);
         try
         {
@@ -184,7 +186,9 @@ public sealed class MarketingServiceTests : IAsyncLifetime
             .AddScoped<IMarketingRepository, MarketingRepository>()
             .AddScoped<IAssetService>(services => Services(services.GetRequiredService<OcharoMarketingDbContext>()).Assets)
             .AddSingleton<ICardRenderingService>(cards).BuildServiceProvider();
-        using var worker = new GenerationWorker(provider.GetRequiredService<IServiceScopeFactory>(), NullLogger<GenerationWorker>.Instance, new WorkerHealthService(TimeProvider.System), Operations());
+        using var worker = new GenerationWorker(provider.GetRequiredService<IServiceScopeFactory>(),
+            NullLogger<GenerationWorker>.Instance, new WorkerHealthService(TimeProvider.System), Operations(),
+            TimeProvider.System);
         await worker.StartAsync(default);
         try
         {
@@ -208,7 +212,7 @@ public sealed class MarketingServiceTests : IAsyncLifetime
     {
         var repository = new MarketingRepository(db);
         var assets = new LocalAssetService(repository, new LocalFileBlobRepository(blobRoot), Options.Create(new MarketingOptions()));
-        return (repository, assets, new MarketingService(repository, assets, cards));
+        return (repository, assets, new MarketingService(repository, assets, cards, TimeProvider.System));
     }
 
     private static DraftInput Input() => new("Nimcha", "nimcha", "t02-bone", "en", "Caption", ["instagram"]);

@@ -1,16 +1,28 @@
+using Microsoft.Extensions.Logging;
 using OcharoMarketing.Application.Marketing;
 using OcharoMarketing.Application.Marketing.Models;
 using OcharoMarketing.Application.Marketing.Repositories;
+using OcharoMarketing.Infrastructure.Marketing.Services;
 
 namespace OcharoMarketing.Infrastructure.Automation;
 
 /// <summary>
-/// One entry point for catalogue sync (+ the new-product draft rule) and unattended passes, shared by the API and
-/// <see cref="AutomationWorker"/>. Unattended passes only sync, draft and plan; they never queue delivery.
+/// One entry point for catalogue sync (+ the new-product draft rule) and unattended passes, shared by the API and the
+/// host's periodic automation job (<see cref="RunScheduledAsync"/>). Unattended passes only sync, draft and plan; they
+/// never queue delivery.
 /// </summary>
-public sealed class AutomationRunner(CatalogueSyncService catalogue, AutomationService automation, IMarketingRepository repository, TimeProvider time)
+public sealed class AutomationRunner(
+    CatalogueSyncService catalogue,
+    AutomationService automation,
+    IMarketingRepository repository,
+    TimeProvider time,
+    WorkerHealthService health,
+    ILogger<AutomationRunner> logger)
 {
     private const string RunKey = "automation-run";
+
+    /// <summary>The worker name the operations overview reports the unattended passes under.</summary>
+    private const string Worker = "automation";
 
     public async Task<CatalogueSyncReport> SyncCatalogueAsync(CancellationToken ct)
     {
@@ -63,6 +75,24 @@ public sealed class AutomationRunner(CatalogueSyncService catalogue, AutomationS
         }
 
         return ran;
+    }
+
+    /// <summary>Runs one unattended pass for the periodic job and records its outcome in the worker health; a
+    /// failed pass still fails, so the job logs it and runs the next on schedule.</summary>
+    public async Task RunScheduledAsync(CancellationToken ct)
+    {
+        var completed = false;
+        try
+        {
+            if (await RunDueAsync(ct))
+                logger.LogInformation("Unattended marketing automation pass completed");
+            completed = true;
+        }
+        finally
+        {
+            if (completed) health.Completed(Worker);
+            else if (!ct.IsCancellationRequested) health.Failed(Worker);
+        }
     }
 
     private async Task SaveRunAsync(Func<AutomationRunModel, AutomationRunModel> change, CancellationToken ct) =>

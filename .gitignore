@@ -5,7 +5,8 @@
 **/.vite/
 node_modules/
 
-# Local DB + secrets
+# Local DB + secrets, and the SDK's rolling log files
+**/logs/
 **/App_Data/
 *.db
 *.db-shm

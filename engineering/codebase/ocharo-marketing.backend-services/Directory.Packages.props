@@ -21,7 +21,6 @@
 
   <ItemGroup>
     <!-- ASP.NET Core / EF Core (.NET 10). Floors satisfy the kit's transitive minimums (no downgrades). -->
-    <PackageVersion Include="Microsoft.AspNetCore.OpenApi" Version="10.0.12" />
     <PackageVersion Include="Microsoft.EntityFrameworkCore" Version="10.0.14" />
     <PackageVersion Include="Microsoft.EntityFrameworkCore.Sqlite" Version="10.0.14" />
     <PackageVersion Include="Microsoft.Extensions.DependencyInjection.Abstractions" Version="10.0.14" />

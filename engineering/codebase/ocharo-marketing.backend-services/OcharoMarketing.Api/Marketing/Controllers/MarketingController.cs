@@ -197,7 +197,7 @@ public sealed class MarketingController(
         input.Prompt,
         input.ProductId,
         "queued",
-        DateTimeOffset.UtcNow,
+        time.GetUtcNow(),
         [],
         null);
     await repository.EnqueueAsync(

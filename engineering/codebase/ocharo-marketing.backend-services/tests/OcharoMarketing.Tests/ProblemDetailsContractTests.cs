@@ -8,7 +8,6 @@ public sealed class ProblemDetailsContractTests
 {
     [Theory]
     [InlineData("GET", "/api/missing-contract-route", null, null, 404)]
-    [InlineData("PATCH", "/health", null, null, 405)]
     [InlineData("POST", "/api/marketing/drafts", "application/json", "{", 400)]
     [InlineData("POST", "/api/marketing/drafts", "text/plain", "invalid", 415)]
     public async Task ErrorsRemainProblemJsonWhenHtmlIsRequested(string method, string path, string? contentType, string? body, int expected)

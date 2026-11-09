@@ -8,7 +8,8 @@ using OcharoMarketing.Application.Marketing.Services;
 namespace OcharoMarketing.Infrastructure.Marketing.Services;
 
 /// <summary>Coordinates local draft review, immutable scheduling and deterministic card preparation.</summary>
-public sealed class MarketingService(IMarketingRepository repository, IAssetService assets, ICardRenderingService cards)
+public sealed class MarketingService(
+    IMarketingRepository repository, IAssetService assets, ICardRenderingService cards, TimeProvider time)
 {
     private static readonly string[] Channels = ["instagram", "telegram", "whatsapp", "x"];
 
@@ -41,7 +42,7 @@ public sealed class MarketingService(IMarketingRepository repository, IAssetServ
         var previous = id is null ? null : await repository.FindDraftAsync(id, ct) ?? throw new MarketingException("Draft not found.", 404);
         if (previous is not null && input.ExpectedRevision != previous.Revision)
             throw new MarketingException("The draft changed. Reload before saving.", 409);
-        var now = DateTimeOffset.UtcNow;
+        var now = time.GetUtcNow();
         var draft = new DraftModel(id ?? Guid.NewGuid().ToString("N"), input.Title.Trim(), input.ProductId, input.PresetId,
             input.Locale, input.Caption, input.Channels.Distinct().ToArray(), mediaIds, (previous?.Revision ?? 0) + 1,
             null, "draft", previous?.CreatedAt ?? now, now, input.Composition);
@@ -61,7 +62,7 @@ public sealed class MarketingService(IMarketingRepository repository, IAssetServ
         var draft = await repository.FindDraftAsync(id, ct) ?? throw new MarketingException("Draft not found.", 404);
         if (!draft.Channels.Contains(input.Channel) || !Channels.Contains(input.Channel))
             throw new MarketingException("Select a channel included in this approved draft.");
-        if (input.ScheduledAt <= DateTimeOffset.UtcNow)
+        if (input.ScheduledAt <= time.GetUtcNow())
             throw new MarketingException("Select a future date and time.");
         var schedule = new ScheduleModel(Guid.NewGuid().ToString("N"), id, input.ExpectedRevision, input.Channel,
             input.ScheduledAt.ToUniversalTime(), "planned", "Saved as a plan. Live delivery is disabled; export this approved revision for manual publishing.", null, draft.Title);
@@ -83,7 +84,7 @@ public sealed class MarketingService(IMarketingRepository repository, IAssetServ
         var preview = await PreviewAsync(input, ct);
         if (string.IsNullOrWhiteSpace(preview.Html)) throw new MarketingException(string.Join(" ", preview.Issues));
         var job = new GenerationJobModel(Guid.NewGuid().ToString("N"), "card", "local", input.Title, input.ProductId,
-            "queued", DateTimeOffset.UtcNow, [], null);
+            "queued", time.GetUtcNow(), [], null);
         // Freeze the exact HTML so a later preset change cannot mutate this job's output.
         await repository.EnqueueAsync(job, MarketingJson.Write(new CardRenderPayload(preview.Html, input.PresetId)), requestedBy, ct);
         return job;

@@ -63,7 +63,7 @@ public sealed class LivePlatformContractTests : IAsyncLifetime
         await repository.SeedAsync(new BrandModel("OCHARO", "Asia/Tashkent", null),
             [new ProductModel("nimcha", "Nimcha", "nimcha", "", "", "front", ["front"], [], null, "UZS", "review", "test", [])], default);
         var cards = new Presets();
-        var marketing = new MarketingService(repository, assets, cards);
+        var marketing = new MarketingService(repository, assets, cards, TimeProvider.System);
         var blog = new BlogStoryService(repository, marketing, new HttpClient(), Options.Create(new MarketingOptions { BlogBaseUrl = url }));
 
         var stories = await blog.ListAsync(default);

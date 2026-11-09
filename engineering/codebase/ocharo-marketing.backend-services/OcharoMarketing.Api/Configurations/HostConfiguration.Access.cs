@@ -5,6 +5,7 @@ using Microsoft.Extensions.Logging.Abstractions;
 using Microsoft.Extensions.Options;
 using OcharoMarketing.Api.Access;
 using OcharoMarketing.Infrastructure.Marketing;
+using WoW.Two.Sdk.Beta.Be.Foundation.Options;
 using WoW.Two.Sdk.Beta.Be.Identity.Bff;
 
 namespace OcharoMarketing.Api.Configurations;
@@ -12,16 +13,19 @@ namespace OcharoMarketing.Api.Configurations;
 public static partial class HostConfiguration
 {
     /// <summary>Registers sign-in through Ocharo's Identity instance (BFF, section <c>Identity:Client</c>), the bound
-    /// organization (<c>Marketing:OrganizationId</c>, required at boot) and the Data Protection key ring that encrypts the sessions.</summary>
+    /// organization (<c>Marketing:OrganizationId</c>, required at boot and by <c>config check</c>) and the Data
+    /// Protection key ring that encrypts the sessions.</summary>
     /// <remarks>The BFF keeps sessions in the SDK default, the in-memory distributed cache: Marketing stores in SQLite and no
     /// SQLite <c>IDistributedCache</c> exists, so a restart or deploy signs everyone out once. The key ring persists to
     /// <c>DataProtection:KeysPath</c>, else <c>{Marketing:DataDirectory}/keys</c>, beside the database on a deployed volume.</remarks>
     private static WebApplicationBuilder AddAccess(this WebApplicationBuilder builder)
     {
         builder.Services.AddIdentityBff();
-        builder.Services.AddOptions<MarketingAccessOptions>().BindConfiguration(MarketingAccessOptions.Section)
-            .Validate(options => options.OrganizationId != Guid.Empty, "Marketing:OrganizationId must name the Identity organization this Marketing instance serves.")
-            .ValidateOnStart();
+        builder.Services.AddValidatedSettings<MarketingAccessOptions>(
+            builder.Configuration, MarketingAccessOptions.Section, rules => rules.ValidateSetting(
+                nameof(MarketingAccessOptions.OrganizationId), "required",
+                options => options.OrganizationId != Guid.Empty,
+                "must name the Identity organization this Marketing instance serves"));
         // Resolve final configuration after test/deployment overrides have been applied.
         builder.Services.AddDataProtection();
         builder.Services.AddOptions<KeyManagementOptions>().Configure<IConfiguration, IOptions<MarketingOptions>>((options, configuration, marketing) =>
@@ -37,7 +41,7 @@ public static partial class HostConfiguration
 
     /// <summary>Configures the session pipeline: HTTPS for the session routes, the BFF (authentication, the
     /// <c>X-Csrf-Token</c> check, authorization), then the bound-organization membership and permission check.</summary>
-    private static WebApplication UseAccess(this WebApplication app)
+    private static IApplicationBuilder UseAccess(this IApplicationBuilder app)
     {
         app.Use(async (context, next) =>
         {

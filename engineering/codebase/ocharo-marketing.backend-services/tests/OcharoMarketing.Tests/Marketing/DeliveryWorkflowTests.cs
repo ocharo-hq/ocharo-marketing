@@ -2,6 +2,7 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.Time.Testing;
 using OcharoMarketing.Application.Marketing;
 using OcharoMarketing.Application.Marketing.Models;
 using OcharoMarketing.Application.Marketing.Services;
@@ -18,7 +19,7 @@ namespace OcharoMarketing.Tests.Marketing;
 public sealed class DeliveryWorkflowTests : IAsyncLifetime
 {
     private readonly MarketingDatabase database = new();
-    private readonly TestClock clock = new();
+    private readonly FakeTimeProvider clock = new(DateTimeOffset.UtcNow);
     private readonly IConfigurationRoot configuration = new ConfigurationBuilder().AddInMemoryCollection(new Dictionary<string, string?> {
         ["Marketing:EnableLivePublishing"] = "true", ["Marketing:EnableAccountVerification"] = "true",
         ["Providers:Telegram:Enabled"] = "true", ["Providers:X:Enabled"] = "true", ["Providers:X:EnableMetricReads"] = "true",
@@ -35,7 +36,7 @@ public sealed class DeliveryWorkflowTests : IAsyncLifetime
     public Task InitializeAsync() => database.InitializeAsync();
     public Task DisposeAsync() => database.DisposeAsync();
 
-    private DeliveryPolicy Policy => new(configuration, telegram, x);
+    private DeliveryPolicy Policy => TestDeliveryPolicy.Create(configuration, telegram, x);
     private PublicationService Service(OcharoMarketingDbContext db) => new(new DeliveryRepository(db), new MarketingRepository(db), assets,
         new FakeExternal(), Policy, [telegramVerifier, xVerifier], [telegramPublisher, xPublisher], clock);
 
@@ -362,13 +363,6 @@ public sealed class DeliveryWorkflowTests : IAsyncLifetime
             return Task.FromResult(new ReceiptReconciliationResult(BrokerOutcome.Succeeded, "x", "verified", "Owned final receipt",
                 input.Receipt with { Stage = "published" }));
         }
-    }
-
-    private sealed class TestClock : TimeProvider
-    {
-        private DateTimeOffset now = DateTimeOffset.UtcNow;
-        public override DateTimeOffset GetUtcNow() => now;
-        public void Advance(TimeSpan duration) => now = now.Add(duration);
     }
 
     private sealed class FakePublisher(string provider) : ISocialPublishingBroker

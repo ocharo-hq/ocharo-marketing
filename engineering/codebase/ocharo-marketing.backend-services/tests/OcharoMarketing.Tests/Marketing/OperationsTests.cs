@@ -1,5 +1,7 @@
 using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.Logging.Abstractions;
 using Microsoft.Extensions.Options;
+using Microsoft.Extensions.Time.Testing;
 using OcharoMarketing.Application.Cards.Models;
 using OcharoMarketing.Application.Cards.Services;
 using OcharoMarketing.Application.Marketing;
@@ -20,7 +22,7 @@ namespace OcharoMarketing.Tests.Marketing;
 public sealed class OperationsTests : IAsyncLifetime
 {
     private readonly MarketingDatabase database = new();
-    private readonly Clock clock = new();
+    private readonly FakeTimeProvider clock = new(new DateTimeOffset(2026, 9, 29, 12, 0, 0, TimeSpan.Zero));
     private readonly string blobs = Path.Combine(Path.GetTempPath(), "ocharo-operations-tests", Guid.NewGuid().ToString("N"));
     public Task InitializeAsync() => database.InitializeAsync();
     public async Task DisposeAsync() { await database.DisposeAsync(); if (Directory.Exists(blobs)) Directory.Delete(blobs, true); }
@@ -80,7 +82,8 @@ public sealed class OperationsTests : IAsyncLifetime
         await using var db = database.NewContext();
         var input = Observation();
         input = invalid switch {
-            "negative" => input with { Likes = -1 }, "future" => input with { ObservedAt = clock.Now.AddHours(1) },
+            "negative" => input with { Likes = -1 },
+            "future" => input with { ObservedAt = clock.GetUtcNow().AddHours(1) },
             "before" => input with { ObservedAt = input.PublishedAt.AddMinutes(-1) }, "javascript" => input with { PostUrl = "javascript:alert(1)" },
             "credentials" => input with { PostUrl = "https://user:secret@example.test/post" },
             "empty" => input with { Views = null, Reach = null, Likes = null, Comments = null, Shares = null, Saves = null },
@@ -94,12 +97,17 @@ public sealed class OperationsTests : IAsyncLifetime
     {
         await using var db = database.NewContext(); var service = Service(db);
         var input = Observation(); await service.RecordAsync(input, "reviewer", default);
-        await service.RecordAsync(input with { Id = Guid.NewGuid().ToString(), ObservedAt = clock.Now, Reach = 200 }, "reviewer", default);
+        await service.RecordAsync(
+            input with { Id = Guid.NewGuid().ToString(), ObservedAt = clock.GetUtcNow(), Reach = 200 },
+            "reviewer", default);
         var repository = new MarketingRepository(db);
-        var draft = new DraftModel("draft", "Planned only", "product", "t02-bone", "en", "Caption", ["instagram"], [], 1, 1, "approved", clock.Now, clock.Now);
+        var draft = new DraftModel("draft", "Planned only", "product", "t02-bone", "en", "Caption", ["instagram"], [],
+            1, 1, "approved", clock.GetUtcNow(), clock.GetUtcNow());
         await repository.SaveDraftAsync(draft, null, default);
         await repository.ApproveDraftAsync(draft.Id, 1, default);
-        await repository.ScheduleAsync(new("plan", "draft", 1, "instagram", clock.Now.AddHours(-2), "planned", null, null, draft.Title), default);
+        await repository.ScheduleAsync(
+            new("plan", "draft", 1, "instagram", clock.GetUtcNow().AddHours(-2), "planned", null, null, draft.Title),
+            default);
         var overview = await service.OverviewAsync(default);
         var instagram = overview.Channels.Single(x => x.Strategy.Channel == "instagram");
         Assert.Equal(1, instagram.ManualPostsThisWeek); Assert.Equal(0, instagram.ConfirmedReceiptsThisWeek);
@@ -112,11 +120,13 @@ public sealed class OperationsTests : IAsyncLifetime
     [Fact]
     public async Task Cross_week_receipt_reconciliation_counts_confirmation_not_publication_date()
     {
-        await using var db = database.NewContext(); var service = Service(db); var lastWeek = clock.Now.AddDays(-8);
+        await using var db = database.NewContext(); var service = Service(db);
+        var lastWeek = clock.GetUtcNow().AddDays(-8);
         var draft = new DraftModel("old-draft", "Old post", "p", "t02-bone", "en", "Caption", ["x"], [], 1, 1, "approved", lastWeek, lastWeek);
         var snapshot = new PublicationSnapshotModel(draft, new("x", "x", 1, "account", "account", "Account", ["public-metrics"], lastWeek), []);
         var operation = new PublicationOperationModel("old-op", "old-schedule", "x", "x", 1, "published", "complete", lastWeek,
-            lastWeek, lastWeek, clock.Now, "Receipt reconciled today", new("x", "published", "old-post"), snapshot);
+            lastWeek, lastWeek, clock.GetUtcNow(), "Receipt reconciled today", new("x", "published", "old-post"),
+            snapshot);
         db.PublicationOperations.Add(new PublicationOperationRecord { Id=operation.Id, ScheduleId=operation.ScheduleId, Provider="x", ConnectionId="x", Status="published", Json=MarketingJson.Write(operation) });
         await db.SaveChangesAsync();
         var overview = await service.OverviewAsync(default);
@@ -143,28 +153,31 @@ public sealed class OperationsTests : IAsyncLifetime
         Assert.All(health.Read(), x => Assert.Equal("unobserved", x.Status));
         health.Started("automation"); health.Completed("automation");
         Assert.Equal("healthy", health.Read().Single(x => x.Worker == "automation").Status);
-        clock.Now = clock.Now.AddMinutes(12);
+        clock.Advance(TimeSpan.FromMinutes(12));
         Assert.Equal("stale", health.Read().Single(x => x.Worker == "automation").Status);
         health.Failed("automation"); Assert.Equal("failed", health.Read().Single(x => x.Worker == "automation").Status);
         health.Completed("automation"); Assert.Null(health.Read().Single(x => x.Worker == "automation").LastError);
     }
 
     private EngagementInput Observation() => new(Guid.NewGuid().ToString(), "instagram", "https://example.test/posts/one", "Synthetic post", null,
-        clock.Now.AddHours(-2), clock.Now.AddHours(-1), 500, 100, 4, 2, 1, 3, null, null, null, "Synthetic manual Insights evidence");
+        clock.GetUtcNow().AddHours(-2), clock.GetUtcNow().AddHours(-1), 500, 100, 4, 2, 1, 3, null, null, null,
+        "Synthetic manual Insights evidence");
 
     private OperationsService Service(OcharoMarketingDbContext db)
     {
         var repository = new MarketingRepository(db);
         var assets = new LocalAssetService(repository, new LocalFileBlobRepository(blobs), Options.Create(new MarketingOptions()));
-        var marketing = new MarketingService(repository, assets, new Cards());
+        var marketing = new MarketingService(repository, assets, new Cards(), clock);
         var automation = new AutomationService(repository, marketing, new Cards(), clock);
         var catalogue = new CatalogueSyncService(repository, assets, new HttpClient(new NeverHttp()), Options.Create(new MarketingOptions()));
         return new(new OperationsRepository(db), repository, new DeliveryRepository(db), automation,
-            new AutomationRunner(catalogue, automation, repository, clock), new DeliveryPolicy(new ConfigurationBuilder().Build(), new TelegramProviderOptions(), new XProviderOptions()),
+            new AutomationRunner(catalogue, automation, repository, clock, new WorkerHealthService(clock),
+                NullLogger<AutomationRunner>.Instance),
+            TestDeliveryPolicy.Create(new ConfigurationBuilder().Build(), new TelegramProviderOptions(),
+                new XProviderOptions()),
             new WorkerHealthService(clock), clock);
     }
 
-    private sealed class Clock : TimeProvider { public DateTimeOffset Now = new(2026, 9, 29, 12, 0, 0, TimeSpan.Zero); public override DateTimeOffset GetUtcNow() => Now; }
     private sealed class NeverHttp : HttpMessageHandler { protected override Task<HttpResponseMessage> SendAsync(HttpRequestMessage request, CancellationToken ct) => throw new InvalidOperationException("Operations may not contact providers."); }
     private sealed class Cards : ICardRenderingService {
         public IReadOnlyList<CardPreset> GetPresets() => [new("t02-bone", "Bone", "T02", "bone", "", false, 1080, 1350)];

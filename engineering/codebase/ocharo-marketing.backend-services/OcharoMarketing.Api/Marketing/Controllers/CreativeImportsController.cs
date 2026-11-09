@@ -16,7 +16,8 @@ namespace OcharoMarketing.Api.Marketing.Controllers;
 public sealed class CreativeImportsController(
     IMarketingRepository repository,
     IAssetService assets,
-    ICardRenderingService cards) : ControllerBase
+    ICardRenderingService cards,
+    TimeProvider time) : ControllerBase
 {
   [HttpPost]
   [RequestSizeLimit(7_000_000)]
@@ -75,7 +76,7 @@ public sealed class CreativeImportsController(
     var title = "Studio review · " + name;
     if (title.Length > 160)
       title = title[..160];
-    var now = DateTimeOffset.UtcNow;
+    var now = time.GetUtcNow();
     var draft = new DraftModel(
         exportId,
         title,

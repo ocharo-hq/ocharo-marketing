@@ -2,6 +2,7 @@ using System.Net;
 using System.Security.Cryptography;
 using System.Text;
 using System.Text.Json;
+using Microsoft.Extensions.Logging.Abstractions;
 using Microsoft.Extensions.Options;
 using OcharoMarketing.Application.Cards.Models;
 using OcharoMarketing.Application.Cards.Services;
@@ -190,7 +191,7 @@ public sealed class AutomationTests : IAsyncLifetime
         var repository = new MarketingRepository(db);
         var assets = new LocalAssetService(repository, new LocalFileBlobRepository(blobRoot), Options.Create(new MarketingOptions()));
         var cards = new Presets();
-        var service = new MarketingService(repository, assets, cards);
+        var service = new MarketingService(repository, assets, cards, TimeProvider.System);
         return (repository, assets, service, new AutomationService(repository, service, cards, TimeProvider.System));
     }
 
@@ -244,11 +245,12 @@ public sealed class AutomationRunnerTests : IAsyncLifetime
         await using var db = database.NewContext();
         var repository = new MarketingRepository(db);
         var assets = new LocalAssetService(repository, new LocalFileBlobRepository(blobRoot), Options.Create(new MarketingOptions()));
-        var service = new MarketingService(repository, assets, new NoCards());
+        var service = new MarketingService(repository, assets, new NoCards(), TimeProvider.System);
         var automation = new AutomationService(repository, service, new NoCards(), TimeProvider.System);
         var offline = new HttpClient(new Offline());
         var runner = new AutomationRunner(new CatalogueSyncService(repository, assets, offline, Options.Create(new MarketingOptions { CatalogueBaseUrl = "http://offline.test" })),
-            automation, repository, TimeProvider.System);
+            automation, repository, TimeProvider.System, new WorkerHealthService(TimeProvider.System),
+            NullLogger<AutomationRunner>.Instance);
         var draft = await service.SaveDraftAsync(null, new DraftInput("Nimcha", "nimcha", "t02-bone", "uz", "Caption", ["telegram"]), default);
         await service.ApproveAsync(draft.Id, draft.Revision, default);
 
