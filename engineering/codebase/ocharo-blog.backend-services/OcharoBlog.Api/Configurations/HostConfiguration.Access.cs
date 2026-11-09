@@ -1,10 +1,10 @@
 using Microsoft.AspNetCore.DataProtection;
 using Microsoft.AspNetCore.DataProtection.KeyManagement;
-using Microsoft.AspNetCore.DataProtection.Repositories;
-using Microsoft.Extensions.Logging.Abstractions;
-using Microsoft.Extensions.Options;
+using Npgsql;
 using OcharoBlog.Api.Access;
-using OcharoBlog.Infrastructure.Blog;
+using OcharoBlog.Persistence;
+using OcharoBlog.Persistence.Access;
+using WoW.Two.Sdk.Beta.Be.Caching.Postgres;
 using WoW.Two.Sdk.Beta.Be.Identity.Bff;
 using WoW.Two.Sdk.Beta.Be.Identity.Jwt;
 using WoW.Two.Sdk.Beta.Be.Identity.Signals;
@@ -13,18 +13,38 @@ namespace OcharoBlog.Api.Configurations;
 
 public static partial class HostConfiguration
 {
-    /// <summary>Registers sign-in through Ocharo's Identity instance (BFF, section <c>Identity:Client</c>), the JWT check of
-    /// service tokens that read live exports, and the Data Protection key ring that encrypts the sessions.</summary>
-    /// <remarks>The BFF keeps sessions in the SDK default, the in-memory distributed cache: Editorial stores in SQLite and no
-    /// SQLite <c>IDistributedCache</c> exists, so a restart or deploy signs everyone out once. The key ring persists at
-    /// <c>DataProtection:KeysPath</c>, else <c>{Blog:DataRoot}/keys</c>, which a deployed host keeps on its data volume.</remarks>
+    /// <summary>The Data Protection application name every environment shares unless
+    /// <c>DataProtection:ApplicationName</c> overrides it, so a restart opens the cookies the last boot
+    /// sealed.</summary>
+    private const string ApplicationName = "ocharo-editorial";
+
+    /// <summary>Registers sign-in through Ocharo's Identity instance (BFF, section <c>Identity:Client</c>), the JWT
+    /// check of service tokens that read live exports, and the session store and key ring the sessions survive a
+    /// restart in.</summary>
+    /// <remarks>The BFF keeps sessions in <c>IDistributedCache</c>: a table in schema <c>blog_cache</c> of the product
+    /// database, whose <c>distributed_cache</c> set migrates beside the <c>blog</c> set. The key ring that seals the
+    /// session cookie lives in <c>blog.data_protection_keys</c>, so a restart or deploy keeps editors signed
+    /// in.</remarks>
     private static WebApplicationBuilder AddAccess(this WebApplicationBuilder builder)
     {
-        builder.Services.AddJwtBearerAuthentication(options =>
+        // A verb that never serves, such as the release build's `migrate sets --json`, composes without the Identity
+        // addresses; a serving boot without them refuses at start, naming the setting.
+        var audience = HttpsAddress(builder.Configuration, ResourceUriKey);
+        var issuer = HttpsAddress(builder.Configuration, AuthorityKey);
+        if (audience is not null && issuer is not null)
         {
-            options.Audience = RequiredAddress(builder.Configuration, "Identity:Resource:Uri");
-            options.TrustedIssuers.Add(new TrustedIssuer { Issuer = RequiredAddress(builder.Configuration, "Identity:Client:Authority") });
-        });
+            builder.Services.AddJwtBearerAuthentication(options =>
+            {
+                options.Audience = audience;
+                options.TrustedIssuers.Add(new TrustedIssuer { Issuer = issuer });
+            });
+        }
+        else
+        {
+            builder.Services.AddOptions<IdentityAddresses>()
+                .Validate(_ => false, $"{(audience is null ? ResourceUriKey : AuthorityKey)} {AddressRule}")
+                .ValidateOnStart();
+        }
         builder.Services.AddTokenDenyList();
         if (builder.Configuration[EditorialAccess.SignalUrlKey] is { Length: > 0 } signalUrl)
         {
@@ -35,18 +55,17 @@ public static partial class HostConfiguration
             });
         }
         builder.Services.AddIdentityBff();
-        // Resolve final configuration after test/deployment overrides have been applied.
+        // Never Desk's `cache` schema. Resolved from the final configuration, after test and deployment overrides.
+        builder.Services.AddPostgresDistributedCache(cache => cache.Schema = BlogSchema.CacheSchema);
+        builder.Services.AddOptions<PostgresDistributedCacheOptions>()
+            .Configure<IConfiguration>((cache, configuration) =>
+                cache.ConnectionString = DatabaseConnection(configuration) ?? string.Empty);
         builder.Services.AddDataProtection();
-        builder.Services.AddOptions<KeyManagementOptions>()
-            .Configure<IConfiguration, IHostEnvironment, IOptions<BlogOptions>>((options, configuration, environment, blog) =>
-            {
-                var path = configuration["DataProtection:KeysPath"];
-                if (string.IsNullOrWhiteSpace(path)) path = Path.Combine(blog.Value.DataRoot, "keys");
-                if (!Path.IsPathRooted(path)) path = Path.Combine(environment.ContentRootPath, path);
-                options.XmlRepository = new FileSystemXmlRepository(new DirectoryInfo(path), NullLoggerFactory.Instance);
-            });
-        builder.Services.AddOptions<DataProtectionOptions>().Configure<IConfiguration, IHostEnvironment>((options, configuration, environment) =>
-            options.ApplicationDiscriminator = configuration["DataProtection:ApplicationName"] ?? $"ocharo-editorial:{environment.EnvironmentName}");
+        builder.Services.AddOptions<KeyManagementOptions>().Configure<NpgsqlDataSource>((keys, database) =>
+            keys.XmlRepository = new PostgresXmlRepository(database));
+        builder.Services.AddOptions<DataProtectionOptions>().Configure<IConfiguration>((protection, configuration) =>
+            protection.ApplicationDiscriminator =
+                configuration["DataProtection:ApplicationName"] is { Length: > 0 } name ? name : ApplicationName);
         return builder;
     }
 
@@ -54,9 +73,26 @@ public static partial class HostConfiguration
     /// <remarks>The JWT registration takes its issuer and audience while the host is built, so a test host hands them over
     /// with <c>UseSetting</c>; its own configuration arrives later.</remarks>
     private static string RequiredAddress(IConfiguration configuration, string key) =>
+        HttpsAddress(configuration, key) ?? throw new InvalidOperationException($"{key} {AddressRule}");
+
+    /// <summary>Reads an absolute HTTPS address in its <c>Uri.AbsoluteUri</c> form; null when the setting is missing or
+    /// names another kind of address.</summary>
+    private static string? HttpsAddress(IConfiguration configuration, string key) =>
         Uri.TryCreate(configuration[key], UriKind.Absolute, out var uri) && uri.Scheme == Uri.UriSchemeHttps
             ? uri.AbsoluteUri
-            : throw new InvalidOperationException($"{key} must name an absolute HTTPS address.");
+            : null;
+
+    /// <summary>Holds the setting naming Editorial's audience for service tokens.</summary>
+    private const string ResourceUriKey = "Identity:Resource:Uri";
+
+    /// <summary>Holds the setting naming Ocharo's Identity instance, the one trusted issuer.</summary>
+    private const string AuthorityKey = "Identity:Client:Authority";
+
+    /// <summary>States what the Identity address settings must hold.</summary>
+    private const string AddressRule = "must name an absolute HTTPS address.";
+
+    /// <summary>Stands for the Identity addresses a serving boot checks when the host composed without them.</summary>
+    private sealed class IdentityAddresses;
 
     /// <summary>Configures the session pipeline: HTTPS for the session routes, the BFF (authentication, the <c>X-Csrf-Token</c>
     /// check, authorization), then the bound-organization membership and permission check.</summary>

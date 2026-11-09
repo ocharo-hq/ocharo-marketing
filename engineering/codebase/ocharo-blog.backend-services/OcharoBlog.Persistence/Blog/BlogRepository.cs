@@ -5,7 +5,7 @@ using OcharoBlog.Domain.Blog;
 
 namespace OcharoBlog.Persistence.Blog;
 
-/// <summary>SQLite-backed blog state with revision checks enforced inside one transaction.</summary>
+/// <summary>PostgreSQL-backed blog state with revision checks enforced inside one transaction.</summary>
 public sealed class BlogRepository(OcharoBlogDbContext db) : IBlogRepository
 {
     public async Task<IReadOnlyList<ArticleRecord>> GetArticlesAsync(CancellationToken ct) => await db.Articles.AsNoTracking().ToListAsync(ct);

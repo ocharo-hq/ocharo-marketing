@@ -37,11 +37,14 @@ public sealed class MediaEditingTests
         Assert.Single(history);Assert.Equal(original,history[0].GetProperty("sourceSha256").GetString());
         Assert.Equal(EditorialSignIn.Owner.Subject,history[0].GetProperty("actor").GetString());
         Assert.Equal(EditorialSignIn.Organization.ToString("D"),history[0].GetProperty("organizationId").GetString());
-        Assert.Contains("\"rotate\":90",history[0].GetProperty("recipeJson").GetString());
+        // PostgreSQL keeps the recipe as jsonb, which hands back its own spacing and key order: compare values.
+        var recipe=JsonDocument.Parse(history[0].GetProperty("recipeJson").GetString()!).RootElement;
+        Assert.Equal(90,recipe.GetProperty("rotate").GetInt32());
         (await c.PostAsJsonAsync($"/api/blog/media/{original}/edits",Recipe)).EnsureSuccessStatusCode();
         Assert.Single((await c.GetFromJsonAsync<JsonElement[]>($"/api/blog/media/{sha}/edits"))!);
         var db=h.Get<OcharoBlogDbContext>();
-        await Assert.ThrowsAsync<Microsoft.Data.Sqlite.SqliteException>(()=>db.Database.ExecuteSqlRawAsync("UPDATE media_edits SET Actor='untrusted'"));
+        await Assert.ThrowsAsync<Npgsql.PostgresException>(
+            ()=>db.Database.ExecuteSqlRawAsync("UPDATE blog.media_edits SET actor='untrusted'"));
     }
 
     [Fact]
@@ -107,10 +110,15 @@ public sealed class MediaEditingTests
     }
 
     [Fact]
-    public async Task Receipt_failure_rolls_back_media_index_and_additive_schema_initialization_is_repeatable()
+    public async Task Receipt_failure_rolls_back_media_index_and_the_migrate_step_is_repeatable()
     {
         await using var h=new BlogHarness(seed:false);_ = h.Client();
-        await h.Factory.Services.InitializeDatabaseAsync();await h.Factory.Services.InitializeDatabaseAsync();
+        // The harness's database is current already: each further migrate run finds it so and changes nothing.
+        foreach (var _ in new[] { 1, 2 })
+        {
+            var migrate=await BlogDatabase.MigrateAsync(h.Database);
+            Assert.True(migrate.Exit==0,migrate.Error);
+        }
         var store=h.Get<IMediaStore>();var bytes=BlogHarness.Png(110);var sha=Convert.ToHexStringLower(System.Security.Cryptography.SHA256.HashData(bytes));
         await Assert.ThrowsAsync<DbUpdateException>(()=>store.StoreEditedAsync(bytes,"edited.png",new MediaEditRecord{Id=new string('1',64),SourceSha256=new string('a',64),Sha256=sha,RecipeJson="{}",OrganizationId=EditorialSignIn.Organization.ToString("D"),Actor=EditorialSignIn.Owner.Subject,CreatedAt=DateTimeOffset.UtcNow},default));
         var db=h.Get<OcharoBlogDbContext>();Assert.Empty(await db.MediaBlobs.ToListAsync());Assert.Empty(await db.MediaEdits.ToListAsync());

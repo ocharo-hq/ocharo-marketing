@@ -18,6 +18,7 @@ public sealed class ProblemDetailsContractTests
     {
         var root = Path.Combine(Path.GetTempPath(), "ocharo-problem-contract", Guid.NewGuid().ToString("N"));
         Directory.CreateDirectory(root);
+        var database = await BlogDatabase.CreateAsync();
         try
         {
             await using var factory = new WebApplicationFactory<Program>().WithWebHostBuilder(builder =>
@@ -30,7 +31,7 @@ public sealed class ProblemDetailsContractTests
                     ["Blog:DataRoot"] = Path.Combine(root, "data"),
                     ["Blog:SeedFile"] = Path.Combine(root, "no-seed.json"),
                     ["Blog:SchedulerSeconds"] = "0",
-                }));
+                }).AddInMemoryCollection(BlogDatabase.Settings(database)));
                 builder.ConfigureServices(EditorialSignIn.Use);
             });
             using var client = EditorialSignIn.Client(factory, EditorialSignIn.Owner);
@@ -49,6 +50,10 @@ public sealed class ProblemDetailsContractTests
             Assert.False(string.IsNullOrWhiteSpace(problem.GetProperty("traceId").GetString()));
             Assert.False(string.IsNullOrWhiteSpace(problem.GetProperty("requestId").GetString()));
         }
-        finally { try { Directory.Delete(root, true); } catch (IOException) { } }
+        finally
+        {
+            await BlogDatabase.DropAsync(database);
+            try { Directory.Delete(root, true); } catch (IOException) { }
+        }
     }
 }

@@ -173,14 +173,16 @@ public sealed class RuntimeConfigTests
     }
 }
 
-/// <summary>An isolated Blog host with its own SQLite file and data folder, behind the test sign-in.</summary>
+/// <summary>An isolated Blog host with its own database and data folder, behind the test sign-in.</summary>
 internal sealed class EditorialHost : IAsyncDisposable
 {
     private readonly string root;
+    private readonly string? ownDatabase;
 
-    private EditorialHost(string root, WebApplicationFactory<Program> factory)
+    private EditorialHost(string root, string? ownDatabase, WebApplicationFactory<Program> factory)
     {
         this.root = root;
+        this.ownDatabase = ownDatabase;
         Factory = factory;
     }
 
@@ -195,14 +197,19 @@ internal sealed class EditorialHost : IAsyncDisposable
     /// <param name="realCookie">Keeps the BFF's own cookie scheme instead of the test sign-in, so every request is anonymous.</param>
     /// <param name="webRoot">The folder the host serves files from, such as a Studio bundle; null keeps the project's.
     /// </param>
+    /// <param name="database">A database another host shares, which this one leaves in place; null makes its
+    /// own.</param>
     public static EditorialHost Create(IReadOnlyDictionary<string, string?> settings, CapturedLogs? logs = null,
-        Action<IServiceCollection>? services = null, bool realCookie = false, string? webRoot = null)
+        Action<IServiceCollection>? services = null, bool realCookie = false, string? webRoot = null,
+        string? database = null)
     {
         var root = Path.Combine(Path.GetTempPath(), "ocharo-blog-runtime-config", Guid.NewGuid().ToString("N"));
         Directory.CreateDirectory(root);
         var configuration = new Dictionary<string, string?>(EditorialSignIn.Settings);
         foreach (var (key, value) in settings) configuration[key] = value;
         configuration["ConnectionStrings:OcharoBlog"] = $"Data Source={Path.Combine(root, "api.db")};Pooling=False";
+        var ownDatabase = database is null ? BlogDatabase.Create() : null;
+        foreach (var (key, value) in BlogDatabase.Settings(database ?? ownDatabase!)) configuration[key] = value;
         configuration["Blog:DataRoot"] = Path.Combine(root, "data");
         configuration["Blog:SeedFile"] = Path.Combine(root, "no-seed.json");
         configuration["Blog:SchedulerSeconds"] = "0";
@@ -223,7 +230,7 @@ internal sealed class EditorialHost : IAsyncDisposable
                     collection.AddSingleton<ILoggerFactory>(_ => LoggerFactory.Create(l => l.AddProvider(logs)));
             });
         });
-        return new EditorialHost(root, factory);
+        return new EditorialHost(root, ownDatabase, factory);
     }
 
     /// <summary>An anonymous client over HTTPS.</summary>
@@ -232,6 +239,7 @@ internal sealed class EditorialHost : IAsyncDisposable
     public async ValueTask DisposeAsync()
     {
         await Factory.DisposeAsync();
+        if (ownDatabase is not null) await BlogDatabase.DropAsync(ownDatabase);
         try { Directory.Delete(root, true); } catch (IOException) { }
     }
 }

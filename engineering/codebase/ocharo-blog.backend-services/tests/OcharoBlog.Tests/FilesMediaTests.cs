@@ -35,12 +35,14 @@ public sealed class FilesMediaTests : IAsyncDisposable
     private static readonly MediaEditRecipe Recipe = new(new(0, 0, 20, 30), 90, false, false, null, new("png", 90), false);
 
     private readonly string root = Path.Combine(Path.GetTempPath(), "ocharo-blog-files-tests", Guid.NewGuid().ToString("N"));
+    private readonly string database = BlogDatabase.Create();
     private readonly List<IAsyncDisposable> hosts = [];
 
     public async ValueTask DisposeAsync()
     {
         foreach (var host in hosts)
             await host.DisposeAsync();
+        await BlogDatabase.DropAsync(database);
         try { Directory.Delete(root, true); } catch (IOException) { }
     }
 
@@ -333,8 +335,8 @@ public sealed class FilesMediaTests : IAsyncDisposable
         Assert.Equal("BffSubjectTokenSource", subject.GetType().Name);
     }
 
-    /// <summary>An Editorial host over this test's SQLite file and data folder; <paramref name="files"/> set turns WoW2 Files
-    /// on and stands in for it.</summary>
+    /// <summary>An Editorial host over this test's database and data folder; <paramref name="files"/> set turns WoW2
+    /// Files on and stands in for it.</summary>
     private WebApplicationFactory<Program> Host(TestFiles? files, bool seed = false, Action<IServiceCollection>? services = null,
         IReadOnlyDictionary<string, string?>? settings = null)
     {
@@ -358,7 +360,8 @@ public sealed class FilesMediaTests : IAsyncDisposable
                 ["Blog:BrandBaseUrl"] = "",
                 ["Blog:SchedulerSeconds"] = "0",
                 ["Files:BaseUrl"] = files is null ? null : TestFiles.Url,
-            }).AddInMemoryCollection(settings ?? new Dictionary<string, string?>()));
+            }).AddInMemoryCollection(BlogDatabase.Settings(database))
+                .AddInMemoryCollection(settings ?? new Dictionary<string, string?>()));
             builder.ConfigureServices(collection => EditorialSignIn.Use(collection));
             builder.ConfigureTestServices(collection =>
             {

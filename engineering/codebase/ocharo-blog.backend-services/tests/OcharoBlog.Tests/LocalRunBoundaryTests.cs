@@ -19,6 +19,7 @@ public sealed class LocalRunBoundaryTests
     {
         var root = Path.Combine(Path.GetTempPath(), "ocharo-local-run-host", Guid.NewGuid().ToString("N"));
         Directory.CreateDirectory(root);
+        var database = await BlogDatabase.CreateAsync();
         try
         {
             await using var factory = new WebApplicationFactory<Program>().WithWebHostBuilder(builder =>
@@ -31,7 +32,7 @@ public sealed class LocalRunBoundaryTests
                     ["ConnectionStrings:OcharoBlog"] = $"Data Source={Path.Combine(root, "api.db")};Pooling=False",
                     ["Blog:DataRoot"] = Path.Combine(root, "data"),
                     ["Blog:SeedFile"] = Path.Combine(root, "no-seed.json"), ["Blog:SchedulerSeconds"] = "0",
-                }));
+                }).AddInMemoryCollection(BlogDatabase.Settings(database)));
                 builder.ConfigureServices(services =>
                 {
                     services.RemoveAll<IHostedService>();
@@ -49,6 +50,7 @@ public sealed class LocalRunBoundaryTests
         }
         finally
         {
+            await BlogDatabase.DropAsync(database);
             try { Directory.Delete(root, true); } catch (IOException) { }
         }
     }

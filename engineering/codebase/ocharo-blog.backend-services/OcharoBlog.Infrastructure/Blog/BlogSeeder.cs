@@ -14,10 +14,12 @@ namespace OcharoBlog.Infrastructure.Blog;
 /// published — matching the existing preview — while the site-wide noindex stays on until the owner launches.
 /// </summary>
 public sealed class BlogSeeder(IBlogRepository repository, IMediaStore media, SiteSettingsService settings, IOptions<BlogOptions> options,
-    TimeProvider time, ILogger<BlogSeeder> logger)
+    TimeProvider time, SqliteImportGate gate, ILogger<BlogSeeder> logger)
 {
     public async Task<int> SeedIfEmptyAsync(string contentRoot, CancellationToken ct)
     {
+        // An earlier release's store still waiting for import-sqlite would find the seed in its place and be refused.
+        if (gate.Holds("seeding", logger)) return 0;
         if ((await repository.GetTopicsAsync(ct)).Count > 0 || (await repository.GetArticlesAsync(ct)).Count > 0) return 0;
         var file = options.Value.SeedFile is { } seedFile ? Path.IsPathRooted(seedFile) ? seedFile : Path.Combine(contentRoot, seedFile) : null;
         if (file is null || !File.Exists(file)) return 0;

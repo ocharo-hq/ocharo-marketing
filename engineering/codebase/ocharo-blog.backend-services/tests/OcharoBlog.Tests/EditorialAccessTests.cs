@@ -4,11 +4,16 @@ using System.Net.Http.Json;
 using System.Text.Json;
 using System.Text.RegularExpressions;
 using Microsoft.AspNetCore.Builder;
+using Microsoft.AspNetCore.DataProtection;
 using Microsoft.AspNetCore.Mvc.Testing;
+using Microsoft.Extensions.Caching.Distributed;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.FileProviders;
+using Microsoft.Extensions.Options;
+using Npgsql;
 using OcharoBlog.Application.Blog.Services;
 using OcharoBlog.Infrastructure.Blog;
+using WoW.Two.Sdk.Beta.Be.Caching.Postgres;
 using static OcharoBlog.Tests.EditorialSignIn;
 using Xunit;
 
@@ -401,22 +406,50 @@ public sealed class EditorialAccessTests
     }
 
     [Fact]
-    public async Task KeyRing_ShouldPersistUnderTheDataRoot_OrTheConfiguredPath()
+    public async Task KeyRingAndSessions_ShouldLiveInPostgreSql_SoARestartKeepsAnEditorSignedIn()
     {
-        await using var byDefault = EditorialHost.Create(new Dictionary<string, string?>());
-        using var first = Client(byDefault.Factory, Owner);
-        await SessionAsync(first);
-        Assert.NotEmpty(Directory.GetFiles(Path.Combine(byDefault.DataRoot, "keys"), "*.xml"));
-
-        var configured = Path.Combine(Path.GetTempPath(), "ocharo-blog-keys", Guid.NewGuid().ToString("N"));
+        // Two hosts over one database stand for a restart: the second opens the cookie the first sealed and reads the
+        // session the first stored, under the one application name every environment shares.
+        var database = await BlogDatabase.CreateAsync();
         try
         {
-            await using var overridden = EditorialHost.Create(new Dictionary<string, string?> { ["DataProtection:KeysPath"] = configured });
-            using var second = Client(overridden.Factory, Owner);
-            await SessionAsync(second);
-            Assert.NotEmpty(Directory.GetFiles(configured, "*.xml"));
+            string sealedCookie;
+            await using (var before = EditorialHost.Create(new Dictionary<string, string?>(), database: database))
+            {
+                using var client = Client(before.Factory, Owner);
+                await SessionAsync(client);
+                var services = before.Factory.Services;
+                var sealer = services.GetRequiredService<IDataProtectionProvider>().CreateProtector("restart");
+                sealedCookie = sealer.Protect("session");
+                await services.GetRequiredService<IDistributedCache>().SetStringAsync("restart-session", "signed-in");
+            }
+
+            await using var after = EditorialHost.Create(new Dictionary<string, string?>(), database: database);
+            var restarted = after.Factory.Services;
+            var protector = restarted.GetRequiredService<IDataProtectionProvider>().CreateProtector("restart");
+            Assert.Equal("session", protector.Unprotect(sealedCookie));
+            var sessions = restarted.GetRequiredService<IDistributedCache>();
+            Assert.IsType<PostgresDistributedCache>(sessions);
+            Assert.Equal("signed-in", await sessions.GetStringAsync("restart-session"));
+            var protection = restarted.GetRequiredService<IOptions<DataProtectionOptions>>().Value;
+            Assert.Equal("ocharo-editorial", protection.ApplicationDiscriminator);
+            Assert.False(Directory.Exists(Path.Combine(after.DataRoot, "keys")));
+            await using var keys = new NpgsqlConnection(database);
+            await keys.OpenAsync();
+            await using var count = new NpgsqlCommand("SELECT COUNT(*) FROM blog.data_protection_keys", keys);
+            Assert.True((long)(await count.ExecuteScalarAsync())! > 0);
         }
-        finally { try { Directory.Delete(configured, true); } catch (IOException) { } }
+        finally { await BlogDatabase.DropAsync(database); }
+    }
+
+    [Fact]
+    public async Task KeyRingName_ShouldFollowDataProtectionApplicationName_WhenSet()
+    {
+        await using var host = EditorialHost.Create(
+            new Dictionary<string, string?> { ["DataProtection:ApplicationName"] = "editorial-x" });
+
+        var protection = host.Factory.Services.GetRequiredService<IOptions<DataProtectionOptions>>().Value;
+        Assert.Equal("editorial-x", protection.ApplicationDiscriminator);
     }
 
     [Fact]

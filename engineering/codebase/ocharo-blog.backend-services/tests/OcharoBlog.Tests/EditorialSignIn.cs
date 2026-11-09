@@ -35,13 +35,18 @@ internal static class EditorialSignIn
     /// <summary>A signed-in person; a null <paramref name="OrganizationId"/> carries no organization claims.</summary>
     public sealed record Person(string Subject, Guid? OrganizationId, string? Role);
 
-    public static readonly Person Owner = new("owner-sub", Organization, "owner");
-    public static readonly Person Editor = new("editor-sub", Organization, "editor");
-    public static readonly Person Viewer = new("viewer-sub", Organization, "viewer");
-    public static readonly Person Outsider = new("outsider-sub", Guid.Parse("0b6f1c2d-3e4f-4a5b-8c6d-7e8f90a1b2c3"), "owner");
-    public static readonly Person Unaffiliated = new("unaffiliated-sub", null, null);
+    // Subjects are Identity account ids, as the deployed Identity issues them; the template database holds each one.
+    public static readonly Person Owner = new("0193a1b0-0000-7000-8000-000000000001", Organization, "owner");
+    public static readonly Person Editor = new("0193a1b0-0000-7000-8000-000000000002", Organization, "editor");
+    public static readonly Person Viewer = new("0193a1b0-0000-7000-8000-000000000003", Organization, "viewer");
+    public static readonly Person Outsider = new("0193a1b0-0000-7000-8000-000000000004",
+        Guid.Parse("0b6f1c2d-3e4f-4a5b-8c6d-7e8f90a1b2c3"), "owner");
+    public static readonly Person Unaffiliated = new("0193a1b0-0000-7000-8000-000000000005", null, null);
 
-    private static readonly Dictionary<string, Person> People = new[] { Owner, Editor, Viewer, Outsider, Unaffiliated }
+    /// <summary>Every person a test signs in as.</summary>
+    public static IReadOnlyList<Person> Everyone { get; } = [Owner, Editor, Viewer, Outsider, Unaffiliated];
+
+    private static readonly Dictionary<string, Person> People = Everyone
         .ToDictionary(person => person.Subject, StringComparer.Ordinal);
 
     /// <summary>Settings that satisfy <c>Identity:Client</c> validation without any network call to the authority and bind the

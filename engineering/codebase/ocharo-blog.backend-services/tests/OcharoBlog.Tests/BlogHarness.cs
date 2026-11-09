@@ -8,12 +8,22 @@ using SkiaSharp;
 
 namespace OcharoBlog.Tests;
 
-/// <summary>In-memory host over a temp SQLite file and blob folder; the real journal seed; a controllable clock; test sign-in.</summary>
+/// <summary>In-memory host over its own PostgreSQL database (<see cref="BlogDatabase"/>) and a temp blob folder; the
+/// real journal seed; a controllable clock; test sign-in.</summary>
+/// <remarks>The host boots on first use, so a test may first put an earlier release's SQLite store at
+/// <see cref="StorePath"/>.</remarks>
 public sealed class BlogHarness : IAsyncDisposable
 {
     public string Root { get; } = Path.Combine(Path.GetTempPath(), "ocharo-blog-tests", Guid.NewGuid().ToString("N"));
     public FakeTimeProvider Clock { get; } = new(new DateTimeOffset(2026, 9, 28, 9, 0, 0, TimeSpan.Zero));
     public WebApplicationFactory<Program> Factory { get; }
+
+    /// <summary>The host's PostgreSQL database.</summary>
+    public string Database { get; } = BlogDatabase.Create();
+
+    /// <summary>Where the host looks for the SQLite store an earlier release kept
+    /// (<c>ConnectionStrings:OcharoBlog</c>); absent unless a test puts one there.</summary>
+    public string StorePath => Path.Combine(Root, "blog.db");
 
     public BlogHarness(bool seed = true, bool seedImages = true, string? catalogueUrl = null, string? brandUrl = null,
         Action<IServiceCollection>? services = null, bool relativeSeedAssets = false, string? catalogueAdminUrl = null)
@@ -33,7 +43,7 @@ public sealed class BlogHarness : IAsyncDisposable
             EditorialSignIn.UseBootSettings(builder);
             builder.ConfigureAppConfiguration((context, config) => config.AddInMemoryCollection(new Dictionary<string, string?>(EditorialSignIn.Settings)
             {
-                ["ConnectionStrings:OcharoBlog"] = $"Data Source={Path.Combine(Root, "blog.db")};Pooling=False",
+                ["ConnectionStrings:OcharoBlog"] = $"Data Source={StorePath};Pooling=False",
                 ["Blog:DataRoot"] = Path.Combine(Root, "data"),
                 ["Blog:SeedFile"] = seed ? "SeedData/journal-seed.json" : Path.Combine(Root, "missing.json"),
                 ["Blog:SeedAssetRoot"] = relativeSeedAssets ? Path.GetRelativePath(context.HostingEnvironment.ContentRootPath, assets) : assets,
@@ -41,7 +51,7 @@ public sealed class BlogHarness : IAsyncDisposable
                 ["Blog:BrandBaseUrl"] = brandUrl ?? "",
                 ["Blog:SchedulerSeconds"] = "0",
                 ["Blog:CatalogueAdminUrl"] = catalogueAdminUrl,
-            }));
+            }).AddInMemoryCollection(BlogDatabase.Settings(Database)));
             builder.ConfigureServices(collection =>
             {
                 EditorialSignIn.Use(collection);
@@ -62,6 +72,7 @@ public sealed class BlogHarness : IAsyncDisposable
     public async ValueTask DisposeAsync()
     {
         await Factory.DisposeAsync();
+        await BlogDatabase.DropAsync(Database);
         try { Directory.Delete(Root, true); } catch (IOException) { }
     }
 

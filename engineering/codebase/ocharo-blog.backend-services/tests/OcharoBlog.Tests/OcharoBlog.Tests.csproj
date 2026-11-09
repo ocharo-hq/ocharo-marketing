@@ -17,6 +17,12 @@
     <PackageReference Include="Microsoft.AspNetCore.Mvc.Testing" />
     <PackageReference Include="Microsoft.Extensions.TimeProvider.Testing" />
     <PackageReference Include="WoW2.Sdk.Beta.Be.Identity.Testing" />
+    <PackageReference Include="WoW2.Sdk.Beta.Be.Testing" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <!-- A stand-in for Identity's set, which the image receipts key into; the template database applies it first. -->
+    <None Include="IdentityStub/**/*.sql" CopyToOutputDirectory="PreserveNewest" />
   </ItemGroup>
 
   <ItemGroup>

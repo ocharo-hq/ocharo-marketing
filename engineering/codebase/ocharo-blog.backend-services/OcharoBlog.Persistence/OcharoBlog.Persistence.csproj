@@ -5,13 +5,23 @@
   </ItemGroup>
 
   <ItemGroup>
-    <PackageReference Include="Microsoft.EntityFrameworkCore" />
-    <PackageReference Include="Microsoft.EntityFrameworkCore.Sqlite" />
+    <!-- The PostgreSQL floor (EF Core, Npgsql, snake_case naming) and the bespoke SQL migrator: EF only maps the
+         SQL-owned schema. -->
+    <PackageReference Include="WoW2.Sdk.Beta.Be" />
+    <!-- Reads an earlier release's SQLite store once, for the import-sqlite verb. -->
+    <PackageReference Include="Microsoft.Data.Sqlite" />
   </ItemGroup>
 
   <ItemGroup>
     <ProjectReference Include="..\OcharoBlog.Application\OcharoBlog.Application.csproj" />
     <ProjectReference Include="..\OcharoBlog.Domain\OcharoBlog.Domain.csproj" />
+  </ItemGroup>
+
+  <!-- The `blog` set ships embedded (logical name "Migrations/NNN-name/Apply.sql"); Dev/ drafts never ship. -->
+  <ItemGroup>
+    <EmbeddedResource Include="Migrations\**\*.sql" Exclude="Migrations\Dev\**\*.sql">
+      <LogicalName>Migrations/%(RecursiveDir)%(Filename)%(Extension)</LogicalName>
+    </EmbeddedResource>
   </ItemGroup>
 
 </Project>

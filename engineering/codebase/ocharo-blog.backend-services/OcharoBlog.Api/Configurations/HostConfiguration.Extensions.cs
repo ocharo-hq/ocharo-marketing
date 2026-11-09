@@ -2,6 +2,7 @@ using System.Reflection;
 using Microsoft.Data.Sqlite;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Options;
+using Npgsql;
 using OcharoBlog.Api.Access;
 using OcharoBlog.Api.Blog;
 using OcharoBlog.Api.RuntimeConfig.Settings;
@@ -13,6 +14,11 @@ using OcharoBlog.Application.Blog.Site;
 using OcharoBlog.Infrastructure.Blog;
 using OcharoBlog.Persistence;
 using OcharoBlog.Persistence.Blog;
+using OcharoBlog.Persistence.Import;
+using WoW.Two.Sdk.Beta.Be.Data.Abstractions;
+using WoW.Two.Sdk.Beta.Be.Data.EntityFrameworkCore;
+using WoW.Two.Sdk.Beta.Be.Data.EntityFrameworkCore.Postgres;
+using WoW.Two.Sdk.Beta.Be.Data.Migrations.Bespoke;
 using WoW.Two.Sdk.Beta.Be.Files.Client;
 using WoW.Two.Sdk.Beta.Be.Foundation.Configuration.ConfigCheck;
 using WoW.Two.Sdk.Beta.Be.Foundation.Options;
@@ -72,26 +78,63 @@ public static partial class HostConfiguration
         return builder;
     }
 
-    /// <summary>Registers SQLite with late configuration overrides and content-root-relative database files, and its
-    /// readiness check on <c>/health</c>.</summary>
-    private static WebApplicationBuilder AddSqliteDatabase(this WebApplicationBuilder builder)
-    {
-        builder.Services.AddDbContext<OcharoBlogDbContext>((provider, options) =>
-        {
-            var raw = (provider.GetService<IConfiguration>() ?? builder.Configuration)["ConnectionStrings:OcharoBlog"]
-                ?? "Data Source=App_Data/ocharo-blog.db";
-            var connection = new SqliteConnectionStringBuilder(raw);
-            var contentRoot = provider.GetService<IHostEnvironment>()?.ContentRootPath;
-            if (connection.DataSource is { Length: > 0 } file && file != ":memory:"
-                && !Path.IsPathRooted(file) && contentRoot is not null)
-            {
-                connection.DataSource = Path.Combine(contentRoot, file);
-            }
+    /// <summary>Holds the key naming the SQLite store an earlier release kept, which <c>import-sqlite</c> copies once;
+    /// the image sets <c>Data Source=/data/ocharo-blog.db</c>.</summary>
+    private const string SqliteStoreKey = "ConnectionStrings:OcharoBlog";
 
-            options.UseSqlite(connection.ToString());
+    /// <summary>Registers PostgreSQL over <c>DatabaseSettings:ConnectionString</c> (<c>DB_CONNECTION</c> wins) with EF
+    /// as the pure mapper of the <c>blog</c> set, its readiness check on <c>/health</c>, and the import of the SQLite
+    /// store an earlier release kept, with the gate that holds writes back until it ran.</summary>
+    private static WebApplicationBuilder AddPostgresDatabase(this WebApplicationBuilder builder)
+    {
+        // Resolved late, so a test host's settings win; a migrate run connects every set through
+        // Migrations:ConnectionString.
+        builder.Services.AddSingleton(provider => new DatabaseSettings
+        {
+            ConnectionString = DatabaseConnection(provider.GetRequiredService<IConfiguration>())
+                ?? throw new InvalidOperationException("Set DatabaseSettings:ConnectionString or DB_CONNECTION."),
         });
+        builder.Services.AddNpgsqlDataSource();
+        builder.Services.AddDataSourceConnectionFactory();
+        builder.Services.AddDbContext<OcharoBlogDbContext>((provider, options) => options
+            .UseNpgsql(provider.GetRequiredService<NpgsqlDataSource>())
+            .UseSnakeCaseNamingConvention());
+        // The named set owns schema `blog` of the product database Desk and Identity share; the default set's history
+        // in `public` is Desk's, so Editorial registers none.
+        builder.Services.AddDatabaseBespokeMigrationSet(BlogSchema.MigrationSet, typeof(OcharoBlogDbContext).Assembly,
+            migration =>
+            {
+                migration.SchemaName = BlogSchema.Name;
+                migration.SchemaOwner = BlogSchema.Owner;
+                migration.Version = MigrationVersionMapper.ToVersion(typeof(HostConfiguration).Assembly);
+                // The assembly version, never the informational one: a local build's is `dev`, which names no release.
+                migration.Release = typeof(OcharoBlogDbContext).Assembly.GetName().Version?.ToString(3);
+                // The image receipts key into Identity's organizations and accounts: its set applies first, and the
+                // step refuses before any SQL while it is missing or below the level that publishes them.
+                migration.DependsOn(BlogSchema.IdentitySet, BlogSchema.IdentityLevel);
+            });
         builder.Services.AddHealthChecks().AddDatabaseReadinessCheck<OcharoBlogDbContext>();
+        builder.Services.AddSingleton(provider => new SqliteImportGate(SqliteStorePath(provider)));
+        builder.Services.AddScoped<SqliteImporter>();
         return builder;
+    }
+
+    /// <summary>Reads the database connection: <c>DB_CONNECTION</c>, else <c>DatabaseSettings:ConnectionString</c>;
+    /// null when both are blank.</summary>
+    private static string? DatabaseConnection(IConfiguration configuration) =>
+        new[] { configuration["DB_CONNECTION"], configuration["DatabaseSettings:ConnectionString"] }
+            .FirstOrDefault(value => !string.IsNullOrWhiteSpace(value));
+
+    /// <summary>Resolves the SQLite store's full path from <see cref="SqliteStoreKey"/>, relative to the content root;
+    /// null for a blank or in-memory one.</summary>
+    private static string? SqliteStorePath(IServiceProvider provider)
+    {
+        var raw = provider.GetRequiredService<IConfiguration>()[SqliteStoreKey]
+            ?? "Data Source=App_Data/ocharo-blog.db";
+        var file = new SqliteConnectionStringBuilder(raw).DataSource;
+        return string.IsNullOrWhiteSpace(file) || file == ":memory:"
+            ? null
+            : Path.GetFullPath(file, provider.GetRequiredService<IHostEnvironment>().ContentRootPath);
     }
 
     /// <summary>Registers blog settings, records, editorial services, seeding and scheduled publishing.</summary>
@@ -283,10 +326,10 @@ public static partial class HostConfiguration
         return builder;
     }
 
-    /// <summary>Configures the blog schema and seed records before requests are accepted.</summary>
+    /// <summary>Fills Files ids and seeds an empty blog before requests are accepted; both skip while the SQLite store
+    /// waits for its import.</summary>
     private static async Task<WebApplication> InitializeBlogAsync(this WebApplication app)
     {
-        await app.Services.InitializeDatabaseAsync();
         using var scope = app.Services.CreateScope();
         if (UsesFiles(scope.ServiceProvider))
             await scope.ServiceProvider.BackfillFileIdsAsync(app.Logger);
@@ -307,10 +350,11 @@ public static partial class HostConfiguration
         return app;
     }
 
-    /// <summary>Configures blog errors as problems, Editorial's response headers and cross-origin write check, then
-    /// sign-in and access.</summary>
+    /// <summary>Configures the pending-import refusal, blog errors as problems, Editorial's response headers and
+    /// cross-origin write check, then sign-in and access.</summary>
     private static void UseEditorialBoundary(this IApplicationBuilder pipeline)
     {
+        pipeline.UseMiddleware<SqliteImportPendingMiddleware>();
         pipeline.UseMiddleware<BlogExceptionMiddleware>();
         pipeline.UseMiddleware<EditorialHttpBoundaryMiddleware>();
         pipeline.UseAccess();
