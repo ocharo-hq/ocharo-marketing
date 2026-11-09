@@ -5,9 +5,8 @@ namespace OcharoMarketing.Application.Core.Errors;
 /// <summary>
 /// Holds Marketing's error catalogue. Each kind keeps the <c>code</c>, status and title the API answered before the
 /// mediator: a refused command reads "Marketing command rejected", a well-formed request Marketing cannot carry out
-/// answers 422, an upload outside the accepted size or type 413 or 415, and an upstream failure 502 or 503 under the
-/// <c>Unexpected</c> code. The markers, the title and a code the error kind cannot name travel as metadata; the host's
-/// status mapper and problem factory read them.
+/// answers 422, and an upstream failure 502 or 503 under the <c>Unexpected</c> code. The markers and the title travel
+/// as metadata; the host's status mapper and problem factory read them.
 /// </summary>
 public static class MarketingErrors
 {
@@ -20,18 +19,8 @@ public static class MarketingErrors
     /// <summary>The metadata key that marks an upstream service that refused the call: the host answers 502.</summary>
     public const string RefusedKey = "upstreamRefused";
 
-    /// <summary>The metadata key that marks an upload outside the accepted size: the host answers 413.</summary>
-    public const string PayloadTooLargeKey = "payloadTooLarge";
-
-    /// <summary>The metadata key that marks an upload of a media type Marketing does not store: the host answers
-    /// 415.</summary>
-    public const string UnsupportedMediaKey = "unsupportedMedia";
-
     /// <summary>The metadata key of the problem title an error answers with.</summary>
     public const string TitleKey = "problemTitle";
-
-    /// <summary>The metadata key of a problem <c>code</c> the error's kind cannot name in this be sdk.</summary>
-    public const string CodeKey = "problemCode";
 
     /// <summary>The title of a command Marketing refused.</summary>
     public const string RejectedTitle = "Marketing command rejected";
@@ -64,20 +53,18 @@ public static class MarketingErrors
         return Of(AppErrorType.Conflict, message, RejectedTitle);
     }
 
-    /// <summary>Creates the error for an upload outside the accepted size, marked by
-    /// <see cref="PayloadTooLargeKey"/>.</summary>
+    /// <summary>Creates the error for an upload outside the accepted size.</summary>
     /// <param name="message">The safe explanation the client shows.</param>
     public static AppError TooLarge(string message)
     {
-        return Of(AppErrorType.Validation, message, RejectedTitle, PayloadTooLargeKey, "PayloadTooLarge");
+        return Of(AppErrorType.PayloadTooLarge, message, RejectedTitle);
     }
 
-    /// <summary>Creates the error for an upload of a media type Marketing does not store, marked by
-    /// <see cref="UnsupportedMediaKey"/>.</summary>
+    /// <summary>Creates the error for an upload of a media type Marketing does not store.</summary>
     /// <param name="message">The safe explanation the client shows.</param>
     public static AppError UnsupportedMedia(string message)
     {
-        return Of(AppErrorType.Validation, message, RejectedTitle, UnsupportedMediaKey, "UnsupportedMediaType");
+        return Of(AppErrorType.UnsupportedMediaType, message, RejectedTitle);
     }
 
     /// <summary>Creates the error for a command that needs the operator's identity and has none.</summary>
@@ -155,18 +142,11 @@ public static class MarketingErrors
         return error.Metadata?.ContainsKey(key) == true;
     }
 
-    private static AppError Of(
-        AppErrorType type,
-        string message,
-        string title,
-        string? marker = null,
-        string? code = null)
+    private static AppError Of(AppErrorType type, string message, string title, string? marker = null)
     {
         var metadata = new Dictionary<string, object?>(StringComparer.Ordinal) { [TitleKey] = title };
         if (marker is not null)
             metadata[marker] = true;
-        if (code is not null)
-            metadata[CodeKey] = code;
         return AppError.Of(type, message, metadata);
     }
 }

@@ -37,10 +37,7 @@ public sealed class MarketingErrorMappingTests
         string code)
     {
         Mapper.ToStatusCode(error).Should().Be(status);
-        var named = error.Metadata?.TryGetValue(MarketingErrors.CodeKey, out var value) == true
-            ? (string)value!
-            : error.Type.ToString();
-        named.Should().Be(code);
+        error.Type.ToString().Should().Be(code);
         (error.Metadata?[MarketingErrors.TitleKey]).Should().Be(MarketingErrors.RejectedTitle);
     }
 

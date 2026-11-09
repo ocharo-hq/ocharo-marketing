@@ -55,6 +55,7 @@ public sealed class MarketingProblemTests
 
         var problem = await ProblemAsync(response, HttpStatusCode.RequestEntityTooLarge);
         (problem.GetProperty("code").GetString()).Should().Be("PayloadTooLarge");
+        (problem.GetProperty("type").GetString()).Should().Be("urn:wow-two:error:PayloadTooLarge");
         (problem.GetProperty("detail").GetString()).Should().Be("Choose a nonempty image smaller than 25 MB.");
     }
 
@@ -73,6 +74,7 @@ public sealed class MarketingProblemTests
 
         var problem = await ProblemAsync(response, HttpStatusCode.UnsupportedMediaType);
         (problem.GetProperty("code").GetString()).Should().Be("UnsupportedMediaType");
+        (problem.GetProperty("type").GetString()).Should().Be("urn:wow-two:error:UnsupportedMediaType");
         (problem.GetProperty("title").GetString()).Should().Be("Marketing command rejected");
     }
 
