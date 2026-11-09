@@ -7,8 +7,9 @@ using OcharoMarketing.Persistence;
 
 namespace OcharoMarketing.Api.Configurations;
 
-/// <summary>Applies durable schema migrations and imports the reviewed local source bundle once.</summary>
-public sealed class SeedImportHostedService(IServiceProvider services, IWebHostEnvironment environment) : IHostedService
+/// <summary>Applies durable schema migrations and imports the reviewed local source bundle once. With WoW2 Files the seed
+/// assets upload as Marketing itself; an unreachable Files leaves the missing ones for the next boot, never the boot.</summary>
+public sealed class SeedImportHostedService(IServiceProvider services, IWebHostEnvironment environment, ILogger<SeedImportHostedService> logger) : IHostedService
 {
     public async Task StartAsync(CancellationToken cancellationToken)
     {
@@ -30,7 +31,15 @@ public sealed class SeedImportHostedService(IServiceProvider services, IWebHostE
             var assetPath = Path.GetFullPath(Path.Combine(seedRoot, relativePath));
             if (!assetPath.StartsWith(Path.GetFullPath(seedRoot) + Path.DirectorySeparatorChar, StringComparison.Ordinal))
                 throw new InvalidOperationException("Seed assets must remain within their import bundle.");
-            await assets.SaveAsync(await File.ReadAllBytesAsync(assetPath), asset.FileName, asset.Provenance, asset.Role, CancellationToken.None, asset.Id);
+            try
+            {
+                await assets.SaveAsync(await File.ReadAllBytesAsync(assetPath), asset.FileName, asset.Provenance, asset.Role, CancellationToken.None, asset.Id);
+            }
+            catch (MarketingException exception) when (exception.StatusCode >= 500)
+            {
+                logger.LogWarning("Marketing's seed assets wait for the next boot: {Reason}", exception.Message);
+                break;
+            }
         }
         await repository.SeedAsync(brand, products, CancellationToken.None);
     }

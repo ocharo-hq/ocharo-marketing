@@ -29,6 +29,7 @@ using OcharoMarketing.Persistence.Inquiries;
 using OcharoMarketing.Persistence.Marketing.Repositories;
 using OcharoMarketing.Persistence.Scanning;
 using WoW.Two.Sdk.Beta.Be.Data.Migrations.Ef;
+using WoW.Two.Sdk.Beta.Be.Files.Client;
 using WoW.Two.Sdk.Beta.Be.Foundation.Options;
 using WoW.Two.Sdk.Beta.Be.Identity.Bff;
 using WoW.Two.Sdk.Beta.Be.Mediator;
@@ -73,7 +74,8 @@ public static partial class HostConfiguration
         return builder;
     }
 
-    /// <summary>Registers the shared local blob storage.</summary>
+    /// <summary>Registers the shared local blob storage: the whole asset store in a run without WoW2 Files, and the assets and
+    /// exports made before Files in a run with it.</summary>
     private static WebApplicationBuilder AddBlobStorage(this WebApplicationBuilder builder)
     {
         var dataRoot = Path.GetFullPath(builder.Configuration["Marketing:DataDirectory"] ?? "App_Data");
@@ -81,13 +83,51 @@ public static partial class HostConfiguration
         return builder;
     }
 
+    /// <summary>Holds the root URL of the WoW2 Files instance Marketing stores its assets and draft exports in; unset, they stay
+    /// in the local blob folder.</summary>
+    private const string FilesBaseUrlKey = "Files:BaseUrl";
+
+    /// <summary>Registers the asset store: WoW2 Files over HTTP when <see cref="FilesBaseUrlKey"/> is set, by tokens of
+    /// Marketing's own Identity client (a person's exchanged within their session, Marketing's own otherwise), else the local
+    /// blob folder. Both read at resolve time, so a test host's settings decide. The boot backfill runs after the migrations
+    /// runner registered before it.</summary>
+    private static WebApplicationBuilder AddAssetStorage(this WebApplicationBuilder builder)
+    {
+        builder.Services.AddFilesClient(_ => { });
+        builder.Services.AddOptions<FilesClientOptions>().Configure<IConfiguration>((files, configuration) =>
+        {
+            if (configuration[FilesBaseUrlKey] is not { Length: > 0 } url)
+                return;
+            files.BaseAddress = new Uri(url);
+            if (!Uri.TryCreate(configuration["Identity:Client:Authority"], UriKind.Absolute, out var authority))
+                return;
+            files.Identity = new FilesClientIdentityOptions
+            {
+                TokenEndpoint = new Uri(authority, "connect/token"),
+                ClientId = configuration["Identity:Client:ClientId"] ?? string.Empty,
+                ClientSecret = configuration["Identity:Client:ClientSecret"] ?? string.Empty,
+            };
+        });
+        builder.Services.AddScoped<LocalAssetService>();
+        builder.Services.AddScoped<FilesAssetService>();
+        builder.Services.AddScoped<FilesAssetBackfill>();
+        builder.Services.AddScoped<IAssetService>(provider => UsesFiles(provider)
+            ? provider.GetRequiredService<FilesAssetService>()
+            : provider.GetRequiredService<LocalAssetService>());
+        builder.Services.AddHostedService<FilesBackfillHostedService>();
+        return builder;
+    }
+
+    /// <summary>Tells whether this run stores assets and draft exports in WoW2 Files.</summary>
+    internal static bool UsesFiles(IServiceProvider provider) =>
+        provider.GetRequiredService<IConfiguration>()[FilesBaseUrlKey] is { Length: > 0 };
+
     /// <summary>Registers card-rendering settings, the browser adapter and rendering services.</summary>
     private static WebApplicationBuilder AddCards(this WebApplicationBuilder builder)
     {
         builder.Services.AddSingleton(new CardRendererSettings(builder.Configuration["Cards:ExecutablePath"]));
         builder.Services.AddSingleton<IDocumentRenderingBroker, PlaywrightDocumentRenderingBroker>();
         builder.Services.AddSingleton<ICardRenderingService, HtmlCardRenderingService>();
-        builder.Services.AddScoped<IAssetService, LocalAssetService>();
         return builder;
     }
 

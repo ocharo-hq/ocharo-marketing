@@ -114,6 +114,8 @@ public sealed class MarketingController(
         ct));
   }
 
+  /// <summary>Downloads an approved revision's ZIP as bytes, never a redirect: the desk reads it with <c>fetch()</c>, which a
+  /// cross-origin redirect to a WoW2 Files link would break, since Files' links answer no <c>Access-Control-Allow-Origin</c>.</summary>
   [HttpGet("drafts/{id}/export")]
   public async Task<IActionResult> Export(string id, CancellationToken ct)
   {
@@ -123,12 +125,17 @@ public sealed class MarketingController(
         $"ocharo-draft-{id}.zip");
   }
 
+  /// <summary>Serves an asset to a member: a redirect to a short-lived WoW2 Files link, or the local bytes of an asset stored
+  /// before Files. The access middleware decides each request and the HTTP boundary keeps every API answer <c>no-store</c>, so
+  /// a redirect is asked again each time.</summary>
   [HttpGet("assets/{id}")]
   public async Task<IActionResult> GetAsset(string id, CancellationToken ct)
   {
-    var item = await assets.ReadAsync(id, ct);
+    var item = await assets.OpenAsync(id, ct);
+    if (item.Location is { } location)
+      return Redirect(location.AbsoluteUri);
     return File(
-        item.Bytes,
+        item.Bytes!,
         item.Asset.ContentType,
         enableRangeProcessing: false);
   }

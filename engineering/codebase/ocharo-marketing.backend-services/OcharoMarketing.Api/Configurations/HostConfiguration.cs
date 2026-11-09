@@ -15,6 +15,7 @@ public static partial class HostConfiguration
             .AddSettings()
             .AddSqliteDatabase()
             .AddBlobStorage()
+            .AddAssetStorage()
             .AddCards()
             .AddMarketing()
             .AddInquiries()

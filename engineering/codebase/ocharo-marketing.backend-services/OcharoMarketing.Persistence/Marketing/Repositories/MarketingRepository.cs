@@ -124,11 +124,41 @@ public sealed class MarketingRepository(OcharoMarketingDbContext db) : IMarketin
         return cancelled;
     }
 
-    public async Task SaveAssetAsync(AssetModel asset, string blobPath, CancellationToken ct)
+    public async Task SaveAssetAsync(AssetModel asset, string blobPath, CancellationToken ct, string? fileId = null)
     {
         if (await db.Assets.AnyAsync(x => x.Id == asset.Id, ct)) return;
-        db.Assets.Add(new AssetRecord { Id = asset.Id, Json = MarketingJson.Write(asset), BlobPath = blobPath });
+        db.Assets.Add(new AssetRecord { Id = asset.Id, Json = MarketingJson.Write(asset), BlobPath = blobPath, FileId = fileId });
         await db.SaveChangesAsync(ct);
+    }
+
+    public async Task<IReadOnlyList<AssetRecord>> GetAssetsWithoutFileAsync(CancellationToken ct) =>
+        await db.Assets.AsNoTracking().Where(x => x.FileId == null).ToListAsync(ct);
+
+    public async Task SetAssetFileAsync(string id, string fileId, CancellationToken ct)
+    {
+        await db.Assets.Where(x => x.Id == id).ExecuteUpdateAsync(set => set.SetProperty(x => x.FileId, fileId), ct);
+        db.ChangeTracker.Clear();
+    }
+
+    public Task<ExportFileRecord?> FindExportFileAsync(string draftId, int revision, CancellationToken ct) =>
+        db.ExportFiles.AsNoTracking().SingleOrDefaultAsync(x => x.DraftId == draftId && x.Revision == revision, ct);
+
+    public async Task<ExportFileRecord> SaveExportFileAsync(ExportFileRecord file, CancellationToken ct)
+    {
+        if (await FindExportFileAsync(file.DraftId, file.Revision, ct) is { } first) return first;
+        db.ExportFiles.Add(file);
+        try
+        {
+            await db.SaveChangesAsync(ct);
+        }
+        catch (DbUpdateException)
+        {
+            // A concurrent export recorded its file first; that one stays this revision's export.
+            db.ChangeTracker.Clear();
+            return await FindExportFileAsync(file.DraftId, file.Revision, ct) ?? throw new MarketingException("The export could not be recorded. Retry.", 409);
+        }
+        db.ChangeTracker.Clear();
+        return file;
     }
 
     public async Task EnqueueAsync(GenerationJobModel job, string payloadJson, JobRequester? requestedBy, CancellationToken ct)

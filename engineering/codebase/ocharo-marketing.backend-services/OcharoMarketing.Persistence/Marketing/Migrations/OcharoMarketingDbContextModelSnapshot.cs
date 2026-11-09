@@ -26,6 +26,9 @@ namespace OcharoMarketing.Persistence.Marketing.Migrations
                         .IsRequired()
                         .HasColumnType("TEXT");
 
+                    b.Property<string>("FileId")
+                        .HasColumnType("TEXT");
+
                     b.Property<string>("Json")
                         .IsRequired()
                         .HasColumnType("TEXT");
@@ -108,6 +111,27 @@ namespace OcharoMarketing.Persistence.Marketing.Migrations
                         .IsUnique();
 
                     b.ToTable("DraftRevisions");
+                });
+
+            modelBuilder.Entity("OcharoMarketing.Domain.Marketing.Entities.ExportFileRecord", b =>
+                {
+                    b.Property<string>("DraftId")
+                        .HasColumnType("TEXT");
+
+                    b.Property<int>("Revision")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<string>("FileId")
+                        .IsRequired()
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("Sha256")
+                        .IsRequired()
+                        .HasColumnType("TEXT");
+
+                    b.HasKey("DraftId", "Revision");
+
+                    b.ToTable("ExportFiles");
                 });
 
             modelBuilder.Entity("OcharoMarketing.Domain.Marketing.Entities.GenerationJobRecord", b =>

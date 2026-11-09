@@ -39,7 +39,7 @@ public sealed class CreativeImportsController(
     {
       using var doc = JsonDocument.Parse(raw);
       data = doc.RootElement.Clone();
-      Validate(data, bytes);
+      CheckManifest(data, bytes);
     }
     catch (Exception e) when (e is JsonException or InvalidOperationException or KeyNotFoundException or FormatException)
     {
@@ -101,7 +101,7 @@ public sealed class CreativeImportsController(
     return Ok(new { draft, reused = false });
   }
 
-  public static void Validate(JsonElement data, byte[] bytes)
+  private static void CheckManifest(JsonElement data, byte[] bytes)
   {
     if (data.GetProperty("schemaVersion").GetInt32() != 1 || !Guid.TryParse(data.GetProperty("exportId").GetString(), out _) || data.GetProperty("source").GetProperty("application").GetString() != "ocharo-studio" || data.GetProperty("source").GetProperty("revision").GetInt32() < 0 || string.IsNullOrWhiteSpace(data.GetProperty("source").GetProperty("lookId").GetString()) || string.IsNullOrWhiteSpace(data.GetProperty("derivative").GetProperty("fileName").GetString()) || data.GetProperty("sourceApproval").GetProperty("status").GetString() != "approved-for-review")
       throw new FormatException();

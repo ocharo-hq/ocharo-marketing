@@ -37,6 +37,11 @@ services:
         # The Catalogue and Blog origins the catalogue sync and story picker read, each linked to its site.
         Marketing:CatalogueBaseUrl: { from: { repository: platform, key: Sites:catalogue:Url } }
         Marketing:BlogBaseUrl: { from: Sites:blog:Url }
+        # Assets and export ZIPs live in WoW2 Files, tenant `ocharo` on the shared files host, reached with client 3: a
+        # member's exchanged token within their session, Marketing's own for the worker, seed and backfill; linked to the
+        # Uri ocharo-platform types for its Files resource. Blobs stored before Files read from marketing-data until the
+        # migration (files-migration.yml).
+        Files:BaseUrl: { from: { repository: platform, key: Identity:Server:Resources:2:Uri } }
         # The Ocharo app menu, served anonymously at /api/runtime-config; an unset key leaves that app out.
         OcharoApps:Desk: { type: url }
         OcharoApps:Catalogue: { type: url }
@@ -48,7 +53,7 @@ services:
         OcharoApps:Wear: { type: url }
         OcharoApps:Blog: { type: url }
     volumes:
-      marketing-data: /data             # SQLite store (ocharomarketing.db) and private blobs
+      marketing-data: /data             # SQLite store (ocharomarketing.db) and private blobs stored before WoW2 Files
     sites:
       marketing: {}
   blog:

@@ -289,11 +289,14 @@ public sealed class DeliveryWorkflowTests : IAsyncLifetime
         await db.Database.ExecuteSqlRawAsync(history.GetCreateIfNotExistsScript());
         await db.Database.ExecuteSqlRawAsync(history.GetInsertScript(new HistoryRow(legacyId, "10.0.3")));
         var plan = await PlanAsync(db);
-        await new MarketingRepository(db).SaveAssetAsync(assets.Asset, "originals/front/test", default);
+        // The legacy Assets table has no FileId column, so the asset goes in as that schema's own row.
+        await db.Database.ExecuteSqlRawAsync("INSERT INTO \"Assets\" (\"Id\", \"Json\", \"BlobPath\") VALUES ({0}, {1}, {2})",
+            assets.Asset.Id, MarketingJson.Write(assets.Asset), "originals/front/test");
         await db.Database.MigrateAsync();
         Assert.NotNull(await new MarketingRepository(db).FindDraftAsync(plan.DraftId, default));
         Assert.Equal("planned", (await new DeliveryRepository(db).FindScheduleAsync(plan.Id, default))!.Status);
-        Assert.NotNull(await new MarketingRepository(db).FindAssetAsync("front", default));
+        Assert.Equal("originals/front/test", (await new MarketingRepository(db).FindAssetAsync("front", default))!.BlobPath);
+        Assert.Null((await new MarketingRepository(db).FindAssetAsync("front", default))!.FileId);
         Assert.Empty(await db.PublicationOperations.ToListAsync());
         Assert.Empty(await db.SourceAnalyses.ToListAsync());
         Assert.False(db.Database.HasPendingModelChanges());
@@ -406,6 +409,7 @@ public sealed class DeliveryWorkflowTests : IAsyncLifetime
         public byte[] Bytes { get; } = [137, 80, 78, 71, 13, 10, 26, 10];
         public AssetModel Asset { get; } = new("front", "front.png", "image/png", 8, new string('a', 64), "Test source", "/api/marketing/assets/front", "front");
         public Task<PrivateAssetContent> ReadAsync(string id, CancellationToken ct) => Task.FromResult(new PrivateAssetContent(Asset, Bytes));
+        public Task<AssetContent> OpenAsync(string id, CancellationToken ct) => Task.FromResult(new AssetContent(Asset, null, Bytes));
         public Task<AssetModel> SaveAsync(byte[] bytes, string fileName, string provenance, string role, CancellationToken ct, string? id = null) => throw new NotSupportedException();
         public Task<byte[]> ExportDraftAsync(string id, CancellationToken ct) => throw new NotSupportedException();
     }

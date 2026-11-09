@@ -189,6 +189,7 @@ public sealed class SourceAnalysisTests : IAsyncLifetime
 
         public void Replace(byte[] bytes) => Content = Create(bytes);
         public Task<PrivateAssetContent> ReadAsync(string id, CancellationToken ct) => Task.FromResult(Content);
+        public Task<AssetContent> OpenAsync(string id, CancellationToken ct) => Task.FromResult(new AssetContent(Content.Asset, null, Content.Bytes));
         public Task<AssetModel> SaveAsync(
             byte[] bytes, string fileName, string provenance, string role, CancellationToken ct, string? id = null)
         {

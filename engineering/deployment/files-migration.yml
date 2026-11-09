@@ -12,3 +12,17 @@ sources:
     volume: blog-data
     path: blobs/media
     reference: "editorial.media:{sha256}"  # the file name is the SHA-256 of its bytes
+  # Marketing keeps each asset's original under {DataDirectory}/blobs/originals/{assetId}/{sha256} and each draft export
+  # under blobs/exports/{draftId}/{revision}.zip on marketing-data; boot fills both kinds' file ids by SHA-256.
+  - id: marketing-assets
+    wave: 2
+    kind: volume-folder
+    volume: marketing-data
+    path: blobs/originals
+    reference: "marketing.asset:{sha256}"  # the file name is the SHA-256 of its bytes
+  - id: marketing-exports
+    wave: 2
+    kind: volume-folder
+    volume: marketing-data
+    path: blobs/exports
+    reference: "marketing.export:{sha256}"  # the SHA-256 the mover computes, since the name is the revision

@@ -10,6 +10,7 @@ public sealed class OcharoMarketingDbContext(DbContextOptions<OcharoMarketingDbC
     public DbSet<ProductRecord> Products => Set<ProductRecord>();
     public DbSet<MetadataRecord> Metadata => Set<MetadataRecord>();
     public DbSet<AssetRecord> Assets => Set<AssetRecord>();
+    public DbSet<ExportFileRecord> ExportFiles => Set<ExportFileRecord>();
     public DbSet<DraftRecord> Drafts => Set<DraftRecord>();
     public DbSet<DraftRevisionRecord> DraftRevisions => Set<DraftRevisionRecord>();
     public DbSet<ScheduleRecord> Schedules => Set<ScheduleRecord>();
@@ -39,6 +40,7 @@ public sealed class OcharoMarketingDbContext(DbContextOptions<OcharoMarketingDbC
         model.Entity<ProductRecord>().HasKey(x => x.Id);
         model.Entity<MetadataRecord>().HasKey(x => x.Id);
         model.Entity<AssetRecord>().HasKey(x => x.Id);
+        model.Entity<ExportFileRecord>().HasKey(x => new { x.DraftId, x.Revision });
         model.Entity<DraftRecord>().HasKey(x => x.Id);
         model.Entity<DraftRecord>().Property(x => x.Revision).IsConcurrencyToken();
         model.Entity<DraftRevisionRecord>().HasKey(x => x.Id);

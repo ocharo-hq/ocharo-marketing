@@ -11,9 +11,12 @@
 
   <ItemGroup>
     <!-- wow-two backend SDK (kit): mediator, Result/DomainError, IKeyedEntity, web/problem-details. On nuget.org. -->
-    <PackageVersion Include="WoW2.Sdk.Beta.Be" Version="10.0.103-beta" />
+    <PackageVersion Include="WoW2.Sdk.Beta.Be" Version="10.0.105-beta" />
     <!-- Sign-in through Ocharo's Identity instance: the BFF (session cookie, OIDC code flow with PKCE, X-Csrf-Token). -->
-    <PackageVersion Include="WoW2.Sdk.Beta.Be.Identity.Client" Version="10.0.27-beta" />
+    <PackageVersion Include="WoW2.Sdk.Beta.Be.Identity.Client" Version="10.0.30-beta" />
+    <!-- WoW2 Files: the contract (Infrastructure's store) and its HTTP client (the host's composition). -->
+    <PackageVersion Include="WoW2.Sdk.Beta.Be.Files.Abstractions" Version="10.0.5-beta" />
+    <PackageVersion Include="WoW2.Sdk.Beta.Be.Files.Client" Version="10.0.5-beta" />
   </ItemGroup>
 
   <ItemGroup>
@@ -30,8 +33,8 @@
     <PackageVersion Include="SkiaSharp" Version="3.119.2" />
     <!-- Test stack. -->
     <PackageVersion Include="Microsoft.NET.Test.Sdk" Version="17.12.0" />
-    <PackageVersion Include="WoW2.Sdk.Beta.Be.Testing" Version="10.0.103-beta" />
-    <PackageVersion Include="WoW2.Sdk.Beta.Be.Testing.Data" Version="10.0.103-beta" />
+    <PackageVersion Include="WoW2.Sdk.Beta.Be.Testing" Version="10.0.105-beta" />
+    <PackageVersion Include="WoW2.Sdk.Beta.Be.Testing.Data" Version="10.0.105-beta" />
     <PackageVersion Include="Microsoft.EntityFrameworkCore.Design" Version="10.0.14" />
     <PackageVersion Include="xunit" Version="2.9.2" />
     <PackageVersion Include="xunit.runner.visualstudio" Version="2.8.2" />
