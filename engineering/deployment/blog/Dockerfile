@@ -3,13 +3,13 @@
 # The `blog` service of deploy.yml: the Editorial API, its public renderer and the /studio/ editor. The renderer is
 # public; the editor signs in through Ocharo's Identity, and the Data Protection key ring stays under /data.
 #
-# Multi-stage build: ONE image serving the .NET API + the Vue SPA. The build
-# context MUST be engineering/codebase/, which holds BOTH ocharo-blog.backend-services
-# and ocharo-blog.frontend-services.
+# Multi-stage build: ONE image serving the .NET API + the Editorial SPA. The build context MUST be
+# engineering/codebase/, which holds BOTH ocharo-blog.backend-services and ocharo-marketing.frontend-services, whose
+# apps/editorial is the /studio/ editor.
 #
 #   docker build -f engineering/deployment/blog/Dockerfile -t ocharoblog engineering/codebase
 #
-#   docker run -d --name ocharoblog -p 127.0.0.1:8200:8080 -v ocharoblog-data:/data ocharoblog
+#   docker run -d --name ocharoblog -p 127.0.0.1:8281:8080 -v ocharoblog-data:/data ocharoblog
 #
 # On first run the app creates /data/ocharo-blog.db automatically.
 

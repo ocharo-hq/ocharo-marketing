@@ -125,3 +125,5 @@ Each row's outcome: fixed (with the commit), excepted (with the reason) or waiti
 | M-41 | fixed, split excepted | Verification last, prose cut, tasks reworded; splitting v0.1 means closing it, which needs the developer's word (version-track § Lifecycle), so the sweep's iterations sit in v0.1 |
 | M-42 | fixed | every backlog group is an `Item · Type · Notes` table; the session-expiry decision moved to `architecture.md` |
 | M-43 | fixed | the receipt moved to `engineering/operations/catalogue-web-verification.md` |
+| M-7 | fixed | `.github/renovate.json` extends the pipelines `renovate-private` preset |
+| M-10 | fixed | the Blog Dockerfile header names `ocharo-marketing.frontend-services` and the ledger port |
