@@ -7,6 +7,9 @@
     <Project Path="OcharoMarketing.Persistence/OcharoMarketing.Persistence.csproj" />
   </Folder>
   <Folder Name="/Tests/">
-    <Project Path="tests/OcharoMarketing.Tests/OcharoMarketing.Tests.csproj" />
+    <Project Path="tests/OcharoMarketing.Tests.E2E/OcharoMarketing.Tests.E2E.csproj" />
+    <Project Path="tests/OcharoMarketing.Tests.Integration/OcharoMarketing.Tests.Integration.csproj" />
+    <Project Path="tests/OcharoMarketing.Tests.Support/OcharoMarketing.Tests.Support.csproj" />
+    <Project Path="tests/OcharoMarketing.Tests.Unit/OcharoMarketing.Tests.Unit.csproj" />
   </Folder>
 </Solution>

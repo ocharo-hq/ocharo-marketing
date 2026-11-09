@@ -1,4 +1,4 @@
-using OcharoMarketing.Api.Marketing;
+using OcharoMarketing.Api.Core;
 
 namespace OcharoMarketing.Api.Access;
 
@@ -8,7 +8,8 @@ public static class MarketingAccess
     /// <summary>The permission every write to a private route needs.</summary>
     public const string EditPermission = "marketing:edit";
 
-    /// <summary>The permission an approval write (<see cref="NeedsApproval"/>) needs, beside <see cref="EditPermission"/>.</summary>
+    /// <summary>The permission an approval write (<see cref="NeedsApproval"/>) needs, beside
+    /// <see cref="EditPermission"/>.</summary>
     public const string ApprovePermission = "marketing:approve";
 
     private const string SessionRoutes = "/api/identity";
@@ -22,7 +23,18 @@ public static class MarketingAccess
 
     private static readonly HashSet<string> ApprovalSegments = new(StringComparer.Ordinal)
     {
-        "publish", "unpublish", "archive", "schedule", "approve", "restore", "queue", "retry", "dispatch", "settings", "cancel", "reconcile",
+        "publish",
+        "unpublish",
+        "archive",
+        "schedule",
+        "approve",
+        "restore",
+        "queue",
+        "retry",
+        "dispatch",
+        "settings",
+        "cancel",
+        "reconcile",
     };
 
     /// <summary>Whether a request never reads a session: a technical route (<see cref="TechnicalRoutes"/>) or anything
@@ -31,7 +43,8 @@ public static class MarketingAccess
         TechnicalRoutes.IsPublic(request) || Normalized(request).StartsWith("/api/public/", StringComparison.Ordinal);
 
     /// <summary>
-    /// Whether a request needs a member's session: <c>/api</c> and <c>/preview</c>, in any letter case. Public requests and
+    /// Whether a request needs a member's session: <c>/api</c> and <c>/preview</c>, in any letter case. Public requests
+    /// and
     /// the Identity session routes do not; neither do static files and the SPA shell, which sit outside both.
     /// </summary>
     public static bool IsPrivate(HttpRequest request)
@@ -42,7 +55,8 @@ public static class MarketingAccess
             || path == "/preview" || path.StartsWith("/preview/", StringComparison.Ordinal);
     }
 
-    /// <summary>Whether a private request changes what goes out, or when, so it needs <see cref="ApprovePermission"/>.</summary>
+    /// <summary>Whether a private request changes what goes out, or when, so it needs
+    /// <see cref="ApprovePermission"/>.</summary>
     public static bool NeedsApproval(HttpRequest request)
     {
         var path = Normalized(request);

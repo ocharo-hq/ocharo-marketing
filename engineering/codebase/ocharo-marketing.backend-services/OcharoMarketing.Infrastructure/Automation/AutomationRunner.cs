@@ -1,9 +1,10 @@
 using Microsoft.Extensions.Logging;
-using OcharoMarketing.Application.Marketing;
-using OcharoMarketing.Application.Marketing.Models;
-using OcharoMarketing.Application.Marketing.Repositories;
-using OcharoMarketing.Infrastructure.Marketing;
-using OcharoMarketing.Infrastructure.Marketing.Services;
+using OcharoMarketing.Application.Automation.Models;
+using OcharoMarketing.Application.Core;
+using OcharoMarketing.Application.Core.Repositories;
+using OcharoMarketing.Infrastructure.Import;
+using OcharoMarketing.Infrastructure.Operations.Services;
+using WoW.Two.Sdk.Beta.Be.Foundation.Errors;
 
 namespace OcharoMarketing.Infrastructure.Automation;
 
@@ -32,7 +33,8 @@ public sealed class AutomationRunner(
         var settings = await automation.GetAsync(ct);
         if (settings.DraftNewCatalogueProducts && report.NewProductIds.Length > 0)
         {
-            var drafts = await automation.CreateDraftsAsync(new BulkDraftInput(report.NewProductIds, settings.DefaultLocale, settings.DefaultPresetId,
+            var drafts = await automation.CreateDraftsAsync(
+                new BulkDraftInput(report.NewProductIds, settings.DefaultLocale, settings.DefaultPresetId,
                 settings.DefaultChannels, null), ct);
             report = report with { DraftIds = drafts.Select(d => d.Id).ToArray() };
         }
@@ -42,7 +44,9 @@ public sealed class AutomationRunner(
     }
 
     public async Task<AutomationRunModel> StatusAsync(CancellationToken ct) =>
-        await repository.GetSettingAsync(RunKey, ct) is { } json ? MarketingJson.Read<AutomationRunModel>(json) : new(null, null, null, 0, null, null);
+        await repository.GetSettingAsync(RunKey, ct) is { } json
+            ? MarketingJson.Read<AutomationRunModel>(json)
+            : new(null, null, null, 0, null, null);
 
     /// <summary>Runs whatever unattended work is due; returns true when something ran.</summary>
     public async Task<bool> RunDueAsync(CancellationToken ct)
@@ -51,14 +55,17 @@ public sealed class AutomationRunner(
         var run = await StatusAsync(ct);
         var now = time.GetUtcNow();
         var ran = false;
-        if (settings.AutoSyncHours > 0 && (run.LastSyncAt is null || now - run.LastSyncAt >= TimeSpan.FromHours(settings.AutoSyncHours)))
+        if (settings.AutoSyncHours > 0
+            && (run.LastSyncAt is null || now - run.LastSyncAt >= TimeSpan.FromHours(settings.AutoSyncHours)))
         {
             ran = true;
             try { await SyncCatalogueAsync(ct); }
-            catch (MarketingException exception)
+            catch (AppException exception)
             {
                 // Record and retry after the interval; a stopped catalogue must not stop planning.
-                await SaveRunAsync(r => r with { LastError = exception.Message, LastErrorAt = now, LastSyncAt = now }, ct);
+                await SaveRunAsync(
+                    r => r with { LastError = exception.Message, LastErrorAt = now, LastSyncAt = now },
+                    ct);
             }
         }
 
@@ -70,9 +77,11 @@ public sealed class AutomationRunner(
                 var fill = await automation.FillAsync(settings.AutoFillDays, ct);
                 await SaveRunAsync(r => r with { LastFillAt = now, LastFillPlanned = fill.Planned.Length }, ct);
             }
-            catch (MarketingException exception)
+            catch (AppException exception)
             {
-                await SaveRunAsync(r => r with { LastError = exception.Message, LastErrorAt = now, LastFillAt = now }, ct);
+                await SaveRunAsync(
+                    r => r with { LastError = exception.Message, LastErrorAt = now, LastFillAt = now },
+                    ct);
             }
         }
 

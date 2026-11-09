@@ -34,16 +34,20 @@ public static class OcharoAppsSettingsExtensions
         BlogUrl = Public(settings.Blog),
     };
 
-    /// <summary>Names the settings that are configured but not plain HTTPS addresses, so the host can warn about them.</summary>
+    /// <summary>Names the settings that are configured but not plain HTTPS addresses, so the host can warn about
+    /// them.</summary>
     public static IReadOnlyList<string> RejectedSettings(this OcharoAppsSettings settings)
     {
         return Addresses
-            .Where(address => !string.IsNullOrWhiteSpace(address.Read(settings)) && !IsPublicAddress(address.Read(settings)))
+            .Where(
+                address =>
+                    !string.IsNullOrWhiteSpace(address.Read(settings)) && !IsPublicAddress(address.Read(settings)))
             .Select(address => $"{OcharoAppsSettings.SectionName}:{address.Setting}")
             .ToArray();
     }
 
-    /// <summary>Accepts an absolute HTTPS address without credentials, query or fragment that could carry a token.</summary>
+    /// <summary>Accepts an absolute HTTPS address without credentials, query or fragment that could carry a
+    /// token.</summary>
     public static bool IsPublicAddress(string? value)
     {
         return Uri.TryCreate(value, UriKind.Absolute, out var uri)

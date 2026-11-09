@@ -29,7 +29,9 @@ internal static partial class ProviderInput
         => IsTelegramChatId(id) && id![0] != '-';
 
     internal static bool IsTelegramChatId(string? id)
-        => id is not null && long.TryParse(id, NumberStyles.AllowLeadingSign, CultureInfo.InvariantCulture, out var value)
+        =>
+            id is not null
+                && long.TryParse(id, NumberStyles.AllowLeadingSign, CultureInfo.InvariantCulture, out var value)
             && value != 0 && value is >= -4_503_599_627_370_495 and <= 4_503_599_627_370_495
             && value.ToString(CultureInfo.InvariantCulture) == id;
 
@@ -40,7 +42,8 @@ internal static partial class ProviderInput
     {
         if (!Uri.TryCreate(value, UriKind.Absolute, out var uri) || uri.Scheme != Uri.UriSchemeHttps ||
             uri.IsLoopback || !string.IsNullOrEmpty(uri.UserInfo)) return false;
-        if (!IPAddress.TryParse(uri.Host, out var address)) return !uri.Host.EndsWith(".local", StringComparison.OrdinalIgnoreCase);
+        if (!IPAddress.TryParse(uri.Host, out var address))
+            return !uri.Host.EndsWith(".local", StringComparison.OrdinalIgnoreCase);
         if (address.AddressFamily != System.Net.Sockets.AddressFamily.InterNetwork) return false;
         var bytes = address.GetAddressBytes();
         return bytes[0] is not (0 or 10 or 127) && !(bytes[0] == 169 && bytes[1] == 254) &&
@@ -51,7 +54,8 @@ internal static partial class ProviderInput
     internal static bool IsGeneratedImage(byte[] bytes, string contentType)
         => contentType switch
         {
-            "image/png" => bytes.Length >= 8 && bytes.AsSpan(0, 8).SequenceEqual(new byte[] { 137, 80, 78, 71, 13, 10, 26, 10 }),
+            "image/png" =>
+                bytes.Length >= 8 && bytes.AsSpan(0, 8).SequenceEqual(new byte[] { 137, 80, 78, 71, 13, 10, 26, 10 }),
             "image/jpeg" => bytes.Length >= 3 && bytes[0] == 255 && bytes[1] == 216 && bytes[2] == 255,
             "image/webp" => bytes.Length >= 12 && bytes.AsSpan(0, 4).SequenceEqual("RIFF"u8) &&
                             bytes.AsSpan(8, 4).SequenceEqual("WEBP"u8),

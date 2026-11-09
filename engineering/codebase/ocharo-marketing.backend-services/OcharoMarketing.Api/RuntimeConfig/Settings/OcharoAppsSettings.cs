@@ -1,7 +1,9 @@
 namespace OcharoMarketing.Api.RuntimeConfig.Settings;
 
-/// <summary>Holds the <c>OcharoApps</c> section: the public addresses of the Ocharo apps and sites Marketing links to.</summary>
-/// <remarks>Every address is optional; Marketing's app menu keeps its build-time or local address for one left unset.</remarks>
+/// <summary>Holds the <c>OcharoApps</c> section: the public addresses of the Ocharo apps and sites Marketing links
+/// to.</summary>
+/// <remarks>Every address is optional; Marketing's app menu keeps its build-time or local address for one left
+/// unset.</remarks>
 public sealed record OcharoAppsSettings
 {
     public const string SectionName = "OcharoApps";

@@ -5,38 +5,51 @@ using Microsoft.Data.Sqlite;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection.Extensions;
 using Npgsql;
+using OcharoMarketing.Api.Core;
+using OcharoMarketing.Api.Core.Errors;
 using OcharoMarketing.Api.Import;
-using OcharoMarketing.Api.Marketing;
 using OcharoMarketing.Api.RuntimeConfig.Settings;
-using OcharoMarketing.Application;
+using OcharoMarketing.Application.Assets.Services;
 using OcharoMarketing.Application.Cards.Brokers;
 using OcharoMarketing.Application.Cards.Services;
+using OcharoMarketing.Application.Core.Repositories;
+using OcharoMarketing.Application.Deliveries.Repositories;
+using OcharoMarketing.Application.Generations.Services;
 using OcharoMarketing.Application.Inquiries;
-using OcharoMarketing.Application.Marketing.Repositories;
-using OcharoMarketing.Application.Marketing.Services;
+using OcharoMarketing.Application.Operations.Repositories;
 using OcharoMarketing.Application.Providers;
 using OcharoMarketing.Application.Scanning;
+using OcharoMarketing.Infrastructure;
+using OcharoMarketing.Infrastructure.Assets.Services;
 using OcharoMarketing.Infrastructure.Automation;
 using OcharoMarketing.Infrastructure.Cards.Brokers;
 using OcharoMarketing.Infrastructure.Cards.Services;
 using OcharoMarketing.Infrastructure.Cards.Settings;
+using OcharoMarketing.Infrastructure.Core;
+using OcharoMarketing.Infrastructure.Deliveries.BackgroundServices;
+using OcharoMarketing.Infrastructure.Deliveries.Services;
+using OcharoMarketing.Infrastructure.Generations.BackgroundServices;
+using OcharoMarketing.Infrastructure.Generations.Services;
+using OcharoMarketing.Infrastructure.Import;
 using OcharoMarketing.Infrastructure.Inquiries;
-using OcharoMarketing.Infrastructure.Marketing;
-using OcharoMarketing.Infrastructure.Marketing.BackgroundServices;
-using OcharoMarketing.Infrastructure.Marketing.Services;
+using OcharoMarketing.Infrastructure.Operations.Services;
+using OcharoMarketing.Infrastructure.Posts.Services;
 using OcharoMarketing.Infrastructure.Providers;
 using OcharoMarketing.Infrastructure.Providers.Brokers;
 using OcharoMarketing.Infrastructure.Scanning;
 using OcharoMarketing.Persistence;
+using OcharoMarketing.Persistence.Core.Repositories;
+using OcharoMarketing.Persistence.Deliveries.Repositories;
 using OcharoMarketing.Persistence.Import;
 using OcharoMarketing.Persistence.Inquiries;
-using OcharoMarketing.Persistence.Marketing.Repositories;
+using OcharoMarketing.Persistence.Operations.Repositories;
 using OcharoMarketing.Persistence.Scanning;
 using WoW.Two.Sdk.Beta.Be.Data.Abstractions;
 using WoW.Two.Sdk.Beta.Be.Data.EntityFrameworkCore;
 using WoW.Two.Sdk.Beta.Be.Data.EntityFrameworkCore.Postgres;
 using WoW.Two.Sdk.Beta.Be.Data.Migrations.Bespoke;
 using WoW.Two.Sdk.Beta.Be.Files.Client;
+using WoW.Two.Sdk.Beta.Be.Foundation.Errors;
 using WoW.Two.Sdk.Beta.Be.Foundation.Configuration.ConfigCheck;
 using WoW.Two.Sdk.Beta.Be.Foundation.Options;
 using WoW.Two.Sdk.Beta.Be.Jobs.Core;
@@ -44,6 +57,8 @@ using WoW.Two.Sdk.Beta.Be.Jobs.Core.PersonOperations;
 using WoW.Two.Sdk.Beta.Be.Mediator;
 using WoW.Two.Sdk.Beta.Be.Observability.HealthChecks;
 using WoW.Two.Sdk.Beta.Be.Storage.FileSystem;
+using WoW.Two.Sdk.Beta.Be.Web.ErrorMapping;
+using WoW.Two.Sdk.Beta.Be.Web.ExceptionHandling.Factories;
 using WoW.Two.Sdk.Beta.Be.Web.Json;
 using WoW.Two.Sdk.Beta.Be.Web.ProblemDetails;
 
@@ -406,10 +421,12 @@ public static partial class HostConfiguration
         return builder;
     }
 
-    /// <summary>Registers the mediator against the application assembly.</summary>
+    /// <summary>Registers the mediator over the handler-bearing Infrastructure assembly; its exception interceptor
+    /// turns
+    /// a failure a handler throws into the request's <c>AppResult</c> failure.</summary>
     private static WebApplicationBuilder AddMediator(this WebApplicationBuilder builder)
     {
-        builder.Services.AddMediator(typeof(ApplicationAssembly).Assembly);
+        builder.Services.AddMediator(typeof(InfrastructureAssembly).Assembly);
         return builder;
     }
 
@@ -418,7 +435,10 @@ public static partial class HostConfiguration
     private static WebApplicationBuilder AddRuntimeConfig(this WebApplicationBuilder builder)
     {
         // Every address is optional, and a malformed one is left out rather than failing the host over a menu link.
-        builder.Services.AddValidatedSettings<OcharoAppsSettings>(builder.Configuration, OcharoAppsSettings.SectionName, _ => { });
+        builder.Services.AddValidatedSettings<OcharoAppsSettings>(
+            builder.Configuration,
+            OcharoAppsSettings.SectionName,
+            _ => { });
         return builder;
     }
 
@@ -427,22 +447,27 @@ public static partial class HostConfiguration
     {
         var rejected = app.Services.GetRequiredService<OcharoAppsSettings>().RejectedSettings();
         if (rejected.Count > 0)
-            app.Logger.LogWarning("Runtime config leaves out {Settings}: each must be a plain HTTPS address.", string.Join(", ", rejected));
+            app.Logger.LogWarning(
+                "Runtime config leaves out {Settings}: each must be a plain HTTPS address.",
+                string.Join(", ", rejected));
     }
 
-    /// <summary>Registers HTTP problem details and controllers on the SDK wire contract.</summary>
+    /// <summary>Registers HTTP problem details and controllers on the SDK wire contract, with Marketing's statuses and
+    /// titles and the exceptions it answers as client errors.</summary>
     private static WebApplicationBuilder AddControllers(this WebApplicationBuilder builder)
     {
         builder.Services.AddHttpProblemDetails();
+        builder.Services.AddSingleton<IErrorHttpStatusCodeMapper, MarketingErrorHttpStatusCodeMapper>();
+        builder.Services.AddSingleton<IAppErrorProblemDetailsFactory, MarketingProblemDetailsFactory>();
+        builder.Services.AddExceptionMappingRule<MarketingExceptionMappingRule>();
         builder.Services.AddControllersWithSdkJson();
         return builder;
     }
 
-    /// <summary>Configures Marketing's request boundary: rejected commands as ProblemDetails, then the response headers
-    /// and the same-origin write check, ahead of sign-in.</summary>
+    /// <summary>Configures Marketing's request boundary: the response headers and the same-origin write check, ahead of
+    /// sign-in.</summary>
     private static IApplicationBuilder UseMarketingBoundary(this IApplicationBuilder app)
     {
-        app.UseMiddleware<MarketingExceptionMiddleware>();
         app.UseMiddleware<MarketingHttpBoundaryMiddleware>();
         return app;
     }

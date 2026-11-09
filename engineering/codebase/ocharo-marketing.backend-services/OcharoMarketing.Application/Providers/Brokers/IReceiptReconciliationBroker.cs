@@ -4,5 +4,7 @@ namespace OcharoMarketing.Application.Providers;
 public interface IReceiptReconciliationBroker
 {
     string Provider { get; }
-    Task<ReceiptReconciliationResult> ReconcileAsync(ReceiptReconciliationRequest input, CancellationToken cancellationToken);
+    Task<ReceiptReconciliationResult> ReconcileAsync(
+        ReceiptReconciliationRequest input,
+        CancellationToken cancellationToken);
 }

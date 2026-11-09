@@ -45,7 +45,7 @@ jobs:
           "dotnet": "10.0.300", "lfs": "engineering/codebase/**", "timeout": 30,
           "run": ["dotnet restore OcharoMarketing.BackendServices.slnx",
                   "dotnet build OcharoMarketing.BackendServices.slnx -c Release --no-restore -p:BuildSpa=false",
-                  "pwsh tests/OcharoMarketing.Tests/bin/Release/net10.0/playwright.ps1 install --with-deps chromium",
+                  "pwsh tests/OcharoMarketing.Tests.Integration/bin/Release/net10.0/playwright.ps1 install --with-deps chromium",
                   "dotnet test OcharoMarketing.BackendServices.slnx -c Release --no-build -p:BuildSpa=false"],
           "paths": ["engineering/codebase/ocharo-marketing.backend-services/**"]},
          {"name": "Backend (ocharo-blog)", "dir": "engineering/codebase/ocharo-blog.backend-services",

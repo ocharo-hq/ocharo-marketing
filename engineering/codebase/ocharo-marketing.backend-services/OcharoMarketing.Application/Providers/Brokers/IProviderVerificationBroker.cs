@@ -4,5 +4,7 @@ namespace OcharoMarketing.Application.Providers;
 public interface IProviderVerificationBroker
 {
     string Provider { get; }
-    Task<ProviderVerificationResult> VerifyAsync(ProviderVerificationRequest input, CancellationToken cancellationToken);
+    Task<ProviderVerificationResult> VerifyAsync(
+        ProviderVerificationRequest input,
+        CancellationToken cancellationToken);
 }

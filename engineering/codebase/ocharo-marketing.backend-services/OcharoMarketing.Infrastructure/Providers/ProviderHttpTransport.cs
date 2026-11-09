@@ -26,13 +26,17 @@ internal static class ProviderHttpTransport
 
         try
         {
-            using var response = await client.SendAsync(request, HttpCompletionOption.ResponseHeadersRead, cancellationToken);
+            using var response = await client.SendAsync(
+                request,
+                HttpCompletionOption.ResponseHeadersRead,
+                cancellationToken);
             string? requestId = response.Headers.TryGetValues("x-request-id", out var values)
                 ? values.FirstOrDefault() : null;
             if (!response.IsSuccessStatusCode)
             {
                 var ambiguous = sideEffect && ((int)response.StatusCode >= 500 ||
-                    response.StatusCode == HttpStatusCode.RequestTimeout || (int)response.StatusCode is >= 300 and < 400);
+                    response.StatusCode == HttpStatusCode.RequestTimeout
+                        || (int)response.StatusCode is >= 300 and < 400);
                 return new(ambiguous ? BrokerOutcome.Ambiguous : BrokerOutcome.Rejected, null,
                     "http_" + (int)response.StatusCode,
                     ambiguous ? "Provider may have accepted the operation; reconcile before retrying."

@@ -18,4 +18,12 @@
     <EmbeddedResource Include="Cards/Assets/*.ttf" />
     <None Update="Cards/Assets/*.txt" CopyToOutputDirectory="PreserveNewest" CopyToPublishDirectory="PreserveNewest" />
   </ItemGroup>
+
+  <ItemGroup>
+    <!-- Let the test projects reach the internal handlers for direct tests. -->
+    <InternalsVisibleTo Include="OcharoMarketing.Tests.Unit" />
+    <InternalsVisibleTo Include="OcharoMarketing.Tests.Integration" />
+    <InternalsVisibleTo Include="OcharoMarketing.Tests.E2E" />
+    <InternalsVisibleTo Include="OcharoMarketing.Tests.Support" />
+  </ItemGroup>
 </Project>

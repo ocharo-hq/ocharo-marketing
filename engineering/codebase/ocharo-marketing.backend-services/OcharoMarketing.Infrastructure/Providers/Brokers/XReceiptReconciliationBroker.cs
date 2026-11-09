@@ -3,7 +3,9 @@ using OcharoMarketing.Application.Providers;
 namespace OcharoMarketing.Infrastructure.Providers.Brokers;
 
 /// <summary>Verifies a known final X post ID and author using an explicitly enabled read.</summary>
-public sealed class XReceiptReconciliationBroker(HttpClient client, XProviderOptions options) : IReceiptReconciliationBroker
+public sealed class XReceiptReconciliationBroker(
+    HttpClient client,
+    XProviderOptions options) : IReceiptReconciliationBroker
 {
     public string Provider => "x";
 
@@ -11,12 +13,18 @@ public sealed class XReceiptReconciliationBroker(HttpClient client, XProviderOpt
         ReceiptReconciliationRequest input, CancellationToken cancellationToken)
     {
         if (!options.EnableMetricReads || string.IsNullOrWhiteSpace(options.AccessToken))
-            return Result(BrokerOutcome.Rejected, "not_enabled", "X receipt reads require separate explicit read enablement and credentials.");
+            return Result(
+                BrokerOutcome.Rejected,
+                "not_enabled",
+                "X receipt reads require separate explicit read enablement and credentials.");
         var receipt = input.Receipt;
         if (!ProviderInput.IsNumericId(options.UserId) || input.AccountId != options.UserId
             || receipt is null || receipt.Provider != Provider
             || receipt.RelatedIds?.GetValueOrDefault("account_id") != input.AccountId)
-            return Result(BrokerOutcome.Rejected, "receipt_mismatch", "Use a receipt bound to the configured source account.");
+            return Result(
+                BrokerOutcome.Rejected,
+                "receipt_mismatch",
+                "Use a receipt bound to the configured source account.");
         if (!ProviderInput.IsNumericId(receipt.ExternalId)
             || receipt.Stage != "published" && (receipt.Stage != "publication_unknown"
                 || receipt.RelatedIds?.GetValueOrDefault("post_id") != receipt.ExternalId))
@@ -36,7 +44,10 @@ public sealed class XReceiptReconciliationBroker(HttpClient client, XProviderOpt
                 "X did not return complete final post evidence; no publication was attempted.");
         if (ProviderHttpTransport.Id(data, "id") != receipt.ExternalId
             || ProviderHttpTransport.Id(data, "author_id") != input.AccountId)
-            return Result(BrokerOutcome.Rejected, "identity_mismatch", "X returned a different post or source account.");
+            return Result(
+                BrokerOutcome.Rejected,
+                "identity_mismatch",
+                "X returned a different post or source account.");
 
         var related = receipt.RelatedIds is null
             ? new Dictionary<string, string>()

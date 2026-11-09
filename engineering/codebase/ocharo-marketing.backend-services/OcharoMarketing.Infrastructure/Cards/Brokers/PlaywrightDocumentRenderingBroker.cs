@@ -41,11 +41,17 @@ public sealed class PlaywrightDocumentRenderingBroker(CardRendererSettings setti
         IPage page = await context.NewPageAsync();
         page.SetDefaultTimeout(settings.TimeoutMilliseconds);
         await page.SetContentAsync(html, new PageSetContentOptions { WaitUntil = WaitUntilState.Load });
-        await page.EvaluateAsync("async () => { await document.fonts.ready; await Promise.all([...document.images].map(i => i.decode())); }");
-        bool fontsReady = await page.EvaluateAsync<bool>("() => document.fonts.check('600 72px CardSerif') && document.fonts.check('400 42px CardSans')");
+        await page.EvaluateAsync(
+            "async () => { await document.fonts.ready; await Promise.all([...document.images].map(i => "
+                + "i.decode())); }");
+        bool fontsReady = await page.EvaluateAsync<bool>(
+            "() => document.fonts.check('600 72px CardSerif') && document.fonts.check('400 42px CardSans')");
         if (!fontsReady) throw new CardRenderingException("A bundled card font could not be loaded.");
-        bool overflowing = await page.EvaluateAsync<bool>("() => [...document.querySelectorAll('[data-fit]')].some(e => e.scrollHeight > e.clientHeight + 1 || e.scrollWidth > e.clientWidth + 1)");
-        if (overflowing) throw new CardRenderingException("Card text exceeds its layout. Shorten the copy before exporting.");
+        bool overflowing = await page.EvaluateAsync<bool>(
+            "() => [...document.querySelectorAll('[data-fit]')].some(e => e.scrollHeight > e.clientHeight + 1 "
+                + "|| e.scrollWidth > e.clientWidth + 1)");
+        if (overflowing)
+            throw new CardRenderingException("Card text exceeds its layout. Shorten the copy before exporting.");
         cancellationToken.ThrowIfCancellationRequested();
         if (pdf)
         {

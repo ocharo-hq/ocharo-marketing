@@ -1,9 +1,13 @@
 using System.Text.Json;
-using OcharoMarketing.Application.Marketing;
-using OcharoMarketing.Application.Marketing.Models;
-using OcharoMarketing.Application.Marketing.Repositories;
-using OcharoMarketing.Application.Marketing.Services;
-using OcharoMarketing.Infrastructure.Marketing;
+using OcharoMarketing.Application.Assets.Models;
+using OcharoMarketing.Application.Assets.Services;
+using OcharoMarketing.Application.Core;
+using OcharoMarketing.Application.Core.Errors;
+using OcharoMarketing.Application.Core.Models;
+using OcharoMarketing.Application.Core.Repositories;
+using OcharoMarketing.Application.Products.Models;
+using OcharoMarketing.Infrastructure.Import;
+using WoW.Two.Sdk.Beta.Be.Foundation.Errors;
 
 namespace OcharoMarketing.Api.Configurations;
 
@@ -37,13 +41,22 @@ public sealed class SeedImportHostedService(
             if (await repository.FindAssetAsync(asset.Id, CancellationToken.None) is not null) continue;
             var relativePath = entry.GetProperty("relativePath").GetString()!;
             var assetPath = Path.GetFullPath(Path.Combine(seedRoot, relativePath));
-            if (!assetPath.StartsWith(Path.GetFullPath(seedRoot) + Path.DirectorySeparatorChar, StringComparison.Ordinal))
+            if (
+                !assetPath.StartsWith(
+                    Path.GetFullPath(seedRoot) + Path.DirectorySeparatorChar,
+                    StringComparison.Ordinal))
                 throw new InvalidOperationException("Seed assets must remain within their import bundle.");
             try
             {
-                await assets.SaveAsync(await File.ReadAllBytesAsync(assetPath), asset.FileName, asset.Provenance, asset.Role, CancellationToken.None, asset.Id);
+                await assets.SaveAsync(
+                    await File.ReadAllBytesAsync(assetPath),
+                    asset.FileName,
+                    asset.Provenance,
+                    asset.Role,
+                    CancellationToken.None,
+                    asset.Id);
             }
-            catch (MarketingException exception) when (exception.StatusCode >= 500)
+            catch (AppException exception) when (MarketingErrors.IsUpstreamFailure(exception.Error))
             {
                 logger.LogWarning("Marketing's seed assets wait for the next boot: {Reason}", exception.Message);
                 break;

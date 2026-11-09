@@ -12,7 +12,10 @@
 
   <ItemGroup>
     <!-- Let the test project reach internal handlers for direct unit tests. -->
-    <InternalsVisibleTo Include="OcharoMarketing.Tests" />
+    <InternalsVisibleTo Include="OcharoMarketing.Tests.Unit" />
+    <InternalsVisibleTo Include="OcharoMarketing.Tests.Integration" />
+    <InternalsVisibleTo Include="OcharoMarketing.Tests.E2E" />
+    <InternalsVisibleTo Include="OcharoMarketing.Tests.Support" />
   </ItemGroup>
 
 </Project>

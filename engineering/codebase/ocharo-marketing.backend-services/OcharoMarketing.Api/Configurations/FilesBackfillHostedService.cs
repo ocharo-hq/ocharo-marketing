@@ -1,5 +1,5 @@
-using OcharoMarketing.Infrastructure.Marketing;
-using OcharoMarketing.Infrastructure.Marketing.Services;
+using OcharoMarketing.Infrastructure.Assets.Services;
+using OcharoMarketing.Infrastructure.Import;
 
 namespace OcharoMarketing.Api.Configurations;
 
@@ -24,9 +24,13 @@ public sealed class FilesBackfillHostedService(
         {
             await scope.ServiceProvider.GetRequiredService<FilesAssetBackfill>().RunAsync(cancellationToken);
         }
-        catch (Exception exception) when (exception is HttpRequestException or TaskCanceledException or InvalidOperationException)
+        catch (
+            Exception exception) when (
+                exception is HttpRequestException or TaskCanceledException or InvalidOperationException)
         {
-            logger.LogWarning(exception, "Marketing's file ids stay unfilled: WoW2 Files could not be reached at boot.");
+            logger.LogWarning(
+                exception,
+                "Marketing's file ids stay unfilled: WoW2 Files could not be reached at boot.");
         }
     }
 

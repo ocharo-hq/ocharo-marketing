@@ -151,3 +151,10 @@ Each row's outcome: fixed (with the commit), excepted (with the reason) or waiti
 | M-1 | fixed | `deploy.yml` declares a `migrate:` item per image, after ocharo-platform's identity item |
 | M-23 | fixed | both apps on PostgreSQL in `ocharo_{env}` (schemas `marketing`, `blog`; sessions in `*_cache`; key rings in each schema), Identity FKs as Studio keys them; the SQLite data moves once by `import-sqlite`, an operator verb outside `migrate` per `migrations.md` |
 | M-24 | fixed | EF migrations, `EnsureCreated` and the boot DDL replaced by bespoke SQL sets; a local run applies at boot, a deployed boot checks levels |
+| M-20 | fixed | both hosts send every request through the SDK mediator to Infrastructure handlers returning `AppResult`; exception middleware deleted; status, `code` and `detail` unchanged, `type` now the SDK's `urn:wow-two:error:*`. Marketing's services still raise the SDK `AppException` for expected failures (backlog) |
+| M-21 | fixed | Marketing splits into `Core`, `Posts`, `Assets`, `Deliveries`, `Generations`, `Operations`, `Products` |
+| M-22 | fixed | no `*.cs` line over 120 characters in either backend; rendered HTML byte-identical |
+| M-25 | fixed | `{Product}.Tests.Unit`, `.Integration`, `.E2E` and `.Support` per backend, with `tests/tests.md` |
+| M-26 | fixed | AwesomeAssertions; no `Assert.` left in either test tree |
+| M-27 | fixed | `FakeTimeProvider` and the SDK's bounded `UntilAsync` polling; no fixed sleeps |
+| M-28 | fixed | tests named `{Unit}_Should{Expectation}_When{Condition}` |

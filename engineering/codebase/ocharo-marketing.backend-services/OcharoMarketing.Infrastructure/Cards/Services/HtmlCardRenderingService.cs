@@ -14,9 +14,33 @@ public sealed class HtmlCardRenderingService(IDocumentRenderingBroker renderer) 
     private static readonly Lazy<string> FontCss = new(LoadFonts);
     private static readonly IReadOnlyList<CardPreset> Presets = Array.AsReadOnly(new[]
     {
-        new CardPreset("t02-bone", "Editorial · bone", "T02", "bone", "Front silhouette on warm ivory.", false, 1080, 1350),
-        new CardPreset("t02-charcoal", "Editorial · charcoal", "T02", "charcoal", "The same composition on charcoal.", false, 1080, 1350),
-        new CardPreset("t01-fabric-right", "Half fabric · right", "T01", "bone", "Matching fabric occupies the right half.", true, 1080, 1350),
+        new CardPreset(
+            "t02-bone",
+            "Editorial · bone",
+            "T02",
+            "bone",
+            "Front silhouette on warm ivory.",
+            false,
+            1080,
+            1350),
+        new CardPreset(
+            "t02-charcoal",
+            "Editorial · charcoal",
+            "T02",
+            "charcoal",
+            "The same composition on charcoal.",
+            false,
+            1080,
+            1350),
+        new CardPreset(
+            "t01-fabric-right",
+            "Half fabric · right",
+            "T01",
+            "bone",
+            "Matching fabric occupies the right half.",
+            true,
+            1080,
+            1350),
     });
 
     public IReadOnlyList<CardPreset> GetPresets()
@@ -52,19 +76,37 @@ public sealed class HtmlCardRenderingService(IDocumentRenderingBroker renderer) 
         string html =
             $$"""
             <!doctype html><html lang="{{Encode(input.Locale)}}"><head><meta charset="utf-8">
-            <meta http-equiv="Content-Security-Policy" content="default-src 'none'; img-src data:; font-src data:; style-src 'unsafe-inline'">
+            <meta http-equiv="Content-Security-Policy" content="default-src 'none'; img-src data:; font-src data:;
+            """
+            + $$"""
+             style-src 'unsafe-inline'">
             <style>{{FontCss.Value}}
             *{box-sizing:border-box}html,body{margin:0;width:1080px;height:1350px;overflow:hidden}
             #card{position:relative;width:1080px;height:1350px;overflow:hidden;background:{{background}};color:{{ink}}}
-            .fabric{position:absolute;inset:0 0 0 50%;overflow:hidden}.fabric img{height:100%;width:100%;object-fit:cover}
+            .fabric{position:absolute;inset:0 0 0 50%;overflow:hidden}
+            """
+            + $$"""
+            .fabric img{height:100%;width:100%;object-fit:cover}
             .veil{position:absolute;inset:0;background:linear-gradient(90deg,#f2eddf 39%,#f2eddfcc 53%,#f2eddf10 90%)}
             .brand{position:absolute;top:54px;left:66px;font:600 40px CardSans;letter-spacing:9px}
             .rule{position:absolute;top:126px;left:66px;right:66px;border-top:1px solid currentColor;opacity:.22}
-            .title{position:absolute;top:162px;left:64px;width:952px;height:166px;font:600 82px/.96 CardSerif;overflow:hidden;overflow-wrap:break-word}
-            .subtitle{position:absolute;top:338px;left:68px;width:940px;height:106px;font:400 42px/1.2 CardSans;overflow:hidden;overflow-wrap:break-word;opacity:.78}
+            .title{position:absolute;top:162px;left:64px;width:952px;height:166px;font:600 82px/.96 CardSerif;
+            """
+            + $$"""
+            overflow:hidden;overflow-wrap:break-word}
+            .subtitle{position:absolute;top:338px;left:68px;width:940px;height:106px;font:400 42px/1.2 CardSans;
+            """
+            + $$"""
+            overflow:hidden;overflow-wrap:break-word;opacity:.78}
             .hero{position:absolute;{{placement}}}.hero img{width:100%;height:100%;display:block}
-            .shadow{position:absolute;left:300px;top:1235px;width:480px;height:36px;background:#0003;border-radius:50%;filter:blur(22px)}
-            .foot{position:absolute;bottom:44px;left:68px;width:944px;height:32px;border-top:1px solid currentColor;opacity:.18}
+            .shadow{position:absolute;left:300px;top:1235px;width:480px;height:36px;background:#0003;border-radius:50%;
+            """
+            + $$"""
+            filter:blur(22px)}
+            .foot{position:absolute;bottom:44px;left:68px;width:944px;height:32px;border-top:1px solid currentColor;
+            """
+            + $$"""
+            opacity:.18}
             </style></head><body><main id="card">{{texture}}<div class="brand">{{Encode(input.BrandName)}}</div>
             <div class="rule"></div><div class="title" data-fit>{{Encode(input.Title)}}</div>
             <div class="subtitle" data-fit>{{Encode(input.Subtitle)}}</div><div class="shadow"></div>
@@ -72,7 +114,8 @@ public sealed class HtmlCardRenderingService(IDocumentRenderingBroker renderer) 
             </main></body></html>
             """;
         var issues = new List<string>();
-        if (input.Title.Length > 45) issues.Add("Long title: inspect the phone-size proof; overflowing copy blocks export.");
+        if (input.Title.Length > 45)
+            issues.Add("Long title: inspect the phone-size proof; overflowing copy blocks export.");
         if (input.Subtitle.Length > 70) issues.Add("Long supporting copy: move extra information into the caption.");
         return new CardPreview(html, issues);
     }
@@ -98,16 +141,53 @@ public sealed class HtmlCardRenderingService(IDocumentRenderingBroker renderer) 
                     .Append(Encode(item.Title)).Append("</b><span>").Append(Encode(item.PresetName))
                     .Append("</span><p>").Append(Encode(item.Notes)).Append("</p></figcaption></figure>");
             }
-            spreads.Append("</div><footer><div><b>COMPOSITION</b><span>Garment scale and balance</span></div><div><b>LEGIBILITY</b><span>Read at phone size</span></div><div><b>SELECTION</b><span>Keep · refine · compare again</span></div></footer></section>");
+            spreads.Append(
+                "</div><footer><div><b>COMPOSITION</b><span>Garment scale and "
+                    + "balance</span></div><div><b>LEGIBILITY</b><span>Read at phone "
+                    + "size</span></div><div><b>SELECTION</b><span>Keep · refine · compare "
+                    + "again</span></div></footer></section>");
         }
         string html =
             $$"""
             <!doctype html><html><head><meta charset="utf-8"><style>{{FontCss.Value}}
-            @page{size:A4 landscape;margin:12mm}*{box-sizing:border-box}body{margin:0;color:#29251f;background:white;font:16px CardSans}
-            .spread{break-after:page;height:685px}.spread:last-child{break-after:auto}header{display:flex;justify-content:space-between;align-items:baseline;border-bottom:1px solid #ccc;padding-bottom:12px;margin-bottom:20px}
-            header b{font:600 36px CardSerif;letter-spacing:5px}header span{color:#736759}.pair{display:flex;gap:32px;justify-content:center}
-            figure{margin:0;width:488px;display:grid;grid-template-columns:340px 1fr;gap:16px;align-items:start}figure img{width:340px;height:425px;object-fit:contain}
-            figcaption{padding-top:8px;overflow-wrap:anywhere}figcaption b{display:block;font:600 25px/1.1 CardSerif}figcaption span{display:block;margin-top:14px;font-size:13px;color:#655b51}figcaption p{font-size:13px;line-height:1.5}footer{border-top:1px solid #ddd;margin-top:32px;padding-top:18px;color:#776d61;font-size:12px;display:grid;grid-template-columns:repeat(3,1fr);gap:24px}footer b{display:block;font-size:11px;letter-spacing:1px;color:#423b33;margin-bottom:8px}footer span{display:block;border-bottom:1px solid #ddd;padding-bottom:28px}
+            @page{size:A4 landscape;margin:12mm}*{box-sizing:border-box}
+            """
+            + $$"""
+            body{margin:0;color:#29251f;background:white;font:16px CardSans}
+            .spread{break-after:page;height:685px}.spread:last-child{break-after:auto}
+            """
+            + $$"""
+            header{display:flex;justify-content:space-between;align-items:baseline;border-bottom:1px solid #ccc;
+            """
+            + $$"""
+            padding-bottom:12px;margin-bottom:20px}
+            header b{font:600 36px CardSerif;letter-spacing:5px}header span{color:#736759}
+            """
+            + $$"""
+            .pair{display:flex;gap:32px;justify-content:center}
+            figure{margin:0;width:488px;display:grid;grid-template-columns:340px 1fr;gap:16px;align-items:start}
+            """
+            + $$"""
+            figure img{width:340px;height:425px;object-fit:contain}
+            figcaption{padding-top:8px;overflow-wrap:anywhere}figcaption b{display:block;font:600 25px/1.1 CardSerif}
+            """
+            + $$"""
+            figcaption span{display:block;margin-top:14px;font-size:13px;color:#655b51}
+            """
+            + $$"""
+            figcaption p{font-size:13px;line-height:1.5}
+            """
+            + $$"""
+            footer{border-top:1px solid #ddd;margin-top:32px;padding-top:18px;color:#776d61;font-size:12px;display:grid;
+            """
+            + $$"""
+            grid-template-columns:repeat(3,1fr);gap:24px}
+            """
+            + $$"""
+            footer b{display:block;font-size:11px;letter-spacing:1px;color:#423b33;margin-bottom:8px}
+            """
+            + $$"""
+            footer span{display:block;border-bottom:1px solid #ddd;padding-bottom:28px}
             </style></head><body>{{spreads}}</body></html>
             """;
         return renderer.RenderPdfAsync(html, cancellationToken);
@@ -143,7 +223,10 @@ public sealed class HtmlCardRenderingService(IDocumentRenderingBroker renderer) 
         if (xPosition + left * ratio < 46 || xPosition + (right + 1) * ratio > 1034
             || yPosition + top * ratio < 440 || yPosition + (bottom + 1) * ratio > 1250)
             throw new ArgumentException("Framing would crop the garment or cover the title. Reduce scale or offsets.");
-        return FormattableString.Invariant($"left:{xPosition:F3}px;top:{yPosition:F3}px;width:{bitmap.Width * ratio:F3}px;height:{bitmap.Height * ratio:F3}px;");
+        double width = bitmap.Width * ratio;
+        double height = bitmap.Height * ratio;
+        return FormattableString.Invariant(
+            $"left:{xPosition:F3}px;top:{yPosition:F3}px;width:{width:F3}px;height:{height:F3}px;");
     }
 
     private static string ImageData(CardImage image)
@@ -174,14 +257,22 @@ public sealed class HtmlCardRenderingService(IDocumentRenderingBroker renderer) 
     {
         Assembly assembly = typeof(HtmlCardRenderingService).Assembly;
         var css = new StringBuilder();
-        foreach ((string file, string family) in new[] { ("CormorantGaramond.ttf", "CardSerif"), ("Manrope.ttf", "CardSans") })
+        foreach (
+            (
+                string file,
+                string family) in new[] { ("CormorantGaramond.ttf", "CardSerif"), ("Manrope.ttf", "CardSans") })
         {
-            string resource = assembly.GetManifestResourceNames().Single(name => name.EndsWith("." + file, StringComparison.Ordinal));
+            string resource = assembly
+                .GetManifestResourceNames()
+                .Single(name => name.EndsWith("." + file, StringComparison.Ordinal));
             using Stream stream = assembly.GetManifestResourceStream(resource)
                 ?? throw new InvalidOperationException("The card font resource is missing.");
             using var buffer = new MemoryStream();
             stream.CopyTo(buffer);
-            css.Append("@font-face{font-family:").Append(family).Append(";font-style:normal;font-weight:200 800;src:url(data:font/ttf;base64,")
+            css
+                .Append("@font-face{font-family:")
+                .Append(family)
+                .Append(";font-style:normal;font-weight:200 800;src:url(data:font/ttf;base64,")
                 .Append(Convert.ToBase64String(buffer.ToArray())).Append(") format('truetype');}");
         }
         return css.ToString();

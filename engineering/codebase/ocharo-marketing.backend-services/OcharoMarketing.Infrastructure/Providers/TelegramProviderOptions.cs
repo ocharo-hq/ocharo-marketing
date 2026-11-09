@@ -1,6 +1,7 @@
 namespace OcharoMarketing.Infrastructure.Providers;
 
-/// <summary>Configures explicitly enabled Telegram access with verified numeric account and destination bindings.</summary>
+/// <summary>Configures explicitly enabled Telegram access with verified numeric account and destination
+/// bindings.</summary>
 public sealed class TelegramProviderOptions
 {
     public bool Enabled { get; set; }

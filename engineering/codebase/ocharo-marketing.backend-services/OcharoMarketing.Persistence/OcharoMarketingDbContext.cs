@@ -1,6 +1,11 @@
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
-using OcharoMarketing.Domain.Marketing.Entities;
+using OcharoMarketing.Domain.Assets.Entities;
+using OcharoMarketing.Domain.Core.Entities;
+using OcharoMarketing.Domain.Deliveries.Entities;
+using OcharoMarketing.Domain.Generations.Entities;
+using OcharoMarketing.Domain.Posts.Entities;
+using OcharoMarketing.Domain.Products.Entities;
 using OcharoMarketing.Domain.Scanning;
 
 namespace OcharoMarketing.Persistence;

@@ -1,5 +1,5 @@
 using System.Text.Json;
-using OcharoMarketing.Infrastructure.Marketing;
+using OcharoMarketing.Infrastructure.Import;
 using OcharoMarketing.Persistence.Import;
 
 namespace OcharoMarketing.Api.Import;

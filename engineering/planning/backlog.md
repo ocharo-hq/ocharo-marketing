@@ -59,6 +59,5 @@ WoW2 convention breaks found on 2026-11-09, grouped by theme; the top row is the
 | Item | Type | Notes |
 |---|---|---|
 | Pipelines tag for the delivery workflow | `engineering` | Re-pin `publish-docker-image.yml` from commit `e134a47` to the first pipelines release containing it. Covers M-6 ([sweep](../research/convention-sweep.md)). |
-| Mediator and AppResult | `engineering` | Marketing and Blog return `AppResult` from handlers instead of exceptions plus middleware; split Marketing into subdomains. Size L; no behaviour change. Covers M-20, M-21 ([sweep](../research/convention-sweep.md)). |
-| Line length | `engineering` | Format both backends to the 120-character limit. Size M; no behaviour change. Covers M-22 ([sweep](../research/convention-sweep.md)). |
-| AwesomeAssertions and test structure | `engineering` | Convert ~1,450 `Assert.*` calls, split test tiers, add `FakeTimeProvider`, rename tests. Marketing and Blog. Size L; no behaviour change. Covers M-25, M-26, M-27, M-28 ([sweep](../research/convention-sweep.md)). |
+| Marketing services return `Result` | `engineering` | 175 throw sites in Marketing's services raise the SDK `AppException`, which the mediator turns into a result; return `Result<T>` instead. Follows M-20 ([sweep](../research/convention-sweep.md)). |
+| Blog services and rendering placement | `engineering` | Blog's services and site rendering still sit in Application; move behaviour to Infrastructure as Marketing's handlers are. |

@@ -5,21 +5,39 @@ using OcharoMarketing.Application.Providers;
 namespace OcharoMarketing.Infrastructure.Providers.Brokers;
 
 /// <summary>Integrates Gemini Nano Banana image interactions with supplied references.</summary>
-/// <remarks>Generated scenes require review; transparent output and unverified background execution are unsupported.</remarks>
-public sealed class GeminiImageGenerationBroker(HttpClient client, GeminiProviderOptions options) : IImageGenerationBroker
+/// <remarks>Generated scenes require review; transparent output and unverified background execution are
+/// unsupported.</remarks>
+public sealed class GeminiImageGenerationBroker(
+    HttpClient client,
+    GeminiProviderOptions options) : IImageGenerationBroker
 {
     public string Provider => "gemini";
 
-    public async Task<ImageGenerationResult> GenerateAsync(ImageGenerationRequest input, CancellationToken cancellationToken)
+    public async Task<ImageGenerationResult> GenerateAsync(
+        ImageGenerationRequest input,
+        CancellationToken cancellationToken)
     {
         var model = string.IsNullOrWhiteSpace(input.Model) ? options.ImageModel : input.Model;
         if (!options.Enabled || string.IsNullOrWhiteSpace(options.ApiKey))
-            return Result(BrokerOutcome.Rejected, "not_enabled", "Gemini execution requires explicit enablement and credentials.", model);
+            return Result(
+                BrokerOutcome.Rejected,
+                "not_enabled",
+                "Gemini execution requires explicit enablement and credentials.",
+                model);
         if (!ProviderInput.PromptIsValid(input.Prompt) || !ProviderInput.ImagesAreValid(input.References) ||
-            input.AspectRatio is not ("1:1" or "2:3" or "3:2" or "3:4" or "4:3" or "4:5" or "5:4" or "9:16" or "16:9" or "21:9"))
-            return Result(BrokerOutcome.Rejected, "invalid_input", "Prompt, references, or aspect ratio is invalid.", model);
+            input.AspectRatio is not (
+                "1:1" or "2:3" or "3:2" or "3:4" or "4:3" or "4:5" or "5:4" or "9:16" or "16:9" or "21:9"))
+            return Result(
+                BrokerOutcome.Rejected,
+                "invalid_input",
+                "Prompt, references, or aspect ratio is invalid.",
+                model);
         if (input.TransparentBackground)
-            return Result(BrokerOutcome.Unsupported, "transparency_unverified", "This adapter does not guarantee transparent Gemini output.", model);
+            return Result(
+                BrokerOutcome.Unsupported,
+                "transparency_unverified",
+                "This adapter does not guarantee transparent Gemini output.",
+                model);
 
         var content = new List<object>();
         if (input.References is not null)
@@ -32,12 +50,22 @@ public sealed class GeminiImageGenerationBroker(HttpClient client, GeminiProvide
         request.Content = JsonContent.Create(new
         {
             model, input = content,
-            response_format = new { type = "image", mime_type = "image/png", aspect_ratio = input.AspectRatio, image_size = "2K" }
+            response_format = new
+            {
+                type = "image",
+                mime_type = "image/png",
+                aspect_ratio = input.AspectRatio,
+                image_size = "2K"
+            }
         });
         var reply = await ProviderHttpTransport.SendAsync(client, request, true, cancellationToken);
         if (reply.Outcome != BrokerOutcome.Succeeded) return Result(reply.Outcome, reply.Code, reply.Message, model);
         if (reply.Json is not { } root)
-            return Result(BrokerOutcome.Ambiguous, "missing_response", "Provider response has no usable interaction.", model);
+            return Result(
+                BrokerOutcome.Ambiguous,
+                "missing_response",
+                "Provider response has no usable interaction.",
+                model);
 
         var id = ProviderHttpTransport.Id(root, "id");
         var receipt = id is null ? null : new ProviderReceipt(Provider, "interaction", id);
@@ -52,7 +80,14 @@ public sealed class GeminiImageGenerationBroker(HttpClient client, GeminiProvide
         {
             var status = ProviderHttpTransport.Text(root, "status");
             if (status is "failed" or "cancelled")
-                return new(BrokerOutcome.Rejected, Provider, [], "interaction_failed", "Gemini interaction did not complete.", receipt, model);
+                return new(
+                    BrokerOutcome.Rejected,
+                    Provider,
+                    [],
+                    "interaction_failed",
+                    "Gemini interaction did not complete.",
+                    receipt,
+                    model);
             if (status == "in_progress")
                 return new(receipt is null ? BrokerOutcome.Ambiguous : BrokerOutcome.Pending, Provider, [],
                     "interaction_processing", "Gemini interaction is still processing.", receipt, model);
@@ -66,7 +101,14 @@ public sealed class GeminiImageGenerationBroker(HttpClient client, GeminiProvide
         }
         catch (FormatException)
         {
-            return new(BrokerOutcome.Ambiguous, Provider, [], "invalid_image", "Provider image is unreadable.", receipt, model);
+            return new(
+                BrokerOutcome.Ambiguous,
+                Provider,
+                [],
+                "invalid_image",
+                "Provider image is unreadable.",
+                receipt,
+                model);
         }
     }
 
@@ -85,7 +127,8 @@ public sealed class GeminiImageGenerationBroker(HttpClient client, GeminiProvide
                 var mime = ProviderHttpTransport.Text(block, "mime_type");
                 var contentType = ProviderInput.IsImage(mime) ? mime! : "image/png";
                 var bytes = Convert.FromBase64String(encoded);
-                if (!ProviderInput.IsGeneratedImage(bytes, contentType)) throw new FormatException("Invalid image signature.");
+                if (!ProviderInput.IsGeneratedImage(bytes, contentType))
+                    throw new FormatException("Invalid image signature.");
                 images.Add(new(bytes, contentType));
             }
         }

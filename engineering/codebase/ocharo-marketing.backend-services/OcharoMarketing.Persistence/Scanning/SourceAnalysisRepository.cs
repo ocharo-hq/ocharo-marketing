@@ -1,8 +1,9 @@
 using Microsoft.EntityFrameworkCore;
 using Npgsql;
-using OcharoMarketing.Application.Marketing;
+using OcharoMarketing.Application.Core.Errors;
 using OcharoMarketing.Application.Scanning;
 using OcharoMarketing.Domain.Scanning;
+using WoW.Two.Sdk.Beta.Be.Foundation.Errors;
 
 namespace OcharoMarketing.Persistence.Scanning;
 
@@ -54,7 +55,7 @@ public sealed class SourceAnalysisRepository(OcharoMarketingDbContext database) 
                 .SetProperty(x => x.ReviewedAt, record.ReviewedAt), ct);
         if (updated != 1)
         {
-            throw new MarketingException("Analysis changed. Reload before saving this review.", 409);
+            throw new AppException(MarketingErrors.Conflict("Analysis changed. Reload before saving this review."));
         }
     }
 }

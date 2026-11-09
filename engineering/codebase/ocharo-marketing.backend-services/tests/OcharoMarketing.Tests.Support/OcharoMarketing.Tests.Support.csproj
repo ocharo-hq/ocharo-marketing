@@ -1,0 +1,36 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <IsPackable>false</IsPackable>
+    <!-- Shared fixtures, not a suite: xunit's props would otherwise mark it a test project. -->
+    <IsTestProject>false</IsTestProject>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="WoW2.Sdk.Beta.Be.Testing" />
+    <PackageReference Include="WoW2.Sdk.Beta.Be.Testing.Data" />
+    <PackageReference Include="xunit" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="../../OcharoMarketing.Api/OcharoMarketing.Api.csproj" />
+    <ProjectReference Include="../../OcharoMarketing.Application/OcharoMarketing.Application.csproj" />
+    <ProjectReference Include="../../OcharoMarketing.Domain/OcharoMarketing.Domain.csproj" />
+    <ProjectReference Include="../../OcharoMarketing.Infrastructure/OcharoMarketing.Infrastructure.csproj" />
+    <ProjectReference Include="../../OcharoMarketing.Persistence/OcharoMarketing.Persistence.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <!-- The retired EF migrations' SQLite DDL, from which the import tests build an earlier release's store. -->
+    <None Include="Import/Fixtures/*.sql" CopyToOutputDirectory="PreserveNewest" />
+    <!-- A stand-in for Identity's `identity` set, whose published tables a job's requester keys into. -->
+    <None Include="IdentityStub/**/*.sql" CopyToOutputDirectory="PreserveNewest" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <InternalsVisibleTo Include="OcharoMarketing.Tests.Unit" />
+    <InternalsVisibleTo Include="OcharoMarketing.Tests.Integration" />
+    <InternalsVisibleTo Include="OcharoMarketing.Tests.E2E" />
+  </ItemGroup>
+
+</Project>

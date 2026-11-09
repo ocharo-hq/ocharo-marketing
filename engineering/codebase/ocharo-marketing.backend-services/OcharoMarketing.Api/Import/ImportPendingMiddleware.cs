@@ -1,5 +1,5 @@
 using OcharoMarketing.Api.Access;
-using OcharoMarketing.Infrastructure.Marketing;
+using OcharoMarketing.Infrastructure.Import;
 
 namespace OcharoMarketing.Api.Import;
 

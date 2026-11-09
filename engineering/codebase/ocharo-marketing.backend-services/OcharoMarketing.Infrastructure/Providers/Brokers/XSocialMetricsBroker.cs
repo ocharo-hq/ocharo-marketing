@@ -9,7 +9,8 @@ public sealed class XSocialMetricsBroker(
 {
     private const long MaximumMeaningfulCounter = 9_007_199_254_740_991;
     private readonly TimeProvider clock = timeProvider ?? TimeProvider.System;
-    private static readonly IReadOnlyDictionary<string, string> Fields = new Dictionary<string, string>(StringComparer.Ordinal)
+    private static readonly IReadOnlyDictionary<string, string> Fields = new Dictionary<string, string>(
+        StringComparer.Ordinal)
     {
         ["likes"] = "like_count", ["replies"] = "reply_count", ["reposts"] = "retweet_count",
         ["quotes"] = "quote_count", ["bookmarks"] = "bookmark_count", ["impressions"] = "impression_count"
@@ -20,22 +21,49 @@ public sealed class XSocialMetricsBroker(
     public async Task<SocialMetricsResult> ReadAsync(SocialMetricsRequest input, CancellationToken cancellationToken)
     {
         if (input.Metrics is { Count: 0 or > 6 })
-            return Empty([], BrokerOutcome.Rejected, "invalid_metrics", "Choose bounded supported public metric names.", "invalid_input");
+            return Empty(
+                [],
+                BrokerOutcome.Rejected,
+                "invalid_metrics",
+                "Choose bounded supported public metric names.",
+                "invalid_input");
         var names = input.Metrics?.Distinct(StringComparer.Ordinal).ToArray() ?? Fields.Keys.ToArray();
         if (names.Any(name => string.IsNullOrEmpty(name) || name.Length > 40 || !name.All(char.IsAsciiLetter)))
-            return Empty([], BrokerOutcome.Rejected, "invalid_metrics", "Choose bounded supported public metric names.", "invalid_input");
+            return Empty(
+                [],
+                BrokerOutcome.Rejected,
+                "invalid_metrics",
+                "Choose bounded supported public metric names.",
+                "invalid_input");
         if (names.Any(name => !Fields.ContainsKey(name)))
-            return Empty(names, BrokerOutcome.Unsupported, "metric_not_supported", "This adapter reads supported public post counters only.", "not_supported");
+            return Empty(
+                names,
+                BrokerOutcome.Unsupported,
+                "metric_not_supported",
+                "This adapter reads supported public post counters only.",
+                "not_supported");
         if (!options.EnableMetricReads || string.IsNullOrWhiteSpace(options.AccessToken))
-            return Empty(names, BrokerOutcome.Rejected, "not_enabled", "X metric reads require separate explicit enablement and credentials.", "not_configured");
+            return Empty(
+                names,
+                BrokerOutcome.Rejected,
+                "not_enabled",
+                "X metric reads require separate explicit enablement and credentials.",
+                "not_configured");
         if (!ProviderInput.IsNumericId(options.UserId) || input.AccountId != options.UserId
             || input.Receipt is null || input.Receipt.Provider != Provider || input.Receipt.Stage != "published"
             || !ProviderInput.IsNumericId(input.Receipt.ExternalId)
-            || input.Receipt.RelatedIds?.TryGetValue("account_id", out var receiptAccount) == true && receiptAccount != input.AccountId)
-            return Empty(names, BrokerOutcome.Rejected, "receipt_mismatch", "Use a final X receipt belonging to the configured account.", "identity_mismatch");
+            || input.Receipt.RelatedIds?.TryGetValue("account_id", out var receiptAccount) == true
+                && receiptAccount != input.AccountId)
+            return Empty(
+                names,
+                BrokerOutcome.Rejected,
+                "receipt_mismatch",
+                "Use a final X receipt belonging to the configured account.",
+                "identity_mismatch");
 
         using var request = ProviderHttpTransport.Create(HttpMethod.Get,
-            "https://api.x.com/2/tweets/" + input.Receipt.ExternalId + "?tweet.fields=author_id,public_metrics", options.AccessToken);
+            "https://api.x.com/2/tweets/" + input.Receipt.ExternalId + "?tweet.fields=author_id,public_metrics",
+            options.AccessToken);
         var reply = await ProviderHttpTransport.SendAsync(client, request, false, cancellationToken);
         if (reply.Outcome != BrokerOutcome.Succeeded)
             return Empty(names, reply.Outcome, reply.Code, reply.Message, reply.Code switch
@@ -44,10 +72,21 @@ public sealed class XSocialMetricsBroker(
                 "http_429" => "rate_limited", _ => "read_failed"
             });
         if (reply.Json is not { } root || !ProviderReadEvidence.TryObject(root, "data", out var data))
-            return Empty(names, BrokerOutcome.Rejected, "post_unavailable", "X did not return usable owned post data.", "not_returned",
+            return Empty(
+                names,
+                BrokerOutcome.Rejected,
+                "post_unavailable",
+                "X did not return usable owned post data.",
+                "not_returned",
                 reply.Json is { } errorRoot && ProviderReadEvidence.HasErrors(errorRoot));
-        if (ProviderHttpTransport.Id(data, "id") != input.Receipt.ExternalId || ProviderHttpTransport.Id(data, "author_id") != input.AccountId)
-            return Empty(names, BrokerOutcome.Rejected, "identity_mismatch", "X returned a different post or author.", "identity_mismatch",
+        if (ProviderHttpTransport.Id(data, "id") != input.Receipt.ExternalId
+            || ProviderHttpTransport.Id(data, "author_id") != input.AccountId)
+            return Empty(
+                names,
+                BrokerOutcome.Rejected,
+                "identity_mismatch",
+                "X returned a different post or author.",
+                "identity_mismatch",
                 ProviderReadEvidence.HasErrors(root));
 
         var hasMetrics = ProviderReadEvidence.TryObject(data, "public_metrics", out var metrics);
@@ -73,5 +112,6 @@ public sealed class XSocialMetricsBroker(
     private SocialMetricsResult Empty(IEnumerable<string> names, BrokerOutcome outcome, string code, string message,
         string availability, bool partial = false)
         => new(outcome, Provider, code, message,
-            names.Select(name => new SocialMetricObservation(name, null, availability, null, message)).ToArray(), partial);
+            names.Select(name => new SocialMetricObservation(name, null, availability, null, message)).ToArray(),
+            partial);
 }
