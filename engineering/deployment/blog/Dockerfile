@@ -35,9 +35,14 @@ RUN dotnet publish OcharoBlog.Api/OcharoBlog.Api.csproj -c Release -o /app -p:Bu
 # ---- Stage 3: runtime ----
 FROM mcr.microsoft.com/dotnet/aspnet:10.0 AS final
 WORKDIR /app
-# curl serves the deployment's /health probe.
-RUN apt-get update && apt-get install --yes --no-install-recommends curl && rm -rf /var/lib/apt/lists/*
+# curl serves the deployment's /health probe; libfontconfig1 is what SkiaSharp's native library links.
+RUN apt-get update && apt-get install --yes --no-install-recommends curl libfontconfig1 && rm -rf /var/lib/apt/lists/*
 COPY --from=build /app ./
+# SkiaSharp's native library links fontconfig; the build fails when it, or any library it needs, would not load.
+RUN arch="$(dpkg --print-architecture | sed 's/amd64/x64/')" \
+    && lib="/app/runtimes/linux-$arch/native/libSkiaSharp.so" \
+    && test -f "$lib" \
+    && ! ldd "$lib" | grep "not found"
 
 # SQLite store on a volume so data survives container replacement.
 ENV ConnectionStrings__OcharoBlog="Data Source=/data/ocharo-blog.db" \
