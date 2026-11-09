@@ -29,7 +29,7 @@ Scope: `workbench/mfts-projects/ventures/ocharo-hq/ocharo-ws/workbench/ocharo-ma
 - HTTPS-only local transport: one `https` profile with one URL, no `VITE_HTTPS=false` fallback (`ocharo-ws/docs/local-development.md`).
 - Blog backend names `OcharoBlog.*` / `ocharo-blog.backend-services`, and the `ocharo-blog.frontend-services` shim (`blog-adoption.md`, `CLAUDE.md`).
 - `apps/{atlas,wear,blog,catalogue}` as generated publication artifacts, not Vue apps (`conventions-and-review.md` "Public frontend architecture").
-- Session handling in `packages/connect` instead of the SDK auth bridge (`backlog.md` "Session expiry adoption").
+- Session handling in `packages/connect` instead of the SDK auth bridge (`architecture.md` "Sign-in and session expiry").
 - Skipped per brief: lock files, Files adoption (`FilesMediaStore`, `FilesAssetService`, `files-migration.yml`), untracked `output/promo-15s/`.
 
 ## Deployment and CI
@@ -108,3 +108,20 @@ Scope: `workbench/mfts-projects/ventures/ocharo-hq/ocharo-ws/workbench/ocharo-ma
 ## Not checked
 
 - Frontend slice linting beyond layers, per-file doc-comment rules, design spec and logo/icon rows (`product/brand/` absent; owned by ocharo-platform), `appsettings.Local.json` (never opened).
+
+## Resolution
+
+Each row's outcome: fixed (with the commit), excepted (with the reason) or waiting (on what).
+
+| id | outcome | evidence |
+|---|---|---|
+| M-6 | waiting | a pipelines release containing `e134a47`; the orchestrator took the tag to the developer (2026-11-09) |
+| M-8 | fixed | the four preview ports in the WoW2 port ledger, `wow-two-ws` `59d018c` |
+| M-36 | fixed | `output/verification/` moved to `engineering/operations/verification/` |
+| M-37 | fixed | `engineering/operations/**/*.html` in Git LFS; both renders stored as pointers |
+| M-38 | fixed | the frontend `evidence/` moved to `engineering/operations/frontend-evidence/` |
+| M-39 | fixed outside `codebase/` | lead docs added, `blog/` stubs folded, `engineering/versions/` removed; the `apps/blog/editorial-*` folders wait for the frontend pass |
+| M-40 | fixed | binding facts moved to `product/context.md` § Delivery boundaries; `handoff.md` deleted |
+| M-41 | fixed, split excepted | Verification last, prose cut, tasks reworded; splitting v0.1 means closing it, which needs the developer's word (version-track § Lifecycle), so the sweep's iterations sit in v0.1 |
+| M-42 | fixed | every backlog group is an `Item · Type · Notes` table; the session-expiry decision moved to `architecture.md` |
+| M-43 | fixed | the receipt moved to `engineering/operations/catalogue-web-verification.md` |

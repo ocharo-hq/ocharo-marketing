@@ -24,7 +24,7 @@ It updates the assessment against the September 28 platform integrations. No app
 | Results | Bounded, account-owned X observations and receipt reconciliation | Add manual/Instagram evidence; do not replace the existing measurement model |
 
 The current implementation evidence is in r0.1 and
-[handoff](previous-work/handoff.md). Their older verification sections describe earlier increments.
+[product context](../../product/context.md). Their older verification sections describe earlier increments.
 This analysis inspected source; it did not rerun test suites or establish current provider connectivity.
 
 ## Proposed build order

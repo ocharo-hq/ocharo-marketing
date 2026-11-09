@@ -9,7 +9,7 @@ optional PDF downloads, active page selections, exact content languages and name
 Readers use approved product text and media, preserve chosen photo order, and apply frozen translated
 copy and independent retail, wholesale, currency and quantity display options.
 
-Architecture: [Public catalogue versions](../../../architecture/catalogue-web.md).
+Architecture: [Public catalogue versions](../architecture/catalogue-web.md).
 
 ## Backend/public tests
 
@@ -20,7 +20,7 @@ dotnet test tests/OcharoBlog.Tests/OcharoBlog.Tests.csproj --no-restore -v:q
 ```
 
 **Result: 161 passed, 0 failed, 0 skipped.** The 11 cases in
-[`WebCatalogueTests.cs`](../../../codebase/ocharo-blog.backend-services/tests/OcharoBlog.Tests/WebCatalogueTests.cs)
+[`WebCatalogueTests.cs`](../codebase/ocharo-blog.backend-services/tests/OcharoBlog.Tests/WebCatalogueTests.cs)
 cover these boundaries:
 
 | Case | Result |

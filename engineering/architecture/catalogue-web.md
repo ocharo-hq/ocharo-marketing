@@ -79,5 +79,5 @@ The layout checks render test fixtures without starting or restarting an applica
 
 Executed on 2026-10-01: **161 backend/public tests passed**, including 11 named web-catalogue tests.
 All six reader/gallery fixtures passed at phone, tablet and desktop widths. See the
-[verification receipt](../planning/version-track/v0.1/catalogue-web-verification.md) for exact checks,
+[verification receipt](../operations/catalogue-web-verification.md) for exact checks,
 fixture names and limits. **Owner review remains pending.**

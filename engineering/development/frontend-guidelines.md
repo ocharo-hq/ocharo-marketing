@@ -72,7 +72,7 @@ pnpm build
 ```
 
 Typecheck includes the Vue SFC compiler. Tests cover marketing API errors, composer revisions and asynchronous edits,
-explicit queue confirmation, and architecture boundaries. Browser evidence lives in `evidence/`; it distinguishes
+explicit queue confirmation, and architecture boundaries. Browser evidence lives in `engineering/operations/frontend-evidence/`; it distinguishes
 local UI behavior from fake-provider tests and actual external acceptance.
 
 ## Delivery

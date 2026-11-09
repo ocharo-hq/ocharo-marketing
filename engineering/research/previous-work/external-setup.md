@@ -6,7 +6,7 @@
 
 The local pilot is for one operator on this computer. Provider fakes verify payloads, receipts, uncertainty, ownership, budgets and persistence; they do not establish live account access. Current runtime flags remain disabled. No paid generation, real post/message, live engagement read, SDK package publication or remote deployment was performed by this build.
 
-Use [review guide](review-guide.md) for the actual app and [handoff](handoff.md) for current verification. Review the prepared post flow and Uzbek wording before any live canary. Existing catalogue copy and generated product imagery still need product-fidelity review.
+Use [review guide](review-guide.md) for the actual app and [product context](../../../product/context.md) for current verification. Review the prepared post flow and Uzbek wording before any live canary. Existing catalogue copy and generated product imagery still need product-fidelity review.
 
 ## Exact remaining actions
 

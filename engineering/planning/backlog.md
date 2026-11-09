@@ -4,75 +4,49 @@
 
 ## Features
 
-| Feature | State | Evidence |
+| Feature | State | Spec |
 |---|---|---|
-| Editorial and public apps | implemented; owner review open | [Blog adoption](../architecture/blog-adoption.md) |
-| Marketing operations | implemented; live setup open | [Marketing contract](../architecture/marketing-contract.md) |
-| Catalogue publication | implemented; owner review open | [Catalogue build evidence](../research/previous-work/catalogue-edition-build.md) |
-| Named responsive web catalogues | implemented; owner review pending | [Web catalogue verification](version-track/v0.1/catalogue-web-verification.md) |
-| Operator languages | implementation | [Active version](version-track/v0.1/v0.1.md) |
-| Ocharo suite frame and app links | implemented; owner review open | [Iteration 6](version-track/v0.1/v0.1.md#iteration-6--ocharo-suite-frame) |
+| Editorial and public apps | shipped v0.1 | [features](../../product/features/features.md) |
+| Marketing operations | shipped v0.1 | [features](../../product/features/features.md) |
+| Catalogue publication | shipped v0.1 | [features](../../product/features/features.md) |
+| Named responsive web catalogues | shipped v0.1 | [features](../../product/features/features.md) |
+| Operator languages | shipped v0.1 | [features](../../product/features/features.md) |
+| Ocharo suite frame and app links | shipped v0.1 | [features](../../product/features/features.md) |
+| File storage in WoW2 Files | shipped v0.1 | — |
 
-## Delivery and research
+## Delivery
 
-Active work belongs to [v0.1](version-track/v0.1/v0.1.md). The [delivery/metrics increment](../architecture/delivery-increment.md) specifies the next independent local build; external execution remains disabled. Remaining scope beyond the initial reviewable app:
-
-| Priority | Work | Evidence needed |
+| Item | Type | Notes |
 |---|---|---|
-| 1 | Complete actual channel onboarding and OAuth/token lifecycle | Account-specific scopes, authorized tests, secure refresh/revocation |
-| 2 | Enable authorized publication and reconciliation | Durable stage checkpoints, concrete destination, provider receipts |
-| 3 | Add actual metrics and manual observations | Proven metric semantics, timestamps, unavailable states |
-| 4 | Refine T03–T06 and motion | Suitable real assets, readable proofs, selected designs |
-| 5 | Provide hosted access for Maftuna/SMM | Authenticated operators, backups, protected assets, deployment evidence |
-| 6 | Extract reusable SDK capability vectors | Complete inventory, package verification, consumer adoption |
-| 7 | Decide merge or independent generalized product | Observed use and maintenance boundary |
+| Channel onboarding and OAuth token lifecycle | `feature` | Account-specific scopes, authorized tests, secure refresh and revocation. Next local build: [delivery increment](../architecture/delivery-increment.md); external execution stays disabled. |
+| Authorized publication and reconciliation | `feature` | Durable stage checkpoints, a concrete destination, provider receipts. |
+| Actual metrics and manual observations | `feature` | Proven metric semantics, timestamps, unavailable states. |
+| T03–T06 templates and motion | `feature` | Suitable real assets, readable proofs, selected designs. |
+| Hosted access for the SMM operators | `product` | Authenticated operators, backups, protected assets, deployment evidence. |
+| Newsletter capture and story-to-campaign preparation | `feature` | Kept from the [historical Blog backlog](../research/previous-work/blog/backlog.md); account needs in [external setup](../research/previous-work/external-setup.md). |
+| Reusable SDK capability vectors | `engineering` | Complete inventory, package verification, consumer adoption ([SDK extraction](../architecture/sdk-extraction.md)). |
+| Merge or keep an independent generalized product | `product` | Decide from observed use and the maintenance boundary. |
 
 ## SDK gaps
 
-Found while adopting `@wow-two-beta/fe` 0.0.23 and `WoW2.Sdk.Beta.Be` 10.0.71-beta (2026-10-19), and re-checked or
-added while adopting `@wow-two-beta/fe` 0.0.28 for the suite frame, 0.0.31 for its glass and 0.0.32 for the glass
-phone bar (2026-10-21). Each is a fix for the SDK, not a product workaround; the narrow product adapters stay until a
-published release closes the gap.
+Each is a fix for the SDK, not a product workaround; the narrow product adapter stays until a published release closes the gap.
 
-| Gap | Product adapter | Closes when |
+| Item | Type | Notes |
 |---|---|---|
-| `FilePickerProps` omits the native `accept` attribute; strict Vue templates reject it (still open in 0.0.32) | `apps/web/.../compatibility/MediaPicker.vue` | The SDK declares `accept`; delete the adapter |
-| `SelectPickerTriggerProps` omits `aria-label`; strict Vue templates reject it (still open in 0.0.32) | `apps/web/.../compatibility/PickerTrigger.vue` | The SDK declares native accessible naming; delete the adapter |
-| `MarkdownEditor` prints its view-mode identifiers with no locale key (still open in 0.0.32) | Editorial's translated selector hides the SDK one (`SectionTextEditor.vue`) | The SDK localizes view-mode labels |
-| The router has no app-wide "unsaved work" state: `useNavigationBlocker` guards navigation only, so a frame cannot hold sign-out on the same state | `packages/connect/src/UnsavedWork.ts` (`trackUnsavedWork`, `unsavedWork`) | The SDK exposes the blockers' combined state; delete the registry |
-| `MIGRATION.md` has no rows for 0.0.29 and 0.0.30 (read-only inputs and pickers, combobox select triggers) | None needed | The SDK records every published version |
-
-## Session expiry adoption
-
-Marketing and Editorial sign in through Ocharo's Identity BFF with secure HttpOnly cookies, an in-memory CSRF token and an
-identity-change reload rule (`packages/connect/src/session.ts`); they do not use the SDK auth bridge. Adopted narrowly:
-a 401 is quiet (no error toast), and each expiry of a signed-in session publishes the SDK's one neutral
-`feedbackSessionExpiry` notice. Kept product behavior: expiry never navigates, so unsaved editors survive, and
-the sign-in link carries the return path captured at expiry. `signInRedirect` and `useReturnTo`
-are not adopted because the server sign-in route restores the return path. Full bridge adoption needs a cookie-session
-strategy with CSRF, the identity-change rule and the legacy ticket fallback; it is a separate auth change.
-
-## Suite frame follow-ups
-
-- **Page headings.** Pages keep their editorial headlines ("Each channel's purpose") as `<h1>`; the shell convention
-  asks the heading to carry the navigation label. Align when the pages are next reworked.
+| `FilePickerProps` lacks the native `accept` attribute | `engineering` | Strict Vue templates reject it. Adapter `apps/web/.../compatibility/MediaPicker.vue`; delete it once the SDK declares `accept`. |
+| `SelectPickerTriggerProps` lacks `aria-label` | `engineering` | Strict Vue templates reject it. Adapter `apps/web/.../compatibility/PickerTrigger.vue`; delete it once the SDK declares native accessible naming. |
+| `MarkdownEditor` view-mode labels have no locale key | `engineering` | Editorial's translated selector hides the SDK one (`SectionTextEditor.vue`) until the SDK localizes them. |
+| The router exposes no app-wide unsaved-work state | `engineering` | `useNavigationBlocker` guards navigation only, so a frame cannot hold sign-out on it. Registry `packages/connect/src/UnsavedWork.ts` goes once the SDK exposes the blockers' combined state. |
+| `MIGRATION.md` skips published versions | `engineering` | No rows for 0.0.29, 0.0.30 or 0.0.37 onward; the SDK records every published version. |
 
 ## Identity follow-ups
 
-After the move to Ocharo's Identity (2026-11-04):
-
-- **Sessions.** Both hosts keep BFF sessions in memory, so a restart signs everyone out; a durable SQLite or shared cache
-  would end that.
-- **Local containers.** `deployment/docker-compose.yml` and `deployment/blog/docker-compose.yml` set no `Identity:Client:*`
-  or organization id, so neither boots alone.
-- **A removed person's queued publication.** Editorial's `ScheduledPublishingWorker` poses the same question: a person
-  schedules a story, is removed, and it still publishes, with no declared reaction, because the timer records no person.
-  `PublicationWorker` records no person either: a publication is the organization's
-  approved plan, cutting a provider call midway leaves its state unknown, and a due date days away outlives the tracker's
-  one-hour signal memory. Whether a removal should withdraw that person's queued plans and scheduled stories needs a
-  decision before live publishing turns on.
-- **Public writes in the BFF.** Each host branches `/api/public/*` around `UseIdentityBff`, whose antiforgery check would
-  refuse a signed-in visitor's form; an SDK exemption for public writes would replace that branch.
+| Item | Type | Notes |
+|---|---|---|
+| A removed person's queued publication | `product` | Editorial's `ScheduledPublishingWorker` and Marketing's `PublicationWorker` record no person, so a removed person's scheduled story or plan still publishes. Decide whether a removal withdraws them before live publishing turns on. |
+| Local containers boot alone | `fix` | `deployment/docker-compose.yml` and `deployment/blog/docker-compose.yml` set no `Identity:Client:*` or organization id. |
+| Public writes inside the BFF | `engineering` | Each host branches `/api/public/*` around `UseIdentityBff`, whose antiforgery check refuses a signed-in visitor's form; an SDK exemption for public writes replaces the branch. |
+| Page headings carry the navigation label | `fix` | Pages keep editorial headlines ("Each channel's purpose") as `<h1>`; align with the shell convention when the pages are next reworked. |
 
 ## Convention sweep
 
@@ -90,10 +64,3 @@ WoW2 convention breaks found on 2026-11-09, grouped by theme; the top row is the
 | Private app document | `engineering` | Web and Editorial gain favicon, `apple-touch-icon`, `noindex` meta and a boot splash twin. Size S; changes behaviour (head and markup). Covers M-30, M-31, M-32 ([sweep](../research/convention-sweep.md)). |
 | Deploy descriptor and CI hygiene | `engineering` | `deploy.yml` identity, `dotnetEnvironment`, `verify`; pipelines tag pin, Renovate, port ledger, Dockerfile comment. Size S; M-4 changes dev config. Covers M-3, M-4, M-5, M-6, M-7, M-8, M-10 ([sweep](../research/convention-sweep.md)). |
 | Docs hygiene | `engineering` | Move `output/` and `evidence/` to `engineering/operations/`, untrack 4 MB HTML, add lead docs, delete `handoff.md`, split v0.1, fix backlog tables. Size M; no behaviour change. Covers M-36, M-37, M-38, M-39, M-40, M-41, M-42, M-43 ([sweep](../research/convention-sweep.md)). |
-
-## Retained source follow-ups
-
-- Newsletter capture and story-to-campaign preparation remain in the adopted Blog research backlog.
-- Hosted access, real provider acceptance and SDK extraction require their own verification.
-- [Historical Blog backlog](../research/previous-work/blog/backlog.md) preserves unbuilt source items.
-- [External setup](../research/previous-work/external-setup.md) preserves account/provider requirements.

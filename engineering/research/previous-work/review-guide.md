@@ -4,7 +4,7 @@
 
 ## Open the working app
 
-Use [the local marketing desk](https://localhost:8242/). The backend is on HTTPS 8276 / HTTP 8277. Runtime ownership and final verification are in [handoff](handoff.md). This is a single-operator local pilot, with no Brand Workspace runtime dependency.
+Use [the local marketing desk](https://localhost:8242/). The backend is on HTTPS 8276 / HTTP 8277. Runtime ownership and final verification are in [product context](../../../product/context.md). This is a single-operator local pilot, with no Brand Workspace runtime dependency.
 
 ## Review the creation flow
 
@@ -35,13 +35,13 @@ Credentials, OAuth onboarding, live acceptance, public Instagram media hosting a
 
 ## Review artifacts
 
-- [Six card comparisons](../../../output/verification/ocharo-card-comparison.pdf): three products, identical bone/charcoal geometry, three landscape pages.
-- [Runtime assertions](../../../output/verification/runtime-evidence.json): selected media integrity, stable ZIP, revision safety, manual planning and cancellation.
-- [Garment framing assertions](../../../output/verification/card-shape-evidence.json): long, wide and asymmetric front cutouts.
-- [Browser navigation evidence](../../codebase/ocharo-marketing.frontend-services/evidence/navigation-qa.json).
-- [Browser creation workflow evidence](../../codebase/ocharo-marketing.frontend-services/evidence/pipeline-qa.json).
-- [Upload, scanning, provider controls and atlas evidence](../../codebase/ocharo-marketing.frontend-services/evidence/features-qa.json).
-- [QA plan cleanup](../../codebase/ocharo-marketing.frontend-services/evidence/qa-plan-cleanup.json).
+- [Six card comparisons](../../operations/verification/ocharo-card-comparison.pdf): three products, identical bone/charcoal geometry, three landscape pages.
+- [Runtime assertions](../../operations/verification/runtime-evidence.json): selected media integrity, stable ZIP, revision safety, manual planning and cancellation.
+- [Garment framing assertions](../../operations/verification/card-shape-evidence.json): long, wide and asymmetric front cutouts.
+- [Browser navigation evidence](../../operations/frontend-evidence/navigation-qa.json).
+- [Browser creation workflow evidence](../../operations/frontend-evidence/pipeline-qa.json).
+- [Upload, scanning, provider controls and atlas evidence](../../operations/frontend-evidence/features-qa.json).
+- [QA plan cleanup](../../operations/frontend-evidence/qa-plan-cleanup.json).
 
 Local QA records are review fixtures. No actual post or message was sent, and no paid image-generation request was made.
 
@@ -54,6 +54,6 @@ Local QA records are review fixtures. No actual post or message was sent, and no
 5. In **Natijalar**, cached observations retain their timestamps. A separate button requests a provider refresh and may consume X API credits. Observed zero, missing data and failed refresh are distinct; older measurements remain visible after a failed read. History exposes the latest 250 immutable observations and marks truncation.
 6. For an unknown publication with an actual saved final X ID, explicit read-only reconciliation verifies its owner and existence. It never reposts. Unknown outcomes without that evidence require provider-history inspection.
 
-New evidence: [isolated desktop/mobile workflow checks](../../codebase/ocharo-marketing.frontend-services/evidence/delivery-simulated-ui-qa.json). Simulated screenshots show explicitly fake accounts/counters to exercise enabled UI; they are not evidence of real account connection, publication or engagement. Actual [disconnected-runtime checks](../../codebase/ocharo-marketing.frontend-services/evidence/delivery-disconnected-ui-qa.json) and [final package/runtime evidence](../../../output/verification/delivery-increment.json) are recorded separately.
+New evidence: [isolated desktop/mobile workflow checks](../../operations/frontend-evidence/delivery-simulated-ui-qa.json). Simulated screenshots show explicitly fake accounts/counters to exercise enabled UI; they are not evidence of real account connection, publication or engagement. Actual [disconnected-runtime checks](../../operations/frontend-evidence/delivery-disconnected-ui-qa.json) and [final package/runtime evidence](../../operations/verification/delivery-increment.json) are recorded separately.
 
 See [exact remaining setup and acceptance actions](external-setup.md). The working local app is the review artifact; no live account setup or remote deployment is required to inspect it.

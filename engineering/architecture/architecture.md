@@ -1,6 +1,6 @@
 # Architecture
 
-*Last updated: 2026-10-24*
+*Last updated: 2026-11-09*
 
 Use .NET Clean Architecture: Domain values, Application interfaces/models, Infrastructure behavior/brokers, Persistence row access, and API host composition. Use the five-layer Vue source arrangement and public wow-two Vue SDK exports. SQLite is an explicit single-operator pilot choice; durable jobs are database-backed, not an in-memory queue.
 
@@ -9,6 +9,18 @@ Use .NET Clean Architecture: Domain values, Application interfaces/models, Infra
 - [Provider research](../research/providers.md): official external contracts and current limitations.
 
 No dependency references the moving Brand Workspace checkout. Secrets, assets, and provider operations stay behind the API. Every host enforces same-origin writes. Private routes sit behind Ocharo's Identity (BFF clients `marketing` and `editorial`): membership of the bound organization, `{app}:edit` to write and `{app}:approve` for publication actions.
+
+## Sign-in and session expiry
+
+Marketing and Editorial sign in through Ocharo's Identity BFF with secure HttpOnly cookies, an in-memory CSRF token and
+an identity-change reload rule (`packages/connect/src/session.ts`); they do not use the SDK auth bridge.
+
+- A 401 is quiet (no error toast); each expiry of a signed-in session publishes the SDK's one neutral
+  `feedbackSessionExpiry` notice.
+- Expiry never navigates, so unsaved editors survive; the sign-in link carries the return path captured at expiry.
+- `signInRedirect` and `useReturnTo` stay unadopted: the server sign-in route restores the return path.
+- Full bridge adoption needs a cookie-session strategy with CSRF, the identity-change rule and the legacy ticket
+  fallback; it is a separate auth change.
 
 ## Ocharo frame and app links
 
