@@ -7,14 +7,41 @@
 # (Wheelhouse decision 70), so its service, site and volume names stay unique across Ocharo's repositories. Both sign in
 # through Ocharo's Identity, which ocharo-platform's descriptor declares (deployment.md § Wheelhouse); each keeps its
 # SQLite store, blobs and Data Protection key ring on its own volume. Their sign-in sessions live in memory, so a restart
-# or deploy signs everyone out once.
+# or deploy signs everyone out once. The product's name and description come from Ocharo's catalog entry (a product of
+# several repositories); this file names only its two services.
 descriptor: 2
 product: ocharo
+dotnetEnvironment: true                 # dev runs as .NET Development, prod as Production
+# The end-to-end check after a dev rollout, from the marketing image (it has curl): both hosts' boot-bundle health, the
+# desk's status and the public Blog home. Wheelhouse runs the first repository's check for the release set.
+verify:
+  service: marketing
+  command:
+    - sh
+    - -c
+    - >-
+      curl --fail --silent --show-error --max-time 10 --header "Host: localhost" --output /dev/null
+      "$VERIFY_SERVICE_MARKETING/health"
+      && curl --fail --silent --show-error --max-time 10 --header "Host: localhost" --output /dev/null
+      "$VERIFY_SERVICE_MARKETING/api/system/status"
+      && curl --fail --silent --show-error --max-time 10 --header "Host: localhost" --output /dev/null
+      "$VERIFY_SERVICE_BLOG/health"
+      && curl --fail --silent --show-error --max-time 10 --header "Host: localhost" --output /dev/null
+      "$VERIFY_SERVICE_BLOG/"
+      && echo "marketing and blog answered health, status and the Blog home"
+  timeout: 1m
+# Each service checks the settings the deploy applies before any restart (ServiceHost's built-in verb); the blog image
+# gets its item once it answers the verb.
+configCheck:
+  - service: marketing
+    command: [dotnet, OcharoMarketing.Api.dll, config, check]
 sites:
   marketing: {}                         # the Marketing desk, behind sign-in; /api/public stays anonymous
   blog: {}                              # the public Blog site, and its /studio/ editor behind sign-in
 services:
   marketing:
+    name: Marketing
+    description: The desk where Ocharo plans, renders and delivers its posts and reads its leads.
     build: { dockerfile: deployment/Dockerfile }
     paths:
       - codebase/ocharo-marketing.backend-services/**
@@ -57,6 +84,8 @@ services:
     sites:
       marketing: {}
   blog:
+    name: Blog
+    description: Ocharo's public Blog and the Editorial studio where its stories are written.
     build: { dockerfile: deployment/blog/Dockerfile }
     paths:
       - codebase/ocharo-blog.backend-services/**
