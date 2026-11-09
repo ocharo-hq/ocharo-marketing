@@ -18,17 +18,30 @@ public sealed class GenerationWorker(
     ILogger<GenerationWorker> logger,
     WorkerHealthService health,
     IPersonOperationTracker operations,
-    TimeProvider time) : BackgroundService
+    TimeProvider time,
+    SqliteImportGate importGate) : BackgroundService
 {
     private const string AccessLostMessage = "This job stopped because the person who asked for it no longer has access.";
 
     protected override async Task ExecuteAsync(CancellationToken stoppingToken)
     {
         health.Started("generation");
+        var waiting = false;
         while (!stoppingToken.IsCancellationRequested)
         {
             try
             {
+                // Until import-sqlite copies the earlier store, a claim would write into the schema it must find empty.
+                if (importGate.IsPending)
+                {
+                    if (!waiting)
+                        logger.LogInformation(
+                            "Marketing jobs wait for import-sqlite to import {Store}.", importGate.SourcePath);
+                    waiting = true;
+                    await Task.Delay(SqliteImportGate.CheckEvery, stoppingToken);
+                    continue;
+                }
+                waiting = false;
                 using var scope = scopeFactory.CreateScope();
                 var repository = scope.ServiceProvider.GetRequiredService<IMarketingRepository>();
                 var claim = await repository.ClaimAsync(time.GetUtcNow(), TimeSpan.FromMinutes(15), stoppingToken);
@@ -67,7 +80,8 @@ public sealed class GenerationWorker(
                 }
                 catch (OperationCanceledException) when (lease?.CancelReason is not null)
                 {
-                    // An external call already under way may have reached the provider, so it stays for a person to inspect.
+                    // An external call already under way may have reached the provider, so it stays for a person to
+                    // inspect.
                     logger.LogInformation("Marketing job {JobId} stopped: {Reason}.", claim.Id, lease.CancelReason);
                     await repository.FailAsync(claim, AccessLostMessage, started && claim.Kind != "card", stoppingToken);
                 }
@@ -92,8 +106,8 @@ public sealed class GenerationWorker(
         }
     }
 
-    /// <summary>Declares a job someone asked for, with the defaults: signing out leaves it running, and losing access stops it,
-    /// including while it waited in the queue.</summary>
+    /// <summary>Declares a job someone asked for, with the defaults: signing out leaves it running, and losing access
+    /// stops it, including while it waited in the queue.</summary>
     private PersonOperationLease? Begin(JobClaim claim, CancellationToken stoppingToken) =>
         claim.RequestedBy is not { } person ? null : operations.Begin(new PersonOperationDeclaration
         {

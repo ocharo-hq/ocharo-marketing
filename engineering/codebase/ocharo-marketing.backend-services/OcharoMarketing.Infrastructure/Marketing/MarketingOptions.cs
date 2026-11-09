@@ -13,8 +13,8 @@ public sealed class MarketingOptions
     /// applies at once.</summary>
     public bool EnableLivePublishing { get; set; }
 
-    /// <summary>The folder holding the SQLite store, local blobs and the Data Protection keys; relative to the working
-    /// directory.</summary>
+    /// <summary>The folder holding local blobs stored before WoW2 Files and, until import-sqlite retires it, the SQLite
+    /// store of an earlier release; relative to the working directory.</summary>
     public string DataDirectory { get; set; } = "App_Data";
 
     /// <summary>The largest asset a person may upload, in bytes; above zero.</summary>

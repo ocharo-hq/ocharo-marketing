@@ -7,7 +7,7 @@ using OcharoMarketing.Domain.Marketing.Entities;
 
 namespace OcharoMarketing.Persistence.Marketing.Repositories;
 
-/// <summary>Persists explicit delivery authorization and observations with conditional SQLite ownership.</summary>
+/// <summary>Persists explicit delivery authorization and observations with conditional row ownership.</summary>
 public sealed class DeliveryRepository(OcharoMarketingDbContext db) : IDeliveryRepository
 {
     public Task<DeliveryConnectionRecord?> FindConnectionAsync(string id, CancellationToken ct) => db.DeliveryConnections.AsNoTracking().SingleOrDefaultAsync(x => x.Id == id, ct);

@@ -40,14 +40,15 @@ internal static class MarketingTestIdentity
     private static readonly Dictionary<string, Person> People = new[] { Owner, Editor, Viewer, Outsider, Unaffiliated }
         .ToDictionary(person => person.Subject, StringComparer.Ordinal);
 
-    /// <summary>Settings that satisfy <c>Identity:Client</c> validation without any network call to the authority, and bind
-    /// the test organization.</summary>
+    /// <summary>Settings that satisfy <c>Identity:Client</c> validation without any network call to the authority, bind
+    /// the test organization, and claim the schemas as the instance the test template claimed them.</summary>
     public static Dictionary<string, string?> Settings() => new()
     {
         ["Identity:Client:Authority"] = "https://identity.example.test/",
         ["Identity:Client:ClientId"] = "marketing",
         ["Identity:Client:CookieName"] = CookieName,
         ["Marketing:OrganizationId"] = Organization.ToString(),
+        ["Migrations:OwnerInstance"] = MarketingPostgres.OwnerInstance,
     };
 
     /// <summary>Replaces the BFF cookie scheme's handler with the cookie-driven test handler.</summary>

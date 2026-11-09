@@ -3,13 +3,11 @@ using System.Net;
 using System.Text.Json;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Mvc.Testing;
-using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection.Extensions;
 using Microsoft.Extensions.Hosting;
 using OcharoMarketing.Api.RuntimeConfig.Settings;
-using OcharoMarketing.Persistence;
 using Serilog.Core;
 using Serilog.Events;
 using Xunit;
@@ -35,7 +33,7 @@ public sealed class RuntimeConfigTests
     [Fact]
     public async Task RuntimeConfig_ShouldServeEveryConfiguredAddressAnonymouslyAndUncached()
     {
-        await using var host = MarketingHost.Create(EveryApp);
+        await using var host = await MarketingHost.CreateAsync(EveryApp);
         using var client = host.Client();
 
         using var response = await client.GetAsync("/api/runtime-config");
@@ -63,7 +61,7 @@ public sealed class RuntimeConfigTests
     [InlineData("/Api/Runtime-Config")]
     public async Task RuntimeConfig_ShouldAnswerWithoutASession_WhileSignInGuardsTheRestOfTheApi(string path)
     {
-        await using var host = MarketingHost.Create(EveryApp);
+        await using var host = await MarketingHost.CreateAsync(EveryApp);
         using var client = host.Client();
         using var request = new HttpRequestMessage(HttpMethod.Get, path);
         request.Headers.Add("Cookie", $"{MarketingTestIdentity.CookieName}=forged");
@@ -83,7 +81,7 @@ public sealed class RuntimeConfigTests
     [InlineData("/api/runtime-config/")]
     public async Task TechnicalRoutes_ShouldAnswerEveryVariantWithoutASession(string path)
     {
-        await using var host = MarketingHost.Create(EveryApp);
+        await using var host = await MarketingHost.CreateAsync(EveryApp);
         using var client = host.Client();
 
         using var response = await client.GetAsync(path);
@@ -94,7 +92,7 @@ public sealed class RuntimeConfigTests
     [Fact]
     public async Task RuntimeConfig_ShouldStayClosedToWrites()
     {
-        await using var host = MarketingHost.Create(EveryApp);
+        await using var host = await MarketingHost.CreateAsync(EveryApp);
         using var client = host.Client();
 
         using var response = await client.PostAsync("/api/runtime-config", null);
@@ -106,7 +104,7 @@ public sealed class RuntimeConfigTests
     public async Task RuntimeConfig_ShouldDropEveryAddressThatIsNotAPlainHttpsLink_AndWarnOnceAtStartup()
     {
         var logs = new CapturedLogs();
-        await using var host = MarketingHost.Create(new Dictionary<string, string?>
+        await using var host = await MarketingHost.CreateAsync(new Dictionary<string, string?>
         {
             ["OcharoApps:Desk"] = "http://ocharo-desk-dev.example.ts.net/",
             ["OcharoApps:Catalogue"] = "https://operator:secret@ocharo-catalogue-dev.example.ts.net/",
@@ -134,7 +132,7 @@ public sealed class RuntimeConfigTests
     public async Task RuntimeConfig_ShouldServeAnEmptyObjectWithoutAWarning_WhenNoAddressIsConfigured()
     {
         var logs = new CapturedLogs();
-        await using var host = MarketingHost.Create(new Dictionary<string, string?>(), logs: logs);
+        await using var host = await MarketingHost.CreateAsync(new Dictionary<string, string?>(), logs: logs);
         using var client = host.Client();
 
         using var response = await client.GetAsync("/api/runtime-config");
@@ -178,35 +176,39 @@ public sealed class RuntimeConfigTests
     }
 }
 
-/// <summary>An isolated Marketing host with its own SQLite file and data folder, signed in through
-/// <see cref="MarketingTestIdentity"/>; <c>settings</c> apply last, so a test may change or clear (null) any default.</summary>
+/// <summary>An isolated Marketing host with its own PostgreSQL database (<see cref="MarketingPostgres"/>) and data
+/// folder, signed in through <see cref="MarketingTestIdentity"/>; <c>settings</c> apply last, so a test may change or
+/// clear (null) any default.</summary>
 internal sealed class MarketingHost : IAsyncDisposable
 {
-    private MarketingHost(string root, WebApplicationFactory<Program> factory)
+    private MarketingHost(string root, string connectionString, WebApplicationFactory<Program> factory)
     {
         Root = root;
+        ConnectionString = connectionString;
         Factory = factory;
     }
 
     /// <summary>The host's data folder (<c>Marketing:DataDirectory</c>).</summary>
     public string Root { get; }
 
+    /// <summary>The host's database.</summary>
+    public string ConnectionString { get; }
+
     public WebApplicationFactory<Program> Factory { get; }
 
-    public static MarketingHost Create(IReadOnlyDictionary<string, string?> settings, CapturedLogs? logs = null, bool realCookieScheme = false)
+    public static async Task<MarketingHost> CreateAsync(
+        IReadOnlyDictionary<string, string?> settings, CapturedLogs? logs = null, bool realCookieScheme = false,
+        string? connectionString = null, string? root = null)
     {
-        var root = Path.Combine(Path.GetTempPath(), "ocharo-marketing-host", Guid.NewGuid().ToString("N"));
+        root ??= Path.Combine(Path.GetTempPath(), "ocharo-marketing-host", Guid.NewGuid().ToString("N"));
         Directory.CreateDirectory(root);
-        // The store file exists, as the migration runner (removed with the hosted services) leaves it on a real
-        // boot, so /health's database check answers healthy; an empty file is an empty SQLite database.
-        File.WriteAllBytes(Path.Combine(root, "api.db"), []);
+        connectionString ??= await MarketingPostgres.CreateDatabaseAsync();
         var configuration = MarketingTestIdentity.Settings();
         foreach (var (key, value) in settings) configuration[key] = value;
         var factory = new WebApplicationFactory<Program>().WithWebHostBuilder(builder =>
         {
             builder.UseEnvironment("Development");
-            // The host registers its store from builder.Configuration, which sees UseSetting; ConfigureAppConfiguration arrives only at Build.
-            builder.UseSetting("ConnectionStrings:OcharoMarketing", $"Data Source={Path.Combine(root, "api.db")};Pooling=False");
+            builder.UseSetting("DatabaseSettings:ConnectionString", connectionString);
             builder.UseSetting("Marketing:DataDirectory", root);
             builder.ConfigureAppConfiguration((_, config) => config.AddInMemoryCollection(configuration));
             builder.ConfigureServices(services =>
@@ -217,17 +219,11 @@ internal sealed class MarketingHost : IAsyncDisposable
                 if (logs is not null) services.AddSingleton<ILogEventSink>(logs);
             });
         });
-        return new MarketingHost(root, factory);
+        return new MarketingHost(root, connectionString, factory);
     }
 
-    /// <summary>A host whose database is migrated, as the removed hosted runner does on a real boot.</summary>
-    public static async Task<MarketingHost> CreateWithDatabaseAsync()
-    {
-        var host = Create(new Dictionary<string, string?>());
-        using var scope = host.Factory.Services.CreateScope();
-        await scope.ServiceProvider.GetRequiredService<OcharoMarketingDbContext>().Database.MigrateAsync();
-        return host;
-    }
+    /// <summary>A host on a database at the level of every set; the boot's own migration finds it current.</summary>
+    public static Task<MarketingHost> CreateWithDatabaseAsync() => CreateAsync(new Dictionary<string, string?>());
 
     /// <summary>An anonymous client over HTTPS.</summary>
     public HttpClient Client() => MarketingTestIdentity.Anonymous(Factory);
@@ -235,6 +231,7 @@ internal sealed class MarketingHost : IAsyncDisposable
     public async ValueTask DisposeAsync()
     {
         await Factory.DisposeAsync();
+        await MarketingPostgres.DropDatabaseAsync(ConnectionString);
         try { Directory.Delete(Root, true); } catch (IOException) { }
     }
 }

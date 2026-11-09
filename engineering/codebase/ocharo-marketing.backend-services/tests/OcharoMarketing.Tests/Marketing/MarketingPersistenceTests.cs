@@ -1,4 +1,5 @@
 using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.Metadata;
 using Microsoft.Extensions.Options;
 using OcharoMarketing.Application.Marketing;
 using OcharoMarketing.Application.Marketing.Models;
@@ -10,7 +11,7 @@ using Xunit;
 
 namespace OcharoMarketing.Tests.Marketing;
 
-/// <summary>Verifies revision, export and queue behavior across real SQLite contexts.</summary>
+/// <summary>Verifies revision, export and queue behavior across real PostgreSQL contexts.</summary>
 public sealed class MarketingPersistenceTests : IAsyncLifetime
 {
     private readonly MarketingDatabase database = new();
@@ -106,16 +107,34 @@ public sealed class MarketingPersistenceTests : IAsyncLifetime
     }
 
     [Fact]
-    public async Task InitialMigrationCreatesDurableSchema()
+    public async Task MarketingSet_HoldsEveryColumnTheModelMaps_WithItsType()
     {
         await using var db = database.NewContext();
-        await db.Database.EnsureDeletedAsync();
-        await db.Database.MigrateAsync();
-        Assert.False(db.Database.HasPendingModelChanges());
+        var schema = new Dictionary<(string Table, string Column), (string Type, bool IsNullable)>();
+        var connection = db.Database.GetDbConnection();
+        await connection.OpenAsync();
+        await using (var command = connection.CreateCommand())
+        {
+            command.CommandText = "SELECT table_name, column_name, data_type, is_nullable = 'YES' "
+                + "FROM information_schema.columns WHERE table_schema = 'marketing'";
+            await using var reader = await command.ExecuteReaderAsync();
+            while (await reader.ReadAsync())
+                schema[(reader.GetString(0), reader.GetString(1))] = (reader.GetString(2), reader.GetBoolean(3));
+        }
+
+        foreach (var entity in db.Model.GetEntityTypes())
+        {
+            Assert.Equal("marketing", entity.GetSchema());
+            var table = StoreObjectIdentifier.Table(entity.GetTableName()!, entity.GetSchema());
+            foreach (var property in entity.GetProperties())
+            {
+                var column = Assert.Contains((table.Name, property.GetColumnName(table)!), schema);
+                Assert.Equal((property.GetColumnType(), property.IsNullable), column);
+            }
+        }
         var repository = new MarketingRepository(db);
         await repository.SaveDraftAsync(Draft(), null, default);
         Assert.Single(await repository.GetDraftsAsync(default));
-        Assert.Contains("202609270001_InitialMarketing", await db.Database.GetAppliedMigrationsAsync());
     }
 
     private static DraftModel Draft() => new("draft-1", "Nimcha", "nimcha-v06", "t02-bone", "en", "Original caption", ["instagram"], ["front"], 1, null, "draft", DateTimeOffset.UtcNow, DateTimeOffset.UtcNow);

@@ -4,7 +4,7 @@ using OcharoMarketing.Application.Marketing;
 using OcharoMarketing.Domain.Marketing.Entities;
 namespace OcharoMarketing.Persistence.Inquiries;
 
-/// <summary>One durable metadata row per inquiry; existing SQLite schema, optimistic atomic updates.</summary>
+/// <summary>One durable metadata row per inquiry; optimistic atomic updates.</summary>
 public sealed class InquiryRepository(OcharoMarketingDbContext db):IInquiryRepository
 {
     private const string Prefix="inquiry:";

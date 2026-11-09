@@ -1,4 +1,4 @@
-using Microsoft.Data.Sqlite;
+using Npgsql;
 using OcharoMarketing.Application.Marketing;
 using OcharoMarketing.Application.Cards;
 
@@ -22,9 +22,15 @@ public sealed class MarketingExceptionMiddleware(RequestDelegate next)
         {
             await Results.Problem(statusCode: 400, title: "Invalid composition", detail: "The supplied composition is invalid.").ExecuteAsync(context);
         }
-        catch (SqliteException exception) when (exception.SqliteErrorCode is 5 or 6 && !context.Response.HasStarted)
+        catch (PostgresException exception) when (IsContention(exception) && !context.Response.HasStarted)
         {
             await Results.Problem(statusCode: 409, title: "Workspace busy", detail: "Another update is finishing. Reload and retry.").ExecuteAsync(context);
         }
     }
+
+    /// <summary>Whether PostgreSQL gave up on a lock another update held: a serialization failure, a deadlock or a lock
+    /// timeout.</summary>
+    private static bool IsContention(PostgresException exception) => exception.SqlState
+        is PostgresErrorCodes.SerializationFailure or PostgresErrorCodes.DeadlockDetected
+        or PostgresErrorCodes.LockNotAvailable;
 }

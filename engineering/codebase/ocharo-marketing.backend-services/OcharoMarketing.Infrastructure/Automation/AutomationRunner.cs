@@ -2,6 +2,7 @@ using Microsoft.Extensions.Logging;
 using OcharoMarketing.Application.Marketing;
 using OcharoMarketing.Application.Marketing.Models;
 using OcharoMarketing.Application.Marketing.Repositories;
+using OcharoMarketing.Infrastructure.Marketing;
 using OcharoMarketing.Infrastructure.Marketing.Services;
 
 namespace OcharoMarketing.Infrastructure.Automation;
@@ -17,7 +18,8 @@ public sealed class AutomationRunner(
     IMarketingRepository repository,
     TimeProvider time,
     WorkerHealthService health,
-    ILogger<AutomationRunner> logger)
+    ILogger<AutomationRunner> logger,
+    SqliteImportGate importGate)
 {
     private const string RunKey = "automation-run";
 
@@ -81,6 +83,13 @@ public sealed class AutomationRunner(
     /// failed pass still fails, so the job logs it and runs the next on schedule.</summary>
     public async Task RunScheduledAsync(CancellationToken ct)
     {
+        // Until import-sqlite copies the earlier store, a pass would write into the schema it must find empty.
+        if (importGate.IsPending)
+        {
+            logger.LogInformation(
+                "Unattended marketing automation skipped: {Store} awaits import-sqlite", importGate.SourcePath);
+            return;
+        }
         var completed = false;
         try
         {

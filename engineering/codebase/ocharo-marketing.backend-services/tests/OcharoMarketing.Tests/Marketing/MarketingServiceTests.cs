@@ -22,6 +22,9 @@ namespace OcharoMarketing.Tests.Marketing;
 /// <summary>Verifies complete editable recipes and readable atlas records across durable boundaries.</summary>
 public sealed class MarketingServiceTests : IAsyncLifetime
 {
+    // The requester of a job keys into Identity: an account and an organization the test database's Identity holds.
+    private static readonly string Person = MarketingPostgres.Member.ToString("D");
+    private static readonly string Organization = MarketingTestIdentity.Organization.ToString("D");
     private readonly MarketingDatabase database = new();
     private readonly string blobRoot = Path.Combine(Path.GetTempPath(), "ocharo-service-tests", Guid.NewGuid().ToString("N"));
     private readonly CapturingCards cards = new();
@@ -116,8 +119,9 @@ public sealed class MarketingServiceTests : IAsyncLifetime
         var operations = Operations();
         await using (var db = database.NewContext())
             await Services(db).Repository.EnqueueAsync(new("access-job", "card", "local", "Title", "nimcha", "queued", DateTimeOffset.UtcNow.AddSeconds(-1), [], null),
-                MarketingJson.Write(new CardRenderPayload("<html></html>", "t02-bone")), new("person", "organization"), default);
-        operations.AccessLost("person", "organization");
+                MarketingJson.Write(new CardRenderPayload("<html></html>", "t02-bone")), new(Person, Organization),
+                default);
+        operations.AccessLost(Person, Organization);
         cards.Failure = new InvalidOperationException("the render ran");
 
         var job = await RunWorkerUntilFinishedAsync(operations);
@@ -132,10 +136,11 @@ public sealed class MarketingServiceTests : IAsyncLifetime
         var operations = Operations();
         await using (var db = database.NewContext())
             await Services(db).Repository.EnqueueAsync(new("kept-job", "card", "local", "Title", "nimcha", "queued", DateTimeOffset.UtcNow.AddSeconds(-1), [], null),
-                MarketingJson.Write(new CardRenderPayload("<html></html>", "t02-bone")), new("person", "organization"), default);
-        operations.AccessLost("someone-else", "organization");
-        operations.AccessLost("person", "another-organization");
-        operations.SessionEnded("session", "person");
+                MarketingJson.Write(new CardRenderPayload("<html></html>", "t02-bone")), new(Person, Organization),
+                default);
+        operations.AccessLost("someone-else", Organization);
+        operations.AccessLost(Person, "another-organization");
+        operations.SessionEnded("session", Person);
         cards.Failure = new CardRenderingException("the render ran");
 
         var job = await RunWorkerUntilFinishedAsync(operations);
@@ -155,7 +160,7 @@ public sealed class MarketingServiceTests : IAsyncLifetime
             .AddSingleton<ICardRenderingService>(cards).BuildServiceProvider();
         using var worker = new GenerationWorker(provider.GetRequiredService<IServiceScopeFactory>(),
             NullLogger<GenerationWorker>.Instance, new WorkerHealthService(TimeProvider.System), operations,
-            TimeProvider.System);
+            TimeProvider.System, MarketingPostgres.NoStore());
         await worker.StartAsync(default);
         try
         {
@@ -188,7 +193,7 @@ public sealed class MarketingServiceTests : IAsyncLifetime
             .AddSingleton<ICardRenderingService>(cards).BuildServiceProvider();
         using var worker = new GenerationWorker(provider.GetRequiredService<IServiceScopeFactory>(),
             NullLogger<GenerationWorker>.Instance, new WorkerHealthService(TimeProvider.System), Operations(),
-            TimeProvider.System);
+            TimeProvider.System, MarketingPostgres.NoStore());
         await worker.StartAsync(default);
         try
         {

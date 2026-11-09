@@ -3,16 +3,24 @@ using OcharoMarketing.Application.Marketing;
 using OcharoMarketing.Application.Marketing.Models;
 using OcharoMarketing.Application.Marketing.Repositories;
 using OcharoMarketing.Application.Marketing.Services;
-using OcharoMarketing.Persistence;
+using OcharoMarketing.Infrastructure.Marketing;
 
 namespace OcharoMarketing.Api.Configurations;
 
-/// <summary>Applies durable schema migrations and imports the reviewed local source bundle once. With WoW2 Files the seed
-/// assets upload as Marketing itself; an unreachable Files leaves the missing ones for the next boot, never the boot.</summary>
-public sealed class SeedImportHostedService(IServiceProvider services, IWebHostEnvironment environment, ILogger<SeedImportHostedService> logger) : IHostedService
+/// <summary>Imports the reviewed local source bundle once. With WoW2 Files the seed assets upload as Marketing itself;
+/// an unreachable Files leaves the missing ones for the next boot, never the boot. While an earlier release's SQLite
+/// store awaits import-sqlite, it seeds nothing, so the import finds the schema empty.</summary>
+public sealed class SeedImportHostedService(
+    IServiceProvider services, IWebHostEnvironment environment, SqliteImportGate importGate,
+    ILogger<SeedImportHostedService> logger) : IHostedService
 {
     public async Task StartAsync(CancellationToken cancellationToken)
     {
+        if (importGate.IsPending)
+        {
+            logger.LogInformation("Marketing's seed waits for import-sqlite to import {Store}.", importGate.SourcePath);
+            return;
+        }
         using var scope = services.CreateScope();
         var repository = scope.ServiceProvider.GetRequiredService<IMarketingRepository>();
         var assets = scope.ServiceProvider.GetRequiredService<IAssetService>();

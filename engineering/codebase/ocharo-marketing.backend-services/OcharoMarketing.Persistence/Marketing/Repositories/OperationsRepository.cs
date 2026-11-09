@@ -18,6 +18,11 @@ public sealed class OperationsRepository(OcharoMarketingDbContext db) : IOperati
         if (expectedJson is not null)
             return await db.Metadata.Where(x => x.Id == id && x.Json == expectedJson)
                 .ExecuteUpdateAsync(update => update.SetProperty(x => x.Json, json), ct) == 1;
-        return await db.Database.ExecuteSqlInterpolatedAsync($"INSERT INTO Metadata (Id, Json) VALUES ({id}, {json}) ON CONFLICT(Id) DO NOTHING", ct) == 1;
+        return await db.Database.ExecuteSqlInterpolatedAsync(
+            $"""
+             INSERT INTO marketing.metadata (id, json) VALUES ({id}, CAST({json} AS jsonb))
+             ON CONFLICT (id) DO NOTHING
+             """,
+            ct) == 1;
     }
 }

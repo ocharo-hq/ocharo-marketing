@@ -12,7 +12,7 @@ public sealed class StatusBoundaryTests
     [InlineData("/API/SYSTEM/STATUS/")]
     public async Task Anonymous_ShouldSeeOnlyTechnicalStatus(string statusPath)
     {
-        await using var host = MarketingHost.Create(new Dictionary<string, string?>());
+        await using var host = await MarketingHost.CreateAsync(new Dictionary<string, string?>());
         using var client = host.Client();
 
         using var response = await client.GetAsync(statusPath);

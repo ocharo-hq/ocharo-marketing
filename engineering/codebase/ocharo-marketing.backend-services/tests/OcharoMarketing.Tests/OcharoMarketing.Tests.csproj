@@ -23,4 +23,11 @@
     <ProjectReference Include="../../OcharoMarketing.Persistence/OcharoMarketing.Persistence.csproj" />
     <ProjectReference Include="../../OcharoMarketing.Api/OcharoMarketing.Api.csproj" />
   </ItemGroup>
+
+  <ItemGroup>
+    <!-- The retired EF migrations' SQLite DDL, from which the import tests build an earlier release's store. -->
+    <None Include="Import/Fixtures/*.sql" CopyToOutputDirectory="PreserveNewest" />
+    <!-- A stand-in for Identity's `identity` set, whose published tables a job's requester keys into. -->
+    <None Include="IdentityStub/**/*.sql" CopyToOutputDirectory="PreserveNewest" />
+  </ItemGroup>
 </Project>

@@ -1,7 +1,11 @@
 using System.Reflection;
 using System.Threading.RateLimiting;
 using Microsoft.AspNetCore.RateLimiting;
+using Microsoft.Data.Sqlite;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.DependencyInjection.Extensions;
+using Npgsql;
+using OcharoMarketing.Api.Import;
 using OcharoMarketing.Api.Marketing;
 using OcharoMarketing.Api.RuntimeConfig.Settings;
 using OcharoMarketing.Application;
@@ -24,10 +28,14 @@ using OcharoMarketing.Infrastructure.Providers;
 using OcharoMarketing.Infrastructure.Providers.Brokers;
 using OcharoMarketing.Infrastructure.Scanning;
 using OcharoMarketing.Persistence;
+using OcharoMarketing.Persistence.Import;
 using OcharoMarketing.Persistence.Inquiries;
 using OcharoMarketing.Persistence.Marketing.Repositories;
 using OcharoMarketing.Persistence.Scanning;
-using WoW.Two.Sdk.Beta.Be.Data.Migrations.Ef;
+using WoW.Two.Sdk.Beta.Be.Data.Abstractions;
+using WoW.Two.Sdk.Beta.Be.Data.EntityFrameworkCore;
+using WoW.Two.Sdk.Beta.Be.Data.EntityFrameworkCore.Postgres;
+using WoW.Two.Sdk.Beta.Be.Data.Migrations.Bespoke;
 using WoW.Two.Sdk.Beta.Be.Files.Client;
 using WoW.Two.Sdk.Beta.Be.Foundation.Configuration.ConfigCheck;
 using WoW.Two.Sdk.Beta.Be.Foundation.Options;
@@ -73,37 +81,116 @@ public static partial class HostConfiguration
         || Uri.TryCreate(value, UriKind.Absolute, out var uri)
             && (uri.Scheme == Uri.UriSchemeHttps || uri.Scheme == Uri.UriSchemeHttp);
 
-    /// <summary>Registers the SQLite database, its migration runner and its readiness check on
-    /// <c>/health</c>.</summary>
-    private static WebApplicationBuilder AddSqliteDatabase(this WebApplicationBuilder builder)
+    /// <summary>Holds the variable the be sdk reads Marketing's PostgreSQL connection from first.</summary>
+    private const string ConnectionVariable = "DB_CONNECTION";
+
+    /// <summary>Holds the settings key of Marketing's PostgreSQL connection, read when the variable is unset.</summary>
+    private const string ConnectionKey = "DatabaseSettings:ConnectionString";
+
+    /// <summary>Holds the connection string of the SQLite store an earlier release kept; unset, the store is
+    /// <c>{Marketing:DataDirectory}/marketing.db</c>.</summary>
+    private const string SqliteStoreKey = "ConnectionStrings:OcharoMarketing";
+
+    /// <summary>Registers the product database: its connection (<c>DB_CONNECTION</c>, else
+    /// <c>DatabaseSettings:ConnectionString</c>), the context over the <c>marketing</c> schema, the schema's migration
+    /// set and the readiness check on <c>/health</c>.</summary>
+    /// <remarks>The connection resolves at first use, so a test host's settings decide, and a <c>migrate</c> run, which
+    /// connects through <c>Migrations:ConnectionString</c>, needs none.</remarks>
+    private static WebApplicationBuilder AddPostgresDatabase(this WebApplicationBuilder builder)
     {
-        var dataRoot = Path.GetFullPath(builder.Configuration["Marketing:DataDirectory"] ?? "App_Data");
-        Directory.CreateDirectory(dataRoot);
-        var connectionString = builder.Configuration["ConnectionStrings:OcharoMarketing"]
-            ?? $"Data Source={Path.Combine(dataRoot, "marketing.db")};Default Timeout=30";
-        builder.Services.AddDbContext<OcharoMarketingDbContext>(options => options.UseSqlite(connectionString));
-        builder.Services.AddEfMigrationsRunner<OcharoMarketingDbContext>(options => options.MaxConnectAttempts = 1);
+        builder.Services.AddSingleton(provider => new DatabaseSettings
+        {
+            ConnectionString = ConnectionString(provider.GetRequiredService<IConfiguration>())
+                ?? throw new InvalidOperationException(
+                    $"Set {ConnectionVariable} or {ConnectionKey} to Marketing's PostgreSQL database."),
+        });
+        builder.Services.AddNpgsqlDataSource();
+        builder.Services.AddDataSourceConnectionFactory();
+        builder.Services.AddDbContext<OcharoMarketingDbContext>((provider, options) => options
+            .UseNpgsql(provider.GetRequiredService<NpgsqlDataSource>())
+            .UseSnakeCaseNamingConvention());
+        // The schema is the set's: its embedded SQL under its own history, lock and owner marker in `marketing`, beside
+        // Desk's and Identity's sets in the one product database.
+        builder.Services.AddDatabaseBespokeMigrationSet(
+            MarketingSchema.MigrationSet, typeof(OcharoMarketingDbContext).Assembly, migrations =>
+            {
+                migrations.SchemaName = MarketingSchema.Name;
+                migrations.SchemaOwner = MarketingSchema.Owner;
+                migrations.Version = MigrationVersionMapper.ToVersion(typeof(HostConfiguration).Assembly);
+                // The release is the build's numeric version: a local build's informational version reads `dev`.
+                migrations.Release = typeof(OcharoMarketingDbContext).Assembly.GetName().Version?.ToString(3);
+                // A job's requester keys into Identity's published accounts and organizations: apply refuses until
+                // the `identity` set reaches the level that publishes them.
+                migrations.DependsOn(MarketingSchema.IdentitySet, MarketingSchema.IdentityLevel);
+            });
         builder.Services.AddHealthChecks().AddDatabaseReadinessCheck<OcharoMarketingDbContext>();
         return builder;
     }
 
-    /// <summary>Registers the shared local blob storage: the whole asset store in a run without WoW2 Files, and the assets and
-    /// exports made before Files in a run with it.</summary>
+    /// <summary>Reads Marketing's PostgreSQL connection string: <c>DB_CONNECTION</c>, else
+    /// <c>DatabaseSettings:ConnectionString</c>; null when both are blank.</summary>
+    internal static string? ConnectionString(IConfiguration configuration) =>
+        configuration[ConnectionVariable] is { Length: > 0 } variable ? variable
+        : configuration[ConnectionKey] is { Length: > 0 } value ? value
+        : null;
+
+    /// <summary>Registers the gate over the SQLite store an earlier release kept, and the <c>import-sqlite</c> verb's
+    /// importer: until the import retires the store, data routes answer 503 and no worker writes.</summary>
+    private static WebApplicationBuilder AddImportGate(this WebApplicationBuilder builder)
+    {
+        builder.Services.TryAddSingleton(TimeProvider.System);
+        builder.Services.AddSingleton(provider => new SqliteImportSource(SqliteStorePath(
+            provider.GetRequiredService<IConfiguration>()[SqliteStoreKey],
+            provider.GetRequiredService<MarketingOptions>().DataDirectory)));
+        builder.Services.AddSingleton<SqliteImportGate>();
+        builder.Services.AddSingleton<SqliteImporter>();
+        return builder;
+    }
+
+    /// <summary>Resolves the SQLite store's full path: the connection string's file, else <c>marketing.db</c> in the
+    /// data folder, each relative to the working directory as the earlier release opened it.</summary>
+    private static string SqliteStorePath(string? connectionString, string dataDirectory) =>
+        Path.GetFullPath(connectionString is { Length: > 0 }
+            && new SqliteConnectionStringBuilder(connectionString).DataSource is { Length: > 0 } file
+                ? file
+                : Path.Combine(dataDirectory, "marketing.db"));
+
+    /// <summary>Configures the pending-import gate: data routes answer 503 <c>import_pending</c> while the earlier
+    /// release's SQLite store waits for <c>import-sqlite</c>.</summary>
+    private static IApplicationBuilder UseImportGate(this IApplicationBuilder app)
+    {
+        app.UseMiddleware<ImportPendingMiddleware>();
+        return app;
+    }
+
+    /// <summary>Warns once at boot while the earlier release's SQLite store waits for <c>import-sqlite</c>.</summary>
+    private static void WarnAboutPendingImport(this WebApplication app)
+    {
+        var gate = app.Services.GetRequiredService<SqliteImportGate>();
+        if (gate.IsPending)
+            app.Logger.LogWarning(
+                "The SQLite store {Store} awaits import-sqlite; data routes answer 503 and workers wait until it runs.",
+                gate.SourcePath);
+    }
+
+    /// <summary>Registers the shared local blob storage: the whole asset store in a run without WoW2 Files, and the
+    /// assets and exports made before Files in a run with it.</summary>
     private static WebApplicationBuilder AddBlobStorage(this WebApplicationBuilder builder)
     {
         var dataRoot = Path.GetFullPath(builder.Configuration["Marketing:DataDirectory"] ?? "App_Data");
+        Directory.CreateDirectory(dataRoot);
         builder.Services.AddLocalBlobStorage(Path.Combine(dataRoot, "blobs"));
         return builder;
     }
 
-    /// <summary>Holds the root URL of the WoW2 Files instance Marketing stores its assets and draft exports in; unset, they stay
-    /// in the local blob folder.</summary>
+    /// <summary>Holds the root URL of the WoW2 Files instance Marketing stores its assets and draft exports in; unset,
+    /// they stay in the local blob folder.</summary>
     private const string FilesBaseUrlKey = "Files:BaseUrl";
 
     /// <summary>Registers the asset store: WoW2 Files over HTTP when <see cref="FilesBaseUrlKey"/> is set, by tokens of
-    /// Marketing's own Identity client (a person's exchanged within their session, Marketing's own otherwise), else the local
-    /// blob folder. Both read at resolve time, so a test host's settings decide. The boot backfill runs after the migrations
-    /// runner registered before it.</summary>
+    /// Marketing's own Identity client (a person's exchanged within their session, Marketing's own otherwise), else the
+    /// local blob folder. Both read at resolve time, so a test host's settings decide. The boot backfill runs after the
+    /// startup migration, and waits while the earlier release's SQLite store awaits import-sqlite.</summary>
     private static WebApplicationBuilder AddAssetStorage(this WebApplicationBuilder builder)
     {
         builder.Services.AddFilesClient(_ => { });
@@ -150,7 +237,8 @@ public static partial class HostConfiguration
         builder.Services.AddScoped<IMarketingRepository, MarketingRepository>();
         builder.Services.AddScoped<MarketingService>();
         builder.Services.AddHostedService<SeedImportHostedService>();
-        // A job someone asked for stops when they lose access; signing out leaves it running. Signals reach it through the BFF's route.
+        // A job someone asked for stops when they lose access; signing out leaves it running. Signals reach it through
+        // the BFF's route.
         builder.Services.AddPersonOperations();
         builder.Services.AddHostedService<GenerationWorker>();
         return builder;
@@ -325,7 +413,8 @@ public static partial class HostConfiguration
         return builder;
     }
 
-    /// <summary>Registers the public runtime settings the SPA reads at startup: the Ocharo app and site addresses.</summary>
+    /// <summary>Registers the public runtime settings the SPA reads at startup: the Ocharo app and site
+    /// addresses.</summary>
     private static WebApplicationBuilder AddRuntimeConfig(this WebApplicationBuilder builder)
     {
         // Every address is optional, and a malformed one is left out rather than failing the host over a menu link.

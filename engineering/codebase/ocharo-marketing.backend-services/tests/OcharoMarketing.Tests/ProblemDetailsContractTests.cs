@@ -12,7 +12,7 @@ public sealed class ProblemDetailsContractTests
     [InlineData("POST", "/api/marketing/drafts", "text/plain", "invalid", 415)]
     public async Task ErrorsRemainProblemJsonWhenHtmlIsRequested(string method, string path, string? contentType, string? body, int expected)
     {
-        await using var host = MarketingHost.Create(new Dictionary<string, string?>());
+        await using var host = await MarketingHost.CreateAsync(new Dictionary<string, string?>());
         using var client = await MarketingTestIdentity.SignedIn(host.Factory, MarketingTestIdentity.Owner);
         using var request = new HttpRequestMessage(new HttpMethod(method), path);
         request.Headers.Accept.ParseAdd("text/html");

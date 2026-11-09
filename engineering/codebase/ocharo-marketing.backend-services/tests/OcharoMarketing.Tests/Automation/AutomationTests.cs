@@ -169,6 +169,54 @@ public sealed class AutomationTests : IAsyncLifetime
     }
 
     [Fact]
+    public async Task Catalogue_sync_reads_the_sdk_envelope_with_omitted_prices()
+    {
+        // SDK JSON wraps the feed in `data` and leaves out null members: no pricing, no wholesale.
+        var sha = Convert.ToHexStringLower(SHA256.HashData(Png));
+        var feed = new
+        {
+            data = new
+            {
+                products = new object[]
+                {
+                    new
+                    {
+                        id = "nimcha-v01", name = "Nimcha", garmentType = "nimcha", sizes = new[] { "M" }, revision = 2,
+                        locales = new { uz = new { status = "approved", name = "Nimcha" } },
+                        images = new[] { new { role = "cutout", url = "/api/catalogue/media/" + sha, sha256 = sha } },
+                    },
+                    new
+                    {
+                        id = "baska-v03", name = "Baska", garmentType = "baska", sizes = new[] { "S" }, revision = 1,
+                        pricing = new { retail = 150000 },
+                        locales = new { uz = new { status = "approved", name = "Baska" } },
+                        images = new[] { new { role = "cutout", url = "/api/catalogue/media/" + sha, sha256 = sha } },
+                    },
+                },
+            },
+        };
+        var http = new HttpClient(new StubHandler(request => request.RequestUri!.AbsolutePath switch
+        {
+            "/api/public/catalogue" => Json(feed),
+            _ => new HttpResponseMessage(HttpStatusCode.OK) { Content = new ByteArrayContent(Png) },
+        }));
+        await using var db = database.NewContext();
+        var (repository, assets, _, _) = Services(db);
+        var options = Options.Create(new MarketingOptions { CatalogueBaseUrl = "http://catalogue.test" });
+        var sync = new CatalogueSyncService(repository, assets, http, options);
+
+        var report = await sync.SyncAsync(default);
+        var unpriced = await repository.FindProductAsync("nimcha-v01", default);
+        var retailOnly = await repository.FindProductAsync("baska-v03", default);
+
+        Assert.Equal(2, report.Received);
+        Assert.Null(unpriced!.Price);
+        Assert.Null(unpriced.WholesalePrice);
+        Assert.Equal(150000m, retailOnly!.Price);
+        Assert.Null(retailOnly.WholesalePrice);
+    }
+
+    [Fact]
     public async Task Blog_story_draft_links_the_story_and_is_remembered()
     {
         const string rss = """<?xml version="1.0"?><rss version="2.0"><channel><title>Ocharo Blog</title><item><title>Let one piece lead</title><link>/journal/let-one-piece-lead/</link><description>One statement piece.</description><category>Style</category><pubDate>Mon, 28 Sep 2026 09:00:00 GMT</pubDate></item></channel></rss>""";
@@ -250,7 +298,7 @@ public sealed class AutomationRunnerTests : IAsyncLifetime
         var offline = new HttpClient(new Offline());
         var runner = new AutomationRunner(new CatalogueSyncService(repository, assets, offline, Options.Create(new MarketingOptions { CatalogueBaseUrl = "http://offline.test" })),
             automation, repository, TimeProvider.System, new WorkerHealthService(TimeProvider.System),
-            NullLogger<AutomationRunner>.Instance);
+            NullLogger<AutomationRunner>.Instance, MarketingPostgres.NoStore());
         var draft = await service.SaveDraftAsync(null, new DraftInput("Nimcha", "nimcha", "t02-bone", "uz", "Caption", ["telegram"]), default);
         await service.ApproveAsync(draft.Id, draft.Revision, default);
 

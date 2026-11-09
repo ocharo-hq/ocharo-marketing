@@ -1,5 +1,5 @@
-using Microsoft.Data.Sqlite;
 using Microsoft.EntityFrameworkCore;
+using Npgsql;
 using OcharoMarketing.Application.Marketing;
 using OcharoMarketing.Application.Scanning;
 using OcharoMarketing.Domain.Scanning;
@@ -28,7 +28,8 @@ public sealed class SourceAnalysisRepository(OcharoMarketingDbContext database) 
             await database.SaveChangesAsync(ct);
             return true;
         }
-        catch (DbUpdateException error) when (error.InnerException is SqliteException { SqliteErrorCode: 19 })
+        catch (DbUpdateException error)
+            when (error.InnerException is PostgresException { SqlState: PostgresErrorCodes.UniqueViolation })
         {
             return false;
         }

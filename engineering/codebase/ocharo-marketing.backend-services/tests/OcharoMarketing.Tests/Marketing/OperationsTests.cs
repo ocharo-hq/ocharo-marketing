@@ -1,3 +1,4 @@
+using System.Text.Json;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging.Abstractions;
 using Microsoft.Extensions.Options;
@@ -18,7 +19,8 @@ using Xunit;
 
 namespace OcharoMarketing.Tests.Marketing;
 
-/// <summary>Real SQLite evidence for concurrent strategy editors, manual observations and honest monitor counts.</summary>
+/// <summary>Real SQLite evidence for concurrent strategy editors, manual observations and honest monitor
+/// counts.</summary>
 public sealed class OperationsTests : IAsyncLifetime
 {
     private readonly MarketingDatabase database = new();
@@ -46,10 +48,14 @@ public sealed class OperationsTests : IAsyncLifetime
     public async Task Compare_exchange_serializes_two_initial_creators_without_overwrite()
     {
         await using var first = database.NewContext(); await using var second = database.NewContext();
-        Assert.True(await new OperationsRepository(first).CompareExchangeAsync("channel:race", null, "first", default));
-        Assert.False(await new OperationsRepository(second).CompareExchangeAsync("channel:race", null, "second", default));
-        Assert.False(await new OperationsRepository(second).CompareExchangeAsync("channel:race", "stale", "second", default));
-        Assert.Equal("first", await new OperationsRepository(first).ReadAsync("channel:race", default));
+        // Operations documents are JSON, as jsonb holds them.
+        const string First = """{"by":"first"}""", Second = """{"by":"second"}""", Stale = """{"by":"stale"}""";
+        const string Key = "channel:race";
+        Assert.True(await new OperationsRepository(first).CompareExchangeAsync(Key, null, First, default));
+        Assert.False(await new OperationsRepository(second).CompareExchangeAsync(Key, null, Second, default));
+        Assert.False(await new OperationsRepository(second).CompareExchangeAsync(Key, Stale, Second, default));
+        var stored = await new OperationsRepository(first).ReadAsync("channel:race", default);
+        Assert.Equal("first", JsonDocument.Parse(stored!).RootElement.GetProperty("by").GetString());
     }
 
     [Fact]
@@ -172,7 +178,7 @@ public sealed class OperationsTests : IAsyncLifetime
         var catalogue = new CatalogueSyncService(repository, assets, new HttpClient(new NeverHttp()), Options.Create(new MarketingOptions()));
         return new(new OperationsRepository(db), repository, new DeliveryRepository(db), automation,
             new AutomationRunner(catalogue, automation, repository, clock, new WorkerHealthService(clock),
-                NullLogger<AutomationRunner>.Instance),
+                NullLogger<AutomationRunner>.Instance, MarketingPostgres.NoStore()),
             TestDeliveryPolicy.Create(new ConfigurationBuilder().Build(), new TelegramProviderOptions(),
                 new XProviderOptions()),
             new WorkerHealthService(clock), clock);

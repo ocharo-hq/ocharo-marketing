@@ -7,7 +7,6 @@
     <PackageReference Include="WoW2.Sdk.Beta.Be.Identity.Client" />
     <!-- Assets and exports: WoW2 Files over HTTP, by Identity tokens of the same `marketing` client. -->
     <PackageReference Include="WoW2.Sdk.Beta.Be.Files.Client" />
-    <PackageReference Include="Microsoft.EntityFrameworkCore.Design" PrivateAssets="all" />
   </ItemGroup>
 
   <ItemGroup>

@@ -22,7 +22,7 @@ public sealed class CatalogueSyncService(IMarketingRepository repository, IAsset
         var origin = options.Value.CatalogueBaseUrl?.TrimEnd('/');
         if (string.IsNullOrWhiteSpace(origin)) throw new MarketingException("Katalog manzili sozlanmagan (Marketing:CatalogueBaseUrl).", 409);
         JsonElement feed;
-        try { feed = await http.GetFromJsonAsync<JsonElement>($"{origin}/api/public/catalogue?locale=uz", ct); }
+        try { feed = Unwrap(await http.GetFromJsonAsync<JsonElement>($"{origin}/api/public/catalogue?locale=uz", ct)); }
         catch (Exception exception) when (exception is HttpRequestException or TaskCanceledException or JsonException)
         {
             throw new MarketingException($"Ocharo Katalogga ulanib bo‘lmadi ({origin}). Katalog xizmati ishlayotganini tekshiring.", 502);
@@ -36,7 +36,7 @@ public sealed class CatalogueSyncService(IMarketingRepository repository, IAsset
             received++;
             var id = item.GetProperty("id").GetString()!;
             var imageList = item.GetProperty("images").EnumerateArray().ToList();
-            var hero = imageList.FirstOrDefault(i => i.GetProperty("role").GetString() == "cutout");
+            var hero = imageList.FirstOrDefault(i => Text(i, "role") == "cutout");
             if (hero.ValueKind != JsonValueKind.Object) hero = imageList.FirstOrDefault();
             if (hero.ValueKind != JsonValueKind.Object) { warnings.Add($"{id}: rasmsiz, o‘tkazib yuborildi"); continue; }
 
@@ -44,16 +44,17 @@ public sealed class CatalogueSyncService(IMarketingRepository repository, IAsset
             if (heroAsset is null) { warnings.Add($"{id}: asosiy rasm yuklanmadi yoki xeshi mos kelmadi"); continue; }
             images += heroAsset.Value.Stored ? 1 : 0;
             var assetIds = new List<string> { heroAsset.Value.Id };
-            var model = imageList.FirstOrDefault(i => i.GetProperty("role").GetString() == "model");
+            var model = imageList.FirstOrDefault(i => Text(i, "role") == "model");
             if (model.ValueKind == JsonValueKind.Object && await StoreAsync(origin, id, "reference", model, ct) is { } modelAsset)
             {
                 assetIds.Add(modelAsset.Id);
                 images += modelAsset.Stored ? 1 : 0;
             }
 
-            var pricing = item.GetProperty("pricing");
-            decimal? retail = pricing.ValueKind == JsonValueKind.Object && pricing.GetProperty("retail").ValueKind == JsonValueKind.Number ? pricing.GetProperty("retail").GetDecimal() : null;
-            decimal? wholesale = pricing.ValueKind == JsonValueKind.Object && pricing.GetProperty("wholesale").ValueKind == JsonValueKind.Number ? pricing.GetProperty("wholesale").GetDecimal() : null;
+            // SDK JSON omits null members, so pricing and each price may be absent rather than null.
+            var pricing = item.TryGetProperty("pricing", out var priced) ? priced : default;
+            decimal? retail = Price(pricing, "retail");
+            decimal? wholesale = Price(pricing, "wholesale");
             var copy = new Dictionary<string, ProductCopyModel>();
             foreach (var locale in item.GetProperty("locales").EnumerateObject())
                 copy[locale.Name] = new ProductCopyModel(Text(locale.Value, "status") ?? "draft", Text(locale.Value, "name"), Text(locale.Value, "fabric"),
@@ -79,7 +80,7 @@ public sealed class CatalogueSyncService(IMarketingRepository repository, IAsset
             throw new MarketingException("The canonical Platform URL must use HTTPS.",409);
         var slug=Uri.EscapeDataString(options.Value.BrandSlug);
         JsonElement feed;
-        try{feed=await http.GetFromJsonAsync<JsonElement>($"{origin}/api/public/v1/brands/{slug}/catalogue?locale=uz",ct);}
+        try{feed=Unwrap(await http.GetFromJsonAsync<JsonElement>($"{origin}/api/public/v1/brands/{slug}/catalogue?locale=uz",ct));}
         catch(Exception e)when(e is HttpRequestException or TaskCanceledException or JsonException)
         {throw new MarketingException("The published Platform catalogue is unavailable. Existing drafts are preserved.",502);}
         if(!feed.TryGetProperty("schemaVersion",out var schema)||schema.GetInt32()!=1||!feed.TryGetProperty("release",out var release)
@@ -135,6 +136,16 @@ public sealed class CatalogueSyncService(IMarketingRepository repository, IAsset
 
         return null;
     }
+
+    /// <summary>Reads a feed's payload whether it arrives bare or inside the SDK's <c>data</c> envelope.</summary>
+    private static JsonElement Unwrap(JsonElement feed) =>
+        feed.ValueKind == JsonValueKind.Object && !feed.TryGetProperty("products", out _)
+            && feed.TryGetProperty("data", out var data) && data.ValueKind == JsonValueKind.Object ? data : feed;
+
+    /// <summary>Reads one price of a pricing object, or none when the object or the price is absent or null.</summary>
+    private static decimal? Price(JsonElement pricing, string name) =>
+        pricing.ValueKind == JsonValueKind.Object && pricing.TryGetProperty(name, out var value)
+            && value.ValueKind == JsonValueKind.Number ? value.GetDecimal() : null;
 
     private static string? Text(JsonElement element, string name) =>
         element.TryGetProperty(name, out var value) && value.ValueKind == JsonValueKind.String && !string.IsNullOrWhiteSpace(value.GetString()) ? value.GetString() : null;

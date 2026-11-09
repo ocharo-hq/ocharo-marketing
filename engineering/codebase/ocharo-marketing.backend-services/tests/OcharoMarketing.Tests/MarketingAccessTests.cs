@@ -1,18 +1,22 @@
 using System.Net;
 using System.Net.Http.Json;
 using System.Text.Json;
+using Microsoft.AspNetCore.DataProtection;
 using Microsoft.AspNetCore.DataProtection.KeyManagement;
-using Microsoft.AspNetCore.DataProtection.Repositories;
+using Microsoft.Extensions.Caching.Distributed;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Options;
+using OcharoMarketing.Persistence.Access;
+using WoW.Two.Sdk.Beta.Be.Caching.Postgres;
 using Xunit;
 using static OcharoMarketing.Tests.MarketingTestIdentity;
 
 namespace OcharoMarketing.Tests;
 
 /// <summary>
-/// Marketing signs in through Ocharo's Identity BFF: technical and <c>/api/public/</c> routes answer anonymously, the inquiry
-/// form with or without a session; every other API route and <c>/preview</c> needs a session of the bound organization, writes
+/// Marketing signs in through Ocharo's Identity BFF: technical and <c>/api/public/</c> routes answer anonymously, the
+/// inquiry form with or without a session; every other API route and <c>/preview</c> needs a session of the bound
+/// organization, writes
 /// <c>marketing:edit</c> and approval writes <c>marketing:approve</c>.
 /// </summary>
 public sealed class MarketingAccessTests
@@ -31,7 +35,7 @@ public sealed class MarketingAccessTests
     [InlineData("/API/PUBLIC/ANYTHING", HttpStatusCode.NotFound)]
     public async Task PublicRoutes_ShouldAnswerWithoutASession(string path, HttpStatusCode expected)
     {
-        await using var host = MarketingHost.Create(new Dictionary<string, string?>());
+        await using var host = await MarketingHost.CreateAsync(new Dictionary<string, string?>());
         using var client = host.Client();
 
         using var response = await client.GetAsync(path);
@@ -43,7 +47,10 @@ public sealed class MarketingAccessTests
     [Fact]
     public async Task SignalRoute_ShouldAnswer401_ForAnUnsignedPostWithoutASession()
     {
-        await using var host = MarketingHost.Create(new Dictionary<string, string?> { ["Identity:Client:SignalUrl"] = "https://marketing.test/api/identity/signal" });
+        await using var host = await MarketingHost.CreateAsync(new Dictionary<string, string?>
+        {
+            ["Identity:Client:SignalUrl"] = "https://marketing.test/api/identity/signal",
+        });
         using var client = host.Client();
 
         using var response = await client.PostAsJsonAsync("/api/identity/signal", new { });
@@ -97,7 +104,7 @@ public sealed class MarketingAccessTests
     [InlineData("/API/BLOG/EXPORT/SITE.ZIP")]
     public async Task PrivateRoutes_ShouldNeedASession(string path)
     {
-        await using var host = MarketingHost.Create(new Dictionary<string, string?>());
+        await using var host = await MarketingHost.CreateAsync(new Dictionary<string, string?>());
         using var client = host.Client();
 
         using var response = await client.GetAsync(path);
@@ -115,7 +122,7 @@ public sealed class MarketingAccessTests
     [InlineData("POST", Approve)]
     public async Task AnonymousWrites_ShouldNeedASession(string method, string path)
     {
-        await using var host = MarketingHost.Create(new Dictionary<string, string?>());
+        await using var host = await MarketingHost.CreateAsync(new Dictionary<string, string?>());
         using var client = host.Client();
 
         using var response = await client.SendAsync(new HttpRequestMessage(new HttpMethod(method), path));
@@ -127,7 +134,8 @@ public sealed class MarketingAccessTests
     [Fact]
     public async Task ForgedCookie_ShouldStayAnonymous_UnderTheRealCookieScheme()
     {
-        await using var host = MarketingHost.Create(new Dictionary<string, string?>(), realCookieScheme: true);
+        await using var host = await MarketingHost.CreateAsync(
+            new Dictionary<string, string?>(), realCookieScheme: true);
         using var client = host.Client();
         client.DefaultRequestHeaders.Add("Cookie", $"{CookieName}=forged");
 
@@ -144,7 +152,7 @@ public sealed class MarketingAccessTests
     [Fact]
     public async Task SpaShell_ShouldLoadWithoutASession()
     {
-        await using var host = MarketingHost.Create(new Dictionary<string, string?>());
+        await using var host = await MarketingHost.CreateAsync(new Dictionary<string, string?>());
         using var client = host.Client();
 
         using var shell = await client.GetAsync("/inquiries");
@@ -156,7 +164,7 @@ public sealed class MarketingAccessTests
     [Fact]
     public async Task SessionRoute_ShouldAnswerSignedOut_WithoutASession()
     {
-        await using var host = MarketingHost.Create(new Dictionary<string, string?>());
+        await using var host = await MarketingHost.CreateAsync(new Dictionary<string, string?>());
         using var client = host.Client();
 
         using var response = await client.GetAsync("/api/identity/session");
@@ -169,7 +177,7 @@ public sealed class MarketingAccessTests
     [Fact]
     public async Task SessionRoute_ShouldNameThePersonOrganizationPermissionsAndCsrfToken()
     {
-        await using var host = MarketingHost.Create(new Dictionary<string, string?>());
+        await using var host = await MarketingHost.CreateAsync(new Dictionary<string, string?>());
         using var client = await SignedIn(host.Factory, Owner, csrf: false);
 
         var session = await SessionAsync(client);
@@ -185,7 +193,7 @@ public sealed class MarketingAccessTests
     [Fact]
     public async Task SessionRoutes_ShouldNeedHttps()
     {
-        await using var host = MarketingHost.Create(new Dictionary<string, string?>());
+        await using var host = await MarketingHost.CreateAsync(new Dictionary<string, string?>());
         using var client = Anonymous(host.Factory, "http://localhost");
 
         using var response = await client.GetAsync("/api/identity/session");
@@ -268,7 +276,7 @@ public sealed class MarketingAccessTests
     [Fact]
     public async Task AnotherOrganization_ShouldBeRefusedEverywhereButThePublicAndSessionRoutes()
     {
-        await using var host = MarketingHost.Create(new Dictionary<string, string?>());
+        await using var host = await MarketingHost.CreateAsync(new Dictionary<string, string?>());
         foreach (var person in new[] { Outsider, Unaffiliated })
         {
             using var client = await SignedIn(host.Factory, person);
@@ -291,7 +299,7 @@ public sealed class MarketingAccessTests
     [InlineData("DELETE", "/api/integrations/connect")]
     public async Task RetiredSignInRoutes_ShouldNoLongerExist(string method, string path)
     {
-        await using var host = MarketingHost.Create(new Dictionary<string, string?>());
+        await using var host = await MarketingHost.CreateAsync(new Dictionary<string, string?>());
         using var anonymous = host.Client();
         using var owner = await SignedIn(host.Factory, Owner);
 
@@ -370,7 +378,7 @@ public sealed class MarketingAccessTests
     [InlineData("DELETE")]
     public async Task EveryWriteMethod_ShouldBeRefusedFromAnotherOrigin_OnEveryRoute(string method)
     {
-        await using var host = MarketingHost.Create(new Dictionary<string, string?>());
+        await using var host = await MarketingHost.CreateAsync(new Dictionary<string, string?>());
         using var client = host.Client();
         foreach (var path in new[] { Inquiries, "/api/marketing/drafts", "/health", "/" })
         {
@@ -436,7 +444,8 @@ public sealed class MarketingAccessTests
     [InlineData("not-a-guid")]
     public async Task Host_ShouldRefuseToBoot_WithoutABoundOrganization(string? organization)
     {
-        await using var host = MarketingHost.Create(new Dictionary<string, string?> { ["Marketing:OrganizationId"] = organization });
+        await using var host = await MarketingHost.CreateAsync(
+            new Dictionary<string, string?> { ["Marketing:OrganizationId"] = organization });
 
         Assert.ThrowsAny<Exception>(() => host.Client());
     }
@@ -446,26 +455,43 @@ public sealed class MarketingAccessTests
     [InlineData("Identity:Client:ClientId")]
     public async Task Host_ShouldRefuseToBoot_WithoutAnIdentityClient(string key)
     {
-        await using var host = MarketingHost.Create(new Dictionary<string, string?> { [key] = null });
+        await using var host = await MarketingHost.CreateAsync(new Dictionary<string, string?> { [key] = null });
 
         Assert.ThrowsAny<Exception>(() => host.Client());
     }
 
     [Fact]
-    public async Task KeyRing_ShouldLiveUnderTheDataDirectory_UnlessKeysPathNamesAnother()
+    public async Task KeyRingAndSessions_ShouldLiveInPostgres_SoARestartKeepsAMemberSignedIn()
     {
-        await using var byDefault = MarketingHost.Create(new Dictionary<string, string?>());
-        var elsewhere = Path.Combine(Path.GetTempPath(), "ocharo-marketing-keys", Guid.NewGuid().ToString("N"));
-        await using var named = MarketingHost.Create(new Dictionary<string, string?> { ["DataProtection:KeysPath"] = elsewhere });
+        await using var first = await MarketingHost.CreateAsync(new Dictionary<string, string?>());
+        var cookie = first.Factory.Services.GetRequiredService<IDataProtectionProvider>().CreateProtector("session")
+            .Protect("member");
+        await first.Factory.Services.GetRequiredService<IDistributedCache>().SetStringAsync("session-1", "ticket");
 
-        Assert.Equal(Path.Combine(byDefault.Root, "keys"), KeyRingFolder(byDefault));
-        Assert.Equal(elsewhere, KeyRingFolder(named));
+        // A restart: another host on the same database, with a data folder of its own.
+        await using var restarted = await MarketingHost.CreateAsync(
+            new Dictionary<string, string?>(), connectionString: first.ConnectionString);
+        var services = restarted.Factory.Services;
+
+        var keys = services.GetRequiredService<IOptions<KeyManagementOptions>>().Value;
+        var protection = services.GetRequiredService<IOptions<DataProtectionOptions>>().Value;
+        var protector = services.GetRequiredService<IDataProtectionProvider>().CreateProtector("session");
+
+        Assert.IsType<PostgresXmlRepository>(keys.XmlRepository);
+        Assert.Equal("ocharo-marketing", protection.ApplicationDiscriminator);
+        Assert.Equal("member", protector.Unprotect(cookie));
+        Assert.IsType<PostgresDistributedCache>(services.GetRequiredService<IDistributedCache>());
+        Assert.Equal("ticket", await services.GetRequiredService<IDistributedCache>().GetStringAsync("session-1"));
     }
 
-    private static string KeyRingFolder(MarketingHost host)
+    [Fact]
+    public async Task KeyRing_ShouldTakeTheConfiguredApplicationName()
     {
-        var repository = host.Factory.Services.GetRequiredService<IOptions<KeyManagementOptions>>().Value.XmlRepository;
-        return Assert.IsType<FileSystemXmlRepository>(repository).Directory.FullName;
+        await using var host = await MarketingHost.CreateAsync(
+            new Dictionary<string, string?> { ["DataProtection:ApplicationName"] = "ocharo-marketing-staging" });
+
+        Assert.Equal("ocharo-marketing-staging",
+            host.Factory.Services.GetRequiredService<IOptions<DataProtectionOptions>>().Value.ApplicationDiscriminator);
     }
 
     private static object Inquiry() => new

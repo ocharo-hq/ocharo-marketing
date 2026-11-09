@@ -1,6 +1,4 @@
 using Microsoft.EntityFrameworkCore;
-using Microsoft.EntityFrameworkCore.Infrastructure;
-using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Time.Testing;
 using OcharoMarketing.Application.Marketing;
@@ -15,7 +13,7 @@ using Xunit;
 
 namespace OcharoMarketing.Tests.Marketing;
 
-/// <summary>Exercises durable authorizations and paid-read guards using SQLite and provider fakes only.</summary>
+/// <summary>Exercises durable authorizations and paid-read guards using PostgreSQL and provider fakes only.</summary>
 public sealed class DeliveryWorkflowTests : IAsyncLifetime
 {
     private readonly MarketingDatabase database = new();
@@ -272,35 +270,6 @@ public sealed class DeliveryWorkflowTests : IAsyncLifetime
         var blocked = await Assert.ThrowsAsync<MarketingException>(() => new DeliveryRepository(fresh).ReserveMetricReadAsync("plan-b", "x", 1, clock.GetUtcNow(), 1, 60, default));
         Assert.Equal(429, blocked.StatusCode);
         Assert.Single(await db.MetricReadAttempts.ToArrayAsync());
-    }
-
-    [Fact]
-    public async Task AdditiveMigrationPreservesExistingDraftsAndPlans()
-    {
-        await using var db = database.NewContext();
-        await db.Database.EnsureDeletedAsync();
-        // The applied legacy ID predates EF's 14-digit target-name format. Recreate
-        // its real operations/history without renaming an already-applied migration.
-        var assembly = db.GetService<IMigrationsAssembly>();
-        var legacyId = "202609270001_InitialMarketing";
-        var migration = assembly.CreateMigration(assembly.Migrations[legacyId], db.Database.ProviderName!);
-        foreach (var command in db.GetService<IMigrationsSqlGenerator>().Generate(migration.UpOperations))
-            await db.Database.ExecuteSqlRawAsync(command.CommandText);
-        var history = db.GetService<IHistoryRepository>();
-        await db.Database.ExecuteSqlRawAsync(history.GetCreateIfNotExistsScript());
-        await db.Database.ExecuteSqlRawAsync(history.GetInsertScript(new HistoryRow(legacyId, "10.0.3")));
-        var plan = await PlanAsync(db);
-        // The legacy Assets table has no FileId column, so the asset goes in as that schema's own row.
-        await db.Database.ExecuteSqlRawAsync("INSERT INTO \"Assets\" (\"Id\", \"Json\", \"BlobPath\") VALUES ({0}, {1}, {2})",
-            assets.Asset.Id, MarketingJson.Write(assets.Asset), "originals/front/test");
-        await db.Database.MigrateAsync();
-        Assert.NotNull(await new MarketingRepository(db).FindDraftAsync(plan.DraftId, default));
-        Assert.Equal("planned", (await new DeliveryRepository(db).FindScheduleAsync(plan.Id, default))!.Status);
-        Assert.Equal("originals/front/test", (await new MarketingRepository(db).FindAssetAsync("front", default))!.BlobPath);
-        Assert.Null((await new MarketingRepository(db).FindAssetAsync("front", default))!.FileId);
-        Assert.Empty(await db.PublicationOperations.ToListAsync());
-        Assert.Empty(await db.SourceAnalyses.ToListAsync());
-        Assert.False(db.Database.HasPendingModelChanges());
     }
 
     [Fact]

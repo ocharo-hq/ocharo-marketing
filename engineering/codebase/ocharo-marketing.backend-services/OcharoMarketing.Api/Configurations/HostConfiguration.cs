@@ -1,3 +1,5 @@
+using OcharoMarketing.Api.Import;
+using WoW.Two.Sdk.Beta.Be.Data;
 using WoW.Two.Sdk.Beta.Be.Identity.Bff;
 using WoW.Two.Sdk.Beta.Be.Meta;
 using WoW.Two.Sdk.Beta.Be.Web.ProblemDetails;
@@ -26,8 +28,9 @@ public static partial class HostConfiguration
 
         builder
             .AddSettings()
+            .AddPostgresDatabase()
+            .AddImportGate()
             .AddAccess()
-            .AddSqliteDatabase()
             .AddBlobStorage()
             .AddAssetStorage()
             .AddCards()
@@ -51,21 +54,37 @@ public static partial class HostConfiguration
     }
 
     /// <summary>Runs startup tasks, then configures middleware and endpoints.</summary>
-    public static WebApplication Configure(this WebApplication app)
+    public static async Task<WebApplication> ConfigureAsync(this WebApplication app)
     {
         app.WarnAboutRejectedRuntimeConfig();
+        // A local run applies the `marketing` and `distributed_cache` sets; a deployed boot only checks their levels,
+        // which the deploy's migrate step (dotnet OcharoMarketing.Api.dll migrate) brought current.
+        await app.Services.MigrateBespokeOnStartupAsync(app.Lifetime.ApplicationStopping);
+        app.WarnAboutPendingImport();
 
         // Outermost: every error status, MVC error result and thrown exception leaves as a ProblemDetails document.
         app.UseHttpProblemDetails();
 
         // SDK pipeline: forwarded headers, secure headers, compression and the desk SPA before routing; Marketing's
-        // boundary and sign-in after routing; then the rate limiter (the public inquiry budget), /health with its
-        // database check and the SPA fallback, which answers an unmatched /api/* with a JSON 404.
-        app.UseApiDefaults(pipeline => pipeline.UseMarketingBoundary().UseAccess());
+        // boundary, the pending-import gate and sign-in after routing; then the rate limiter (the public inquiry
+        // budget), /health with its database check and the SPA fallback, which answers an unmatched /api/* with a
+        // JSON 404.
+        app.UseApiDefaults(pipeline => pipeline.UseMarketingBoundary().UseImportGate().UseAccess());
 
         app.MapControllers();
         app.MapIdentityBffEndpoints();
         app.MapSystemStatus();
         return app;
+    }
+
+    /// <summary>Adds Marketing's own verb beside the be sdk's <c>migrate</c> and <c>config check</c>:
+    /// <c>import-sqlite [--dry-run]</c>, which copies an earlier release's SQLite store once and runs on the built host
+    /// without serving.</summary>
+    /// <param name="verbs">The service host's verbs.</param>
+    public static ServiceVerbs AddMarketingVerbs(this ServiceVerbs verbs)
+    {
+        ArgumentNullException.ThrowIfNull(verbs);
+        return verbs.AddHostVerb(ImportSqliteCommand.Name, (services, verb, ct) =>
+            ImportSqliteCommand.RunAsync(services, verb.Arguments, verb.Output, verb.Error, ct));
     }
 }

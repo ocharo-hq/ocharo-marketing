@@ -31,10 +31,11 @@ public sealed class FilesAssetTests : IAsyncDisposable
 {
     private readonly string root = Path.Combine(Path.GetTempPath(), "ocharo-marketing-files-tests", Guid.NewGuid().ToString("N"));
     private readonly List<IAsyncDisposable> hosts = [];
+    private string? database;
 
     public async ValueTask DisposeAsync()
     {
-        foreach (var host in hosts)
+        foreach (var host in Enumerable.Reverse(hosts))
             await host.DisposeAsync();
         try { Directory.Delete(root, true); } catch (IOException) { }
     }
@@ -164,10 +165,11 @@ public sealed class FilesAssetTests : IAsyncDisposable
         var files = new TestFiles();
         var settings = MarketingTestIdentity.Settings();
         settings["Files:BaseUrl"] = TestFiles.Url;
+        var connection = await DatabaseAsync();
         var factory = new WebApplicationFactory<Program>().WithWebHostBuilder(builder =>
         {
             builder.UseEnvironment("Development");
-            builder.UseSetting("ConnectionStrings:OcharoMarketing", $"Data Source={Path.Combine(root, "web.db")};Pooling=False");
+            builder.UseSetting("DatabaseSettings:ConnectionString", connection);
             builder.UseSetting("Marketing:DataDirectory", Path.Combine(root, "web"));
             builder.ConfigureAppConfiguration((_, config) => config.AddInMemoryCollection(settings));
             builder.ConfigureServices(services =>
@@ -180,7 +182,6 @@ public sealed class FilesAssetTests : IAsyncDisposable
         hosts.Add(factory);
         using (var scope = factory.Services.CreateScope())
         {
-            await scope.ServiceProvider.GetRequiredService<OcharoMarketingDbContext>().Database.MigrateAsync();
             await scope.ServiceProvider.GetRequiredService<IAssetService>().SaveAsync(Png(7), "front.png", "Test front", "front", default, "front");
         }
         await ApproveDraftAsync(factory.Services);
@@ -206,7 +207,7 @@ public sealed class FilesAssetTests : IAsyncDisposable
     {
         Directory.CreateDirectory(root);
         var settings = MarketingTestIdentity.Settings();
-        settings["ConnectionStrings:OcharoMarketing"] = $"Data Source={Path.Combine(root, "marketing.db")};Pooling=False";
+        settings["DatabaseSettings:ConnectionString"] = await DatabaseAsync();
         settings["Marketing:DataDirectory"] = root;
         settings["Files:BaseUrl"] = files is null ? null : TestFiles.Url;
         var builder = WebApplication.CreateBuilder(new WebApplicationOptions
@@ -221,9 +222,25 @@ public sealed class FilesAssetTests : IAsyncDisposable
         files?.Register(builder.Services);
         var services = builder.Services.BuildServiceProvider();
         hosts.Add(services);
-        using var scope = services.CreateScope();
-        await scope.ServiceProvider.GetRequiredService<OcharoMarketingDbContext>().Database.MigrateAsync();
         return services;
+    }
+
+    /// <summary>The test's own database, shared by every host the test builds as they shared one store before, and
+    /// dropped after them.</summary>
+    private async Task<string> DatabaseAsync()
+    {
+        if (database is null)
+        {
+            database = await MarketingPostgres.CreateDatabaseAsync();
+            hosts.Insert(0, new Dropped(database));
+        }
+        return database;
+    }
+
+    /// <summary>Drops a test database; listed first, it disposes after the hosts listed later.</summary>
+    private sealed class Dropped(string connectionString) : IAsyncDisposable
+    {
+        public async ValueTask DisposeAsync() => await MarketingPostgres.DropDatabaseAsync(connectionString);
     }
 
     /// <summary>Saves draft <c>draft-1</c> with the asset <c>front</c> and approves its first revision.</summary>

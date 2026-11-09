@@ -98,7 +98,7 @@ public sealed class MarketingRepository(OcharoMarketingDbContext db) : IMarketin
     public async Task<ScheduleModel> ScheduleAsync(ScheduleModel schedule, CancellationToken ct)
     {
         await using var transaction = await db.Database.BeginTransactionAsync(ct);
-        // A conditional write establishes a SQLite write lock before checking the approved input.
+        // A conditional write locks the draft row before checking the approved input.
         var revision = schedule.DraftRevision;
         var touched = await db.Drafts.Where(x => x.Id == schedule.DraftId && x.Revision == revision && x.ApprovedRevision == revision)
             .ExecuteUpdateAsync(update => update.SetProperty(x => x.ApprovedRevision, (int?)revision), ct);
