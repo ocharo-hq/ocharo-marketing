@@ -80,7 +80,7 @@ WoW2 convention breaks found on 2026-11-09, grouped by theme; the top row is the
 
 | Item | Type | Notes |
 |---|---|---|
-| PostgreSQL for Blog and Marketing | `engineering` | Both services move from SQLite volumes to PostgreSQL; import existing data, drop `.db` volumes. Size L; changes data. Covers M-23 ([sweep](../research/convention-sweep.md)). |
+| PostgreSQL for Blog and Marketing | `engineering` | Both services move from SQLite volumes to PostgreSQL; import existing data, drop `.db` volumes. Size L; changes data. Covers M-23 ([sweep](../research/convention-sweep.md)). Decided 2026-11-09 (developer): one `ocharo_{env}` database, shared with Desk and Identity, with schemas `blog` and `marketing`; bespoke SQL migrations; FKs to Identity's organization and user ids; the SQLite data copied, dev first, the tool reused for prod; BFF sessions and Data Protection keys in PostgreSQL, which ends sign-out on restart. |
 | Bespoke SQL migrations and deploy verbs | `engineering` | Marketing and Blog replace EF migrations and `EnsureCreated` with SQL sets, `app migrate` and `migrate:` deploy items. Size L; changes data. Covers M-24, M-1 ([sweep](../research/convention-sweep.md)). |
 | SDK host composition | `engineering` | Both hosts adopt the API boot bundle, `/health`, `SpaHosting`, SDK JSON, option records, `AddPeriodicJob`, `config check`. Size L; M-14 changes behaviour (JSON typing). Covers M-2, M-9, M-11, M-12, M-13, M-14, M-15, M-16, M-17 ([sweep](../research/convention-sweep.md)). |
 | Mediator and AppResult | `engineering` | Marketing and Blog return `AppResult` from handlers instead of exceptions plus middleware; split Marketing into subdomains. Size L; no behaviour change. Covers M-20, M-21 ([sweep](../research/convention-sweep.md)). |
