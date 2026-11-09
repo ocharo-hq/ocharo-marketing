@@ -113,7 +113,8 @@ Scope: `workbench/mfts-projects/ventures/ocharo-hq/ocharo-ws/workbench/ocharo-ma
 
 Each row's outcome, by id: fixed (with the evidence), excepted (with the reason) or waiting (on what). 42 of 43 are fixed,
 three with a recorded part excepted (M-11 problem details, M-35 integration slice, M-41 the v0.1 split); M-6 waits on a
-pipelines release. Follow-ups the fixes surfaced are in the [backlog](../planning/backlog.md#convention-sweep).
+pipelines release. Closed 2026-11-09 on `v0.1.14` running on `ocharo-dev`. Follow-ups the fixes surfaced are in the
+[backlog](../planning/backlog.md#convention-sweep).
 
 | id | outcome | evidence |
 |---|---|---|
