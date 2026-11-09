@@ -120,7 +120,7 @@ Each row's outcome: fixed (with the commit), excepted (with the reason) or waiti
 | M-36 | fixed | `output/verification/` moved to `engineering/operations/verification/` |
 | M-37 | fixed | `engineering/operations/**/*.html` in Git LFS; both renders stored as pointers |
 | M-38 | fixed | the frontend `evidence/` moved to `engineering/operations/frontend-evidence/` |
-| M-39 | fixed outside `codebase/` | lead docs added, `blog/` stubs folded, `engineering/versions/` removed; the `apps/blog/editorial-*` folders wait for the frontend pass |
+| M-39 | fixed | lead docs added, `blog/` stubs folded, `engineering/versions/` removed; the `apps/blog/editorial-*` folders got leads too |
 | M-40 | fixed | binding facts moved to `product/context.md` § Delivery boundaries; `handoff.md` deleted |
 | M-41 | fixed, split excepted | Verification last, prose cut, tasks reworded; splitting v0.1 means closing it, which needs the developer's word (version-track § Lifecycle), so the sweep's iterations sit in v0.1 |
 | M-42 | fixed | every backlog group is an `Item · Type · Notes` table; the session-expiry decision moved to `architecture.md` |
@@ -133,3 +133,4 @@ Each row's outcome: fixed (with the commit), excepted (with the reason) or waiti
 | M-32 | fixed | static splash twin in `#root` and a mounted `BootSplash` in both private apps |
 | M-33 | fixed where the SDK allows | `ActionButton` deleted; `MediaPicker`, `PickerTrigger` and `MarketingSelect` wait on open SDK gaps, listed in the backlog's SDK gaps |
 | M-34 | fixed | `packages/connect/src/session.ts` returns `Result` on its four expected failures |
+| M-35 | fixed in application and presentation | the desk splits into posts, products, delivery, connections, inquiries, results, channels and automation slices plus `common/`; `integration/common` and `domain/marketing` stay whole, since one desk-wide workspace coordinator calls every endpoint |

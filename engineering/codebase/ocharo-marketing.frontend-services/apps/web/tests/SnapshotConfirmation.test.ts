@@ -1,6 +1,6 @@
 import { effectScope, ref } from 'vue';
 import { afterEach, describe, expect, it } from 'vitest';
-import { useSnapshotConfirmation } from '../src/application/marketing/UseSnapshotConfirmation';
+import { useSnapshotConfirmation } from '../src/application/delivery/UseSnapshotConfirmation';
 
 const scopes: ReturnType<typeof effectScope>[] = [];
 afterEach(() => {

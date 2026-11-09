@@ -10,7 +10,7 @@ import {
   useUiLocale,
 } from '@ocharomarketing/connect/UseUiLocale';
 import { translateUi, uiMessages } from '@ocharomarketing/connect/UiMessages';
-import StatusIndicator from '../src/presentation/marketing/StatusIndicator.vue';
+import StatusIndicator from '../src/presentation/common/StatusIndicator.vue';
 const locale = useUiLocale();
 beforeEach(() => {
   localStorage.clear();

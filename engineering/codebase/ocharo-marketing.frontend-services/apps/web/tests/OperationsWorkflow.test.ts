@@ -11,7 +11,7 @@ import { shallowRef, ref } from 'vue';
 import { createAppRouter, RouterHistoryMode } from '@wow-two-beta/fe/router';
 import { ResultExtensions } from '@wow-two-beta/fe/foundation/results';
 import { ApiFailureFactory } from '@wow-two-beta/fe/foundation/http';
-import { MarketingWorkspaceKey, type MarketingWorkspace } from '../src/application/marketing';
+import { MarketingWorkspaceKey, type MarketingWorkspace } from '../src/application/common';
 import type {
   ChannelStrategyModel,
   EngagementInput,
@@ -19,10 +19,10 @@ import type {
   OperationsOverviewModel,
 } from '../src/domain/marketing';
 import { OperationsExtensions } from '../src/domain/marketing/OperationsExtensions';
-import { MarketingDecoders, createMarketingApi } from '../src/integration/marketing';
-import ChannelsPage from '../src/presentation/marketing/ChannelsPage.vue';
-import ManualEngagementPanel from '../src/presentation/marketing/ManualEngagementPanel.vue';
-import PostMediaPicker from '../src/presentation/marketing/PostMediaPicker.vue';
+import { MarketingDecoders, createMarketingApi } from '../src/integration/common';
+import ChannelsPage from '../src/presentation/channels/ChannelsPage.vue';
+import ManualEngagementPanel from '../src/presentation/results/ManualEngagementPanel.vue';
+import PostMediaPicker from '../src/presentation/posts/PostMediaPicker.vue';
 const wrappers: ReturnType<typeof mount>[] = [];
 afterEach(() => {
   wrappers.splice(0).forEach((w) => w.unmount());

@@ -1,0 +1,129 @@
+<script setup lang="ts">
+import { useUiLocale } from '@ocharomarketing/connect/UseUiLocale';
+import { computed } from 'vue';
+import { ArrowUpRight, BarChart3, Link2 } from 'lucide-vue-next';
+import { Icon } from '@wow-two-beta/fe/foundation/icons';
+import { Button } from '@wow-two-beta/fe/presentation/actions';
+import { useMarketingWorkspace } from '../../application/common';
+import StatusIndicator from '../common/StatusIndicator.vue';
+import ObservedMetricsPanel from './ObservedMetricsPanel.vue';
+import ManualEngagementPanel from './ManualEngagementPanel.vue';
+const { t: ui, formatNumber, formatDate } = useUiLocale();
+
+/** Presents observations only when actual channel evidence exists. */
+defineOptions({ name: 'ResultsPage' });
+const desk = useMarketingWorkspace();
+const workspace = desk.workspace;
+/** Published entries are separate from planned posts. */
+const published = computed(
+  () => workspace.value?.schedules.filter((item) => ['published', 'accepted', 'unknown'].includes(item.status)) ?? [],
+);
+/** Metric labels use familiar operator language. */
+function metricName(name: string) {
+  return (
+    (
+      {
+        views: 'Ko‘rishlar',
+        reach: 'Qamrov',
+        engagement: 'Faollik',
+        followers: 'Obunachilar',
+        likes: 'Yoqtirishlar',
+        saves: 'Saqlashlar',
+        comments: 'Izohlar',
+      } as Record<string, string>
+    )[name] ?? name
+  );
+}
+</script>
+
+<template>
+  <div class="space-y-7">
+    <div class="flex flex-wrap items-start justify-between gap-5">
+      <div>
+        <p class="text-xs uppercase tracking-widest text-primary">{{ ui('Results') }}</p>
+        <h1 class="mt-2 font-editorial text-3xl">{{ ui('What interested people?') }}</h1>
+        <p class="mt-3 max-w-xl text-sm leading-7 text-muted-foreground">
+          {{ ui('Metrics appear when actual observations exist. Missing data is not zero.') }}
+        </p>
+      </div>
+      <Button variant="outline" @click="desk.navigate('/connections')"
+        ><Icon :icon="Link2" :size="16" class="mr-2" />{{ ui('Channels') }}</Button
+      >
+    </div>
+    <ManualEngagementPanel />
+    <div v-if="workspace?.metrics.length && !published.length" class="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+      <article
+        v-for="metric in workspace.metrics"
+        :key="`${metric.channel}:${metric.name}`"
+        class="rounded-2xl border border-border bg-card p-6"
+      >
+        <div class="flex items-start justify-between gap-3">
+          <div>
+            <p class="text-xs capitalize text-muted-foreground">{{ metric.channel }}</p>
+            <h2 class="mt-2 text-sm font-semibold">{{ ui(metricName(metric.name)) }}</h2>
+          </div>
+          <StatusIndicator :status="metric.status" />
+        </div>
+        <p class="mt-6 font-editorial text-4xl">
+          {{ metric.value === null ? '—' : formatNumber(metric.value) }}
+        </p>
+        <p class="mt-4 text-xs leading-6 text-muted-foreground">{{ metric.explanation }}</p>
+        <p v-if="metric.observedAt" class="mt-3 text-[11px] text-muted-foreground">
+          {{ ui('Observed:') }} {{ formatDate(metric.observedAt, { hour: '2-digit', minute: '2-digit' }) }}
+        </p>
+      </article>
+    </div>
+    <section v-else-if="!published.length" class="rounded-2xl border border-border bg-card px-8 py-14 text-center">
+      <Icon :icon="BarChart3" :size="35" class="mx-auto text-primary" />
+      <h2 class="mt-5 font-editorial text-2xl">{{ ui('Connect a channel for real results') }}</h2>
+      <p class="mx-auto mt-4 max-w-lg text-sm leading-7 text-muted-foreground">
+        {{
+          ui(
+            'Views and engagement data are not available yet. You can continue preparing and manually publishing posts.',
+          )
+        }}
+      </p>
+      <Button class="mt-6" @click="desk.navigate('/connections')"
+        >{{ ui('View connection status') }} <Icon :icon="ArrowUpRight" :size="16" class="ml-2"
+      /></Button>
+    </section>
+    <section :class="published.length ? 'rounded-2xl border border-border bg-card p-6' : 'query-region'">
+      <h2 class="font-editorial text-2xl">{{ ui('Publishing history') }}</h2>
+      <div v-if="published.length" class="mt-5 divide-y divide-border">
+        <div v-for="item in published" :key="item.id" class="flex flex-wrap items-center justify-between gap-4 py-4">
+          <div>
+            <p class="text-sm font-semibold">
+              {{ item.draftTitle ?? ui('Published post') }}
+            </p>
+            <p class="mt-2 text-xs text-muted-foreground">{{ item.channel }} · {{ formatDate(item.scheduledAt) }}</p>
+            <p class="mt-2 break-all text-xs text-muted-foreground">{{ item.externalId }}</p>
+          </div>
+          <StatusIndicator :status="item.status" />
+        </div>
+      </div>
+      <p v-else class="query-label">
+        {{ ui('No channel delivery history yet. Planned posts are not included in this list.') }}
+      </p>
+    </section>
+    <div v-if="published.length" class="space-y-5">
+      <ObservedMetricsPanel v-for="plan in published" :key="plan.id" :plan="plan" />
+    </div>
+    <section class="grid gap-4 md:grid-cols-3">
+      <article
+        v-for="idea in [
+          { title: 'A yoki B', note: 'Izoh va javoblar orqali rang yoki dizayn qiziqishini baholang.' },
+          { title: 'Mahsulot kartasi', note: 'Saqlash va mahsulot haqidagi savollarni kuzating.' },
+          { title: 'Jarayon videosi', note: 'Ko‘rish davomiyligi va ulashishlarni kuzating.' },
+        ]"
+        :key="idea.title"
+        class="rounded-xl border border-dashed border-border p-5"
+      >
+        <h3 class="text-sm font-semibold">{{ ui(idea.title) }}</h3>
+        <p class="mt-3 text-xs leading-6 text-muted-foreground">{{ ui(idea.note) }}</p>
+        <span class="mt-4 inline-block text-[10px] uppercase tracking-wider text-primary">{{
+          ui('For the next analysis')
+        }}</span>
+      </article>
+    </section>
+  </div>
+</template>

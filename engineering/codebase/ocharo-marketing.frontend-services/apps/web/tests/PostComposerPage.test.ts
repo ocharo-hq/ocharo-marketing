@@ -5,9 +5,9 @@ import { afterEach, describe, expect, it, vi } from 'vitest';
 import { ApiFailureFactory } from '@wow-two-beta/fe/foundation/http';
 import { ResultExtensions } from '@wow-two-beta/fe/foundation/results';
 import { createAppRouter, RouterHistoryMode } from '@wow-two-beta/fe/router';
-import { MarketingWorkspaceKey, type MarketingWorkspace } from '../src/application/marketing';
+import { MarketingWorkspaceKey, type MarketingWorkspace } from '../src/application/common';
 import type { DraftModel, WorkspaceModel } from '../src/domain/marketing';
-import PostComposerPage from '../src/presentation/marketing/PostComposerPage.vue';
+import PostComposerPage from '../src/presentation/posts/pages/PostComposerPage.vue';
 
 const wrappers: ReturnType<typeof mount>[] = [];
 afterEach(() => {

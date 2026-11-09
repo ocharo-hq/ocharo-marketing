@@ -7,11 +7,11 @@ import { RouterHistoryMode } from '@wow-two-beta/fe/router';
 import { configureIntegration, refreshIntegration } from '@ocharomarketing/connect';
 import { loadOcharoApps, ocharoAppsPlugin } from '@ocharomarketing/connect/OcharoAppsConfig';
 
-import { createMarketingWorkspace, MarketingWorkspaceKey } from '../../src/application/marketing';
+import { createMarketingWorkspace, MarketingWorkspaceKey } from '../../src/application/common';
 import AppRoot from '../../src/bootstrap/AppRoot.vue';
 import { createMarketingRouter } from '../../src/bootstrap/MarketingRouter';
 import type { WorkspaceModel } from '../../src/domain/marketing';
-import { marketingApi } from '../../src/integration/marketing';
+import { marketingApi } from '../../src/integration/common';
 
 /** The informational version the stubbed `/api/system/status` reports: a release and the commit it was built from. */
 export const ApiVersion = '0.1.4+8f2c1d9e4b7a';

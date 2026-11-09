@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { computed } from 'vue';
 import { useRoute } from 'vue-router';
-import PostComposerPage from '../presentation/marketing/PostComposerPage.vue';
+import PostComposerPage from '../presentation/posts/pages/PostComposerPage.vue';
 /** Translates router-owned parameters into typed page inputs. */
 defineOptions({ name: 'PostComposerRoute' });
 const route = useRoute();

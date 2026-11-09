@@ -29,11 +29,11 @@ import { useServiceVersion } from '@ocharomarketing/connect/ServiceVersion';
 import { unsavedWork } from '@ocharomarketing/connect/UnsavedWork';
 import { interfaceLanguages, useUiLocale } from '@ocharomarketing/connect/UseUiLocale';
 
-import { useMarketingWorkspace } from '../application/marketing';
+import { useMarketingWorkspace } from '../application/common';
 import { MarketingGroupLabels, marketingSection, readMarketingSection } from '../domain/shared/MarketingSections';
 import MarketingNav from '../presentation/frame/MarketingNav.vue';
 import PhoneNav from '../presentation/frame/PhoneNav.vue';
-import WorkspaceSkeleton from '../presentation/marketing/WorkspaceSkeleton.vue';
+import WorkspaceSkeleton from '../presentation/common/WorkspaceSkeleton.vue';
 
 /** The sidebar's widths: full, and the icon rail. @internal */
 const SidebarWidth = { Full: '244px', Rail: '68px' } as const;

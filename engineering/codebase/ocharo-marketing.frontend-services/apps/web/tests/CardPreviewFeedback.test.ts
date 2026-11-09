@@ -1,9 +1,9 @@
 import { mount, flushPromises } from '@vue/test-utils';
 import { afterEach, beforeEach, expect, it, vi } from 'vitest';
-import CardPreview from '../src/presentation/marketing/CardPreview.vue';
+import CardPreview from '../src/presentation/common/CardPreview.vue';
 import { feedbackBus } from '@ocharomarketing/connect/Feedback';
 const { previewCard } = vi.hoisted(() => ({ previewCard: vi.fn() }));
-vi.mock('../src/application/marketing', () => ({ useMarketingWorkspace: () => ({ previewCard }) }));
+vi.mock('../src/application/common', () => ({ useMarketingWorkspace: () => ({ previewCard }) }));
 vi.mock('@wow-two-beta/fe/foundation/observers', () => ({ useResizeObserver: vi.fn() }));
 const composition = { productId: 'piece-1', presetId: 'editorial', title: 'A piece', locale: 'en' };
 let wrapper: ReturnType<typeof mount>;

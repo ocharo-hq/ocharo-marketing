@@ -18,7 +18,7 @@ vi.mock('@ocharomarketing/connect', async (importOriginal) => {
   controls.access = ref(false);
   return { ...(await importOriginal<typeof import('@ocharomarketing/connect')>()), integrationAccess: controls.access };
 });
-vi.mock('../src/application/marketing', async () => {
+vi.mock('../src/application/common', async () => {
   const { ref } = await import('vue');
   controls.workspace = ref(null);
   return {

@@ -4,9 +4,9 @@ import { flushPromises, mount, type VueWrapper } from '@vue/test-utils';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { ResultExtensions } from '@wow-two-beta/fe/foundation/results';
 import { ApiFailureFactory } from '@wow-two-beta/fe/foundation/http';
-import WorkspaceSkeleton from '../src/presentation/marketing/WorkspaceSkeleton.vue';
-import ManualEngagementPanel from '../src/presentation/marketing/ManualEngagementPanel.vue';
-import { MarketingWorkspaceKey, type MarketingWorkspace } from '../src/application/marketing';
+import WorkspaceSkeleton from '../src/presentation/common/WorkspaceSkeleton.vue';
+import ManualEngagementPanel from '../src/presentation/results/ManualEngagementPanel.vue';
+import { MarketingWorkspaceKey, type MarketingWorkspace } from '../src/application/common';
 import { useUiLocale } from '@ocharomarketing/connect/UseUiLocale';
 
 const wrappers: VueWrapper[] = [];

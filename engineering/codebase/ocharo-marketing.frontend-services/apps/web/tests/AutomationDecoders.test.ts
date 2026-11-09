@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { MarketingDecoders } from '../src/integration/marketing';
+import { MarketingDecoders } from '../src/integration/common';
 
 const settings = {
   slots: [{ id: 'tg', channel: 'telegram', days: [1, 3, 5], time: '19:00', enabled: true }],

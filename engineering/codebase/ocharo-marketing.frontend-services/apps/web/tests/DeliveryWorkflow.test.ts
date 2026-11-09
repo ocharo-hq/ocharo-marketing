@@ -10,16 +10,16 @@ import { ref, shallowRef } from 'vue';
 import { describe, it, expect, vi, afterEach } from 'vitest';
 import { ResultExtensions } from '@wow-two-beta/fe/foundation/results';
 import { ApiFailureFactory } from '@wow-two-beta/fe/foundation/http';
-import { MarketingWorkspaceKey, type MarketingWorkspace } from '../src/application/marketing';
+import { MarketingWorkspaceKey, type MarketingWorkspace } from '../src/application/common';
 import {
   DeliveryExtensions,
   type WorkspaceModel,
   type PublicationOperationModel,
   type MetricCacheModel,
 } from '../src/domain/marketing';
-import DeliveryPanel from '../src/presentation/marketing/DeliveryPanel.vue';
-import ObservedMetricsPanel from '../src/presentation/marketing/ObservedMetricsPanel.vue';
-import SourceImageAnalysisPanel from '../src/presentation/marketing/SourceImageAnalysisPanel.vue';
+import DeliveryPanel from '../src/presentation/delivery/DeliveryPanel.vue';
+import ObservedMetricsPanel from '../src/presentation/results/ObservedMetricsPanel.vue';
+import SourceImageAnalysisPanel from '../src/presentation/products/SourceImageAnalysisPanel.vue';
 
 const mounted: ReturnType<typeof mount>[] = [];
 afterEach(() => {

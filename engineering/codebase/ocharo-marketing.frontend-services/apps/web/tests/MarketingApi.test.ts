@@ -1,5 +1,5 @@
 import { describe, expect, it, vi } from 'vitest';
-import { createMarketingApi, MarketingDecoders } from '../src/integration/marketing';
+import { createMarketingApi, MarketingDecoders } from '../src/integration/common';
 import { MarketingExtensions } from '../src/domain/marketing';
 import { workspaceFixture } from './helpers/MarketingApp';
 

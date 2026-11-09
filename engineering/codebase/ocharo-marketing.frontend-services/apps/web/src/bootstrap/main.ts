@@ -7,7 +7,7 @@ import { sessionExpiryNotice } from '@ocharomarketing/connect/Feedback';
 import { loadOcharoApps, ocharoAppsPlugin, reportOcharoAppsStartup } from '@ocharomarketing/connect/OcharoAppsConfig';
 import { initializeUiLocale } from '@ocharomarketing/connect/UseUiLocale';
 
-import { createMarketingWorkspace, MarketingWorkspaceKey } from '../application/marketing';
+import { createMarketingWorkspace, MarketingWorkspaceKey } from '../application/common';
 import AppBoot from './AppBoot.vue';
 import { createMarketingRouter } from './MarketingRouter';
 

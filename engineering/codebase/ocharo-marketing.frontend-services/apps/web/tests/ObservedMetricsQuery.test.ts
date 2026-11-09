@@ -3,9 +3,9 @@ import { flushPromises, mount, type VueWrapper } from '@vue/test-utils';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { ResultExtensions } from '@wow-two-beta/fe/foundation/results';
 import { ApiFailureFactory } from '@wow-two-beta/fe/foundation/http';
-import { MarketingWorkspaceKey, type MarketingWorkspace } from '../src/application/marketing';
+import { MarketingWorkspaceKey, type MarketingWorkspace } from '../src/application/common';
 import type { ScheduleModel } from '../src/domain/marketing';
-import ObservedMetricsPanel from '../src/presentation/marketing/ObservedMetricsPanel.vue';
+import ObservedMetricsPanel from '../src/presentation/results/ObservedMetricsPanel.vue';
 import { useUiLocale } from '@ocharomarketing/connect/UseUiLocale';
 const getMetrics = vi.fn(),
   refreshMetrics = vi.fn();
