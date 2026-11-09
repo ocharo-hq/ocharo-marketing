@@ -17,6 +17,7 @@ using OcharoBlog.Persistence;
 using OcharoBlog.Persistence.Blog;
 using WoW.Two.Sdk.Beta.Be.Foundation.Configuration;
 using WoW.Two.Sdk.Beta.Be.Foundation.Options;
+using WoW.Two.Sdk.Beta.Be.Files.Client;
 using WoW.Two.Sdk.Beta.Be.Http.Auth.OAuth2ClientCredentials;
 using WoW.Two.Sdk.Beta.Be.Identity.Bff;
 using WoW.Two.Sdk.Beta.Be.Identity.Signals;
@@ -135,8 +136,58 @@ public static partial class HostConfiguration
             });
         builder.Services.AddScoped<IEditorialImageWorker, EditorialImageWorker>();
         builder.Services.AddScoped<IMediaEditingService, MediaEditingService>();
-        builder.Services.AddScoped<IMediaStore, MediaStore>();
+        builder.AddEditorialFiles();
         return builder;
+    }
+
+    /// <summary>Holds the root URL of the WoW2 Files instance Editorial stores its media in; unset, media stay in the local
+    /// blob folder.</summary>
+    private const string FilesBaseUrlKey = "Files:BaseUrl";
+
+    /// <summary>Registers the media store: WoW2 Files over HTTP when <see cref="FilesBaseUrlKey"/> is set, by tokens of
+    /// Editorial's own Identity client (a person's exchanged within their BFF session, Editorial's own otherwise), else the
+    /// local blob folder. Both read at resolve time, so a test host's settings decide.</summary>
+    private static WebApplicationBuilder AddEditorialFiles(this WebApplicationBuilder builder)
+    {
+        builder.Services.AddFilesClient(_ => { });
+        builder.Services.AddOptions<FilesClientOptions>().Configure<IConfiguration>((files, configuration) =>
+        {
+            if (configuration[FilesBaseUrlKey] is not { Length: > 0 } url)
+                return;
+            files.BaseAddress = new Uri(url);
+            if (!Uri.TryCreate(configuration["Identity:Client:Authority"], UriKind.Absolute, out var authority))
+                return;
+            files.Identity = new FilesClientIdentityOptions
+            {
+                TokenEndpoint = new Uri($"{authority.AbsoluteUri.TrimEnd('/')}/connect/token"),
+                ClientId = configuration["Identity:Client:ClientId"] ?? string.Empty,
+                ClientSecret = configuration["Identity:Client:ClientSecret"] ?? string.Empty,
+            };
+        });
+        builder.Services.AddScoped<MediaStore>();
+        builder.Services.AddScoped<FilesMediaStore>();
+        builder.Services.AddScoped<FilesMediaBackfill>();
+        builder.Services.AddScoped<IMediaStore>(provider => UsesFiles(provider)
+            ? provider.GetRequiredService<FilesMediaStore>()
+            : provider.GetRequiredService<MediaStore>());
+        return builder;
+    }
+
+    /// <summary>Tells whether this run stores media in WoW2 Files.</summary>
+    private static bool UsesFiles(IServiceProvider provider) =>
+        provider.GetRequiredService<IConfiguration>()[FilesBaseUrlKey] is { Length: > 0 };
+
+    /// <summary>Fills the file ids the migration made; an unreachable Files leaves those files on local bytes, never the boot.</summary>
+    private static async Task BackfillFileIdsAsync(this IServiceProvider services, ILogger logger)
+    {
+        try
+        {
+            await services.GetRequiredService<FilesMediaBackfill>().RunAsync(CancellationToken.None);
+        }
+        catch (Exception exception) when (exception is HttpRequestException or TaskCanceledException or InvalidOperationException)
+        {
+            logger.LogWarning(exception, "Editorial's file ids stay unfilled: WoW2 Files could not be reached at boot.");
+        }
     }
 
     /// <summary>Registers catalogue publication settings and the catalogue feed client.</summary>
@@ -203,6 +254,8 @@ public static partial class HostConfiguration
     {
         await app.Services.InitializeDatabaseAsync();
         using var scope = app.Services.CreateScope();
+        if (UsesFiles(scope.ServiceProvider))
+            await scope.ServiceProvider.BackfillFileIdsAsync(app.Logger);
         await scope.ServiceProvider.GetRequiredService<BlogSeeder>()
             .SeedIfEmptyAsync(app.Environment.ContentRootPath, CancellationToken.None);
         return app;

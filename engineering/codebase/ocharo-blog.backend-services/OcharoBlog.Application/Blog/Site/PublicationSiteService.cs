@@ -240,7 +240,7 @@ public sealed partial class PublicationSiteService(IBlogRepository repository, S
             Text("robots.txt",model.Settings.NoIndex?"User-agent: *\nDisallow: /\n":"User-agent: *\nAllow: /\n");
             Text("publication.json",System.Text.Json.JsonSerializer.Serialize(new{schemaVersion=1,publication,locale=model.Locale,generatedAt=DateTimeOffset.UtcNow,pages=paths.Count,noIndex=model.Settings.NoIndex,catalogueEditionId=publication=="catalogue"?model.Edition?.Id:null,catalogueSlugs=publication=="catalogue"?model.Catalogues?.Select(item=>item.Slug).ToArray():null}));
             foreach(var file in editionFiles){await using var entry=zip.CreateEntry(file.Key,CompressionLevel.NoCompression).Open();await entry.WriteAsync(file.Value,ct);}
-            foreach(var sha in used){var opened=await media.OpenAsync(sha,true,ct);if(opened is null)continue;await using var input=opened.Value.Content;await using var entry=zip.CreateEntry($"media/{sha}.webp",CompressionLevel.NoCompression).Open();await input.CopyToAsync(entry,ct);}
+            foreach(var sha in used){var opened=await media.ReadAsync(sha,true,ct);if(opened is null)continue;await using var input=opened.Value.Content;await using var entry=zip.CreateEntry($"media/{sha}.webp",CompressionLevel.NoCompression).Open();await input.CopyToAsync(entry,ct);}
         }
         return output.ToArray();
     }

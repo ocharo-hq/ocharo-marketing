@@ -1,0 +1,14 @@
+# Where this repo's legacy files live, for the Wheelhouse migration module that moves them into WoW2 Files: tenant
+# `ocharo` on the shared files host B (Files t9 #4; ocharo-platform planning/files-adoption.md #20). Each source names
+# the reference its files get, so the cutover build finds each file id in Files' id map; an imported file's app is its
+# reference prefix, the Identity client the app signs in as. Wave 2 runs after wave 1 reads back on dev; prod is parked.
+tenant: ocharo
+sources:
+  # Blog and Editorial keep content-addressed originals under {DataRoot}/blobs/media/{sha[..2]}/{sha} on blog-data;
+  # previews under blobs/previews are not copied, since Files makes them as variants (files-adoption #10).
+  - id: editorial-media
+    wave: 2
+    kind: volume-folder
+    volume: blog-data
+    path: blobs/media
+    reference: "editorial.media:{sha256}"  # the file name is the SHA-256 of its bytes

@@ -25,7 +25,7 @@ public sealed class MediaEditingService(IMediaStore media, IImageService images,
 
     private async Task<EditedImage> RenderAsync(string sha, MediaEditRecipe recipe, CancellationToken ct)
     {
-        var opened = await media.OpenAsync(sha, false, ct) ?? throw BlogException.NotFound("Image");
+        var opened = await media.ReadAsync(sha, false, ct) ?? throw BlogException.NotFound("Image");
         await using var source = opened.Content;
         if (opened.Record.ByteLength > MaximumBytes) throw new BlogException("Editing supports images up to 20 MiB. Your original is unchanged.", 413);
         using var buffer = new MemoryStream(); var chunk = new byte[8192]; int count;

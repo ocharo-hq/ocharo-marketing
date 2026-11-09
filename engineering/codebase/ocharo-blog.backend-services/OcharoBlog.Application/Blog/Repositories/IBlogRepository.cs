@@ -23,6 +23,10 @@ public interface IBlogRepository
     Task<MediaBlobRecord?> FindMediaAsync(string sha256, CancellationToken ct);
     Task<IReadOnlyList<MediaBlobRecord>> GetMediaAsync(CancellationToken ct);
     Task SaveMediaAsync(MediaBlobRecord record, CancellationToken ct);
+    /// <summary>The files stored before Files, which still have no file id.</summary>
+    Task<IReadOnlyList<MediaBlobRecord>> GetMediaWithoutFileAsync(CancellationToken ct);
+    /// <summary>Records the Files file that holds a stored file's bytes.</summary>
+    Task SetMediaFileAsync(string sha256, string fileId, CancellationToken ct);
     Task SaveMediaWithEditAsync(MediaBlobRecord record, MediaEditRecord edit, CancellationToken ct);
     Task<IReadOnlyList<MediaEditRecord>> GetMediaEditsAsync(string sha, CancellationToken ct);
 }

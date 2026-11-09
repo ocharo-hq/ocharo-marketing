@@ -78,6 +78,10 @@ services:
         Blog:BrandBaseUrl: { from: { repository: platform, key: Sites:brand:Url } }
         Blog:CatalogueBaseUrl: { from: { repository: platform, key: Sites:catalogue:Url } }
         Blog:MarketingBaseUrl: { from: Sites:marketing:Url }
+        # Media live in WoW2 Files, tenant `ocharo` on the shared files host, reached with client 4: an editor's exchanged
+        # token within their session, Editorial's own otherwise; linked to the Uri ocharo-platform types for its Files
+        # resource. Media stored before Files read from blog-data until the migration (files-migration.yml).
+        Files:BaseUrl: { from: { repository: platform, key: Identity:Server:Resources:2:Uri } }
         OcharoApps:Desk: { type: url }
         OcharoApps:Catalogue: { type: url }
         OcharoApps:Studio: { type: url }
@@ -88,6 +92,6 @@ services:
         OcharoApps:Wear: { type: url }
         OcharoApps:Blog: { type: url }
     volumes:
-      blog-data: /data                  # SQLite store (ocharo-blog.db) and blobs
+      blog-data: /data                  # SQLite store (ocharo-blog.db) and blobs stored before WoW2 Files
     sites:
       blog: {}

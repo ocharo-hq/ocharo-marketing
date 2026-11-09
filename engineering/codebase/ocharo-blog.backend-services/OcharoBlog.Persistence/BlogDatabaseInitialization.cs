@@ -32,5 +32,11 @@ public static class BlogDatabaseInitialization
             BEGIN SELECT RAISE(ABORT, 'Image receipts are immutable'); END;
             """);
         await db.Database.ExecuteSqlRawAsync("PRAGMA journal_mode=WAL;");
+        // A store made before WoW2 Files lacks the file-id column; EnsureCreated never alters an existing table.
+        var hasFileId = await db.Database
+            .SqlQueryRaw<int>("SELECT COUNT(*) AS Value FROM pragma_table_info('media_blobs') WHERE name = 'FileId'")
+            .SingleAsync();
+        if (hasFileId == 0)
+            await db.Database.ExecuteSqlRawAsync("ALTER TABLE media_blobs ADD COLUMN FileId TEXT NULL;");
     }
 }

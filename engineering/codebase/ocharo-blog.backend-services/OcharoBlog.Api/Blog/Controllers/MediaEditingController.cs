@@ -59,7 +59,7 @@ public sealed class MediaEditingController(
         r.Width,
         r.Height,
         $"/media/{r.Sha256}",
-        r.PreviewPath is null ? null : $"/media/{r.Sha256}/preview"));
+        MediaPreview.Exists(r) ? $"/media/{r.Sha256}/preview" : null));
   }
 
   [HttpGet("{sha}/edits")]

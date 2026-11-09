@@ -148,7 +148,7 @@ public sealed class SiteService(IBlogRepository repository, TopicService topics,
             Text("site.css", Css);
             foreach (var (sha, path) in used)
             {
-                var opened = await media.OpenAsync(sha, preview: true, ct);
+                var opened = await media.ReadAsync(sha, preview: true, ct);
                 if (opened is null) continue;
                 await using var content = opened.Value.Content;
                 await using var entry = zip.CreateEntry(path.TrimStart('/'), CompressionLevel.NoCompression).Open();

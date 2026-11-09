@@ -134,9 +134,15 @@ public sealed class BlogAdminController(
         ct);
     if (opened is null)
       return NotFound();
-    var (record, content) = opened.Value;
+    // EditorialAccessMiddleware decides public or private on every request, so a redirect to a Files link is never
+    // cached: the next request decides again and gets a fresh link.
+    if (opened.Location is { } location)
+    {
+      Response.Headers.CacheControl = "no-store";
+      return Redirect(location.AbsoluteUri);
+    }
     Response.Headers.CacheControl = "public, max-age=31536000, immutable";
-    return File(content, preview && record.PreviewPath is not null ? "image/webp" : record.ContentType);
+    return File(opened.Content!, opened.ContentType);
   }
 
   private static MediaView View(MediaBlobRecord r)
@@ -149,7 +155,7 @@ public sealed class BlogAdminController(
         r.Width,
         r.Height,
         $"/media/{r.Sha256}",
-        r.PreviewPath is null ? null : $"/media/{r.Sha256}/preview");
+        MediaPreview.Exists(r) ? $"/media/{r.Sha256}/preview" : null);
   }
 
   public sealed record SettingsInput(SiteSettings Settings, int ExpectedRevision);
