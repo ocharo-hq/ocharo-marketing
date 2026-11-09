@@ -113,6 +113,18 @@ public sealed class SiteService(IBlogRepository repository, TopicService topics,
         };
     }
 
+    /// <summary>Renders the not-found page for a public path: in the edition its <c>/uz/</c> or <c>/ru/</c> prefix
+    /// names while that edition is published, else in English.</summary>
+    public async Task<SitePage> NotFoundAsync(string path, CancellationToken ct)
+    {
+        var first = path.Trim('/').Split('/', StringSplitOptions.RemoveEmptyEntries).FirstOrDefault();
+        var language = first is "uz" or "ru" ? first : "en";
+        var model = await ModelAsync(LiveMedia, ct, language);
+        if (language != "en" && !model.AvailableLanguages!.Contains(language))
+            model = await ModelAsync(LiveMedia, ct);
+        return Html(new SiteRenderer(model).NotFound());
+    }
+
     /// <summary>Renders any story (draft, scheduled, archived) as a non-indexed preview.</summary>
     public async Task<Result<string>> PreviewAsync(Guid id, CancellationToken ct)
     {

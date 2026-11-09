@@ -11,7 +11,7 @@
 
   <ItemGroup>
     <!-- wow-two backend SDK (kit): mediator, Result/DomainError, IKeyedEntity, web/problem-details. On nuget.org. -->
-    <PackageVersion Include="WoW2.Sdk.Beta.Be" Version="10.0.110-beta" />
+    <PackageVersion Include="WoW2.Sdk.Beta.Be" Version="10.0.111-beta" />
     <!-- Sign-in through Ocharo's Identity instance: the BFF (session cookie, OIDC code flow with PKCE, X-Csrf-Token). -->
     <PackageVersion Include="WoW2.Sdk.Beta.Be.Identity.Client" Version="10.0.30-beta" />
     <!-- The organization claim readers Infrastructure's image worker checks; same version as the client above. -->
@@ -37,7 +37,7 @@
 
   <ItemGroup>
     <!-- Test stack. The kit's harnesses run PostgreSQL in a Testcontainers container (Docker required). -->
-    <PackageVersion Include="WoW2.Sdk.Beta.Be.Testing" Version="10.0.110-beta" />
+    <PackageVersion Include="WoW2.Sdk.Beta.Be.Testing" Version="10.0.111-beta" />
     <PackageVersion Include="Microsoft.NET.Test.Sdk" Version="17.12.0" />
     <PackageVersion Include="Microsoft.AspNetCore.Mvc.Testing" Version="10.0.9" />
     <PackageVersion Include="xunit" Version="2.9.2" />

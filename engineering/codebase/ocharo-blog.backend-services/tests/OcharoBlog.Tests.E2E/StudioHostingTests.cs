@@ -69,7 +69,7 @@ public sealed class StudioHostingTests
         using var response = await client.GetAsync(path);
 
         response.StatusCode.Should().Be(HttpStatusCode.NotFound);
-        (response.Content.Headers.ContentType?.MediaType).Should().Be("application/problem+json");
+        (response.Content.Headers.ContentType?.MediaType).Should().Be("text/html");
     }
 
     [Fact]

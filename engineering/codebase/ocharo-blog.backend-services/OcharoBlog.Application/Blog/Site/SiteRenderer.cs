@@ -47,6 +47,8 @@ public sealed class SiteRenderer(SiteModel site)
     {
         ["en"] = new Dictionary<string, string>
         {
+            ["notFound"] = "Page not found",
+            ["notFoundIntro"] = "This page does not exist or has moved. Start again from the blog home.",
             ["all"] =
                 "All stories", ["min"] =
                     "min read", ["read"] = "Read the story", ["readLabel"] = "Read", ["featured"] = "Featured story",
@@ -72,6 +74,8 @@ public sealed class SiteRenderer(SiteModel site)
         },
         ["uz"] = new Dictionary<string, string>
         {
+            ["notFound"] = "Sahifa topilmadi",
+            ["notFoundIntro"] = "Bu sahifa mavjud emas yoki ko‘chirilgan. Blog bosh sahifasidan qayta boshlang.",
             ["all"] =
                 "Barcha hikoyalar", ["min"] =
                     "daqiqa o‘qish", ["read"] =
@@ -99,6 +103,10 @@ public sealed class SiteRenderer(SiteModel site)
         },
         ["ru"] = new Dictionary<string, string>
         {
+            ["notFound"] = "Страница не найдена",
+            ["notFoundIntro"] =
+                "Такой страницы нет или она переехала. "
+                    + "Начните с главной страницы блога.",
             ["all"] =
                 "Все истории", ["min"] =
                     "мин чтения", ["read"] =
@@ -176,13 +184,15 @@ public sealed class SiteRenderer(SiteModel site)
         string description,
         string canonicalPath,
         bool preview = false,
-        IReadOnlyList<(string Lang, string Path)>? alternates = null)
+        IReadOnlyList<(string Lang, string Path)>? alternates = null,
+        bool indexable = true)
     {
-        var robots = S.NoIndex || preview ? "<meta name=\"robots\" content=\"noindex,nofollow\">" : "";
+        var robots = S.NoIndex || preview || !indexable ? "<meta name=\"robots\" content=\"noindex,nofollow\">" : "";
         var origin = S.BaseUrl ?? "";
-        var canonical =
-            S.BaseUrl is not null && !preview ? $"<link rel=\"canonical\" href=\"{E(origin + canonicalPath)}\">" : "";
-        var hreflang = alternates is { Count: > 1 } && !preview
+        var canonical = S.BaseUrl is not null && !preview && indexable
+            ? $"<link rel=\"canonical\" href=\"{E(origin + canonicalPath)}\">"
+            : "";
+        var hreflang = alternates is { Count: > 1 } && !preview && indexable
             ? string.Concat(alternates.Select(a =>
                 $"<link rel=\"alternate\" hreflang=\"{a.Lang}\" href=\"{E(origin + a.Path)}\">"))
             : "";
@@ -311,6 +321,17 @@ public sealed class SiteRenderer(SiteModel site)
             $"<a class=\"text-link archive-link\" href=\"{ArchiveLink()}\">"
                 + $"{E(string.Format(CultureInfo.InvariantCulture, T("browse"), stories.Count))} {Arrow}</a></div>"
                 + $"<div class=\"stories-grid\">{string.Concat(selection.Select(Card))}</div></section>{band}</main>" +
+            Footer();
+    }
+
+    /// <summary>Renders the page a public path no page answers gets: the site's layout in its language, kept out of
+    /// search results, with a link to the blog home.</summary>
+    public string NotFound()
+    {
+        return Head(T("notFound"), T("notFoundIntro"), Home_(), indexable: false) + Header() +
+            $"<main id=\"main\" class=\"topic-main\"><section class=\"topic-heading\"><p class=\"eyebrow\">404</p>"
+                + $"<h1>{E(T("notFound"))}<span class=\"title-dot\">.</span></h1><p>{E(T("notFoundIntro"))}</p>"
+                + $"</section><a class=\"filled-link\" href=\"{Home_()}\">{E(T("home"))} {Arrow}</a></main>" +
             Footer();
     }
 

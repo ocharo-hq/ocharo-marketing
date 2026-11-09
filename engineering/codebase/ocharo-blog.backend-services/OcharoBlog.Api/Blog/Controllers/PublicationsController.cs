@@ -1,7 +1,9 @@
 using Microsoft.AspNetCore.Mvc;
+using OcharoBlog.Api.Blog.Extensions;
 using OcharoBlog.Application.Blog.Queries;
 using WoW.Two.Sdk.Beta.Be.Mediator;
 using WoW.Two.Sdk.Beta.Be.Web.ExceptionHandling.Extensions;
+using WoW.Two.Sdk.Beta.Be.Web.ProblemDetails;
 using WoW.Two.Sdk.Beta.Be.Web.SecureHeaders;
 
 namespace OcharoBlog.Api.Blog.Controllers;
@@ -11,8 +13,10 @@ namespace OcharoBlog.Api.Blog.Controllers;
 [ApiController]
 public sealed class PublicationsController(ISender sender) : ControllerBase
 {
+    /// <summary>Renders a public app's page; a miss answers the public site's not-found page as a document.</summary>
     [HttpGet("/{publication:regex(^(atlas|wear|catalogue)$)}")]
     [HttpGet("/{publication:regex(^(atlas|wear|catalogue)$)}/{**tail}")]
+    [DocumentResponses]
     public Task<IActionResult> Public(string publication, string? tail, CancellationToken ct)
     {
         return RenderAsync(publication, tail, false, ct);
@@ -51,14 +55,18 @@ public sealed class PublicationsController(ISender sender) : ControllerBase
         };
         var result = await sender.SendAsync(query, ct);
 
-        return result.Match<IActionResult>(
+        return await result.Match<Task<IActionResult>>(
             ok =>
             {
                 if (preview || publication == "catalogue")
                     Response.Headers.CacheControl = "no-store";
-                // A path no page answers stays the same bare 404 as any other missing public resource.
-                return ok.Data.Page is { } page ? Content(page.Content, page.ContentType) : NotFound();
+                if (ok.Data.Page is { } page)
+                    return Task.FromResult<IActionResult>(Content(page.Content, page.ContentType));
+                // A preview keeps its bare 404; a public miss gets the public site's not-found page.
+                return preview
+                    ? Task.FromResult<IActionResult>(NotFound())
+                    : this.NotFoundPageAsync(sender, Request.Path.Value ?? path, ct);
             },
-            fail => this.ToProblem(fail.Error));
+            fail => Task.FromResult<IActionResult>(this.ToProblem(fail.Error)));
     }
 }
