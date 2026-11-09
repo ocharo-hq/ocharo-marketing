@@ -91,6 +91,7 @@ replaces it before public launch.
 | [Loro Piana Workshop of Wonders](https://www.awwwards.com/sites/loro-piana-workshop-of-wonders) | WebGL story tied to physical QR displays | QR on hangtags/atelier wall → site, for tourists |
 | [Bottega Veneta "Craft is our Language"](https://aeworld.com/fashion/bottega-veneta-marks-50-years-of-iconic-weave-with-craft-is-our-language-campaign/) | Hands and gesture over product | Act 4 direction |
 | [Coutumes](https://www.awwwards.com/sites/coutumes) | Quiet, image-led Shopify | Later shop phase |
+| [Dildora Kasimova](https://dildorakasimova.com/) | Full-screen typographic line compositions; wordmark → monogram header swap; ornament-shaped image masks | Tashkent house in the same category — the local bar; analysis in `ocharo-ws` `docs/design/inspiration/dildora-kasimova.md` |
 
 ## Techniques
 
