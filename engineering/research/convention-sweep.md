@@ -111,34 +111,22 @@ Scope: `workbench/mfts-projects/ventures/ocharo-hq/ocharo-ws/workbench/ocharo-ma
 
 ## Resolution
 
-Each row's outcome: fixed (with the commit), excepted (with the reason) or waiting (on what).
+Each row's outcome, by id: fixed (with the evidence), excepted (with the reason) or waiting (on what). 42 of 43 are fixed,
+three with a recorded part excepted (M-11 problem details, M-35 integration slice, M-41 the v0.1 split); M-6 waits on a
+pipelines release. Follow-ups the fixes surfaced are in the [backlog](../planning/backlog.md#convention-sweep).
 
 | id | outcome | evidence |
 |---|---|---|
-| M-6 | waiting | a pipelines release containing `e134a47`; the orchestrator took the tag to the developer (2026-11-09) |
-| M-8 | fixed | the four preview ports in the WoW2 port ledger, `wow-two-ws` `59d018c` |
-| M-36 | fixed | `output/verification/` moved to `engineering/operations/verification/` |
-| M-37 | fixed | `engineering/operations/**/*.html` in Git LFS; both renders stored as pointers |
-| M-38 | fixed | the frontend `evidence/` moved to `engineering/operations/frontend-evidence/` |
-| M-39 | fixed | lead docs added, `blog/` stubs folded, `engineering/versions/` removed; the `apps/blog/editorial-*` folders got leads too |
-| M-40 | fixed | binding facts moved to `product/context.md` § Delivery boundaries; `handoff.md` deleted |
-| M-41 | fixed, split excepted | Verification last, prose cut, tasks reworded; splitting v0.1 means closing it, which needs the developer's word (version-track § Lifecycle), so the sweep's iterations sit in v0.1 |
-| M-42 | fixed | every backlog group is an `Item · Type · Notes` table; the session-expiry decision moved to `architecture.md` |
-| M-43 | fixed | the receipt moved to `engineering/operations/catalogue-web-verification.md` |
-| M-7 | fixed | `.github/renovate.json` extends the pipelines `renovate-private` preset |
-| M-10 | fixed | the Blog Dockerfile header names `ocharo-marketing.frontend-services` and the ledger port |
-| M-29 | fixed | `@wow-two-beta/fe` 0.0.41 in `web`, `editorial` and `connect`; its breaking change renames helpers the product never imports |
-| M-30 | fixed | favicons and a 180 px `apple-touch-icon.png` from the Ocharo symbol in both private apps |
-| M-31 | fixed | `noindex, nofollow` robots meta in both private apps |
-| M-32 | fixed | static splash twin in `#root` and a mounted `BootSplash` in both private apps |
-| M-33 | fixed where the SDK allows | `ActionButton` deleted; `MediaPicker`, `PickerTrigger` and `MarketingSelect` wait on open SDK gaps, listed in the backlog's SDK gaps |
-| M-34 | fixed | `packages/connect/src/session.ts` returns `Result` on its four expected failures |
-| M-35 | fixed in application and presentation | the desk splits into posts, products, delivery, connections, inquiries, results, channels and automation slices plus `common/`; `integration/common` and `domain/marketing` stay whole, since one desk-wide workspace coordinator calls every endpoint |
+| M-1 | fixed | `deploy.yml` declares a `migrate:` item per image, after ocharo-platform's identity item |
 | M-2 | fixed | both images answer `config check` (`ServiceHost`), validating `Marketing:*`, `Providers:*` and `Blog:*`; `deploy.yml` declares both `configCheck:` items |
 | M-3 | fixed | `product/product.json` removed; a product of several repositories takes its identity from the catalog, so `deploy.yml` names its two services |
 | M-4 | fixed | `dotnetEnvironment: true`; both `appsettings.Development.json` hold logging levels only |
 | M-5 | fixed | `verify` checks both hosts' `/health`, Marketing's status and the Blog home |
+| M-6 | waiting | a pipelines release containing `e134a47`; the orchestrator took the tag to the developer (2026-11-09) |
+| M-7 | fixed | `.github/renovate.json` extends the pipelines `renovate-private` preset |
+| M-8 | fixed | the four preview ports in the WoW2 port ledger, `wow-two-ws` `59d018c` |
 | M-9 | fixed | loopback URLs, `AllowedHosts` and Blog's trusted origin moved to the gitignored `appsettings.Local.json`; `deploy.yml` sets every removed key dev needs |
+| M-10 | fixed | the Blog Dockerfile header names `ocharo-marketing.frontend-services` and the ledger port |
 | M-11 | fixed, one part excepted | both hosts on `AddApiDefaults`/`UseApiDefaults`; `AddHttpProblemDetails` stays because `problem-details.md` composes it beside the bundle |
 | M-12 | fixed | `/health` from the bundle with the database readiness check |
 | M-13 | fixed | `SpaHosting` in both hosts; Blog serves Editorial with the be sdk `PathPrefix = "/studio"` added for it in `10.0.110-beta` (`wow-two-sdk-beta.be` `be367d5`) |
@@ -148,13 +136,27 @@ Each row's outcome: fixed (with the commit), excepted (with the reason) or waiti
 | M-17 | fixed | Marketing's automation and Blog's scheduler run through `AddPeriodicJob` |
 | M-18 | fixed | both own `IClock`s deleted; `TimeProvider` injected |
 | M-19 | fixed | production code reads `TimeProvider.GetUtcNow()` |
-| M-1 | fixed | `deploy.yml` declares a `migrate:` item per image, after ocharo-platform's identity item |
-| M-23 | fixed | both apps on PostgreSQL in `ocharo_{env}` (schemas `marketing`, `blog`; sessions in `*_cache`; key rings in each schema), Identity FKs as Studio keys them; the SQLite data moves once by `import-sqlite`, an operator verb outside `migrate` per `migrations.md` |
-| M-24 | fixed | EF migrations, `EnsureCreated` and the boot DDL replaced by bespoke SQL sets; a local run applies at boot, a deployed boot checks levels |
 | M-20 | fixed | both hosts send every request through the SDK mediator to Infrastructure handlers returning `AppResult`; exception middleware deleted; status, `code` and `detail` unchanged, `type` now the SDK's `urn:wow-two:error:*`. Marketing's services still raise the SDK `AppException` for expected failures (backlog) |
 | M-21 | fixed | Marketing splits into `Core`, `Posts`, `Assets`, `Deliveries`, `Generations`, `Operations`, `Products` |
 | M-22 | fixed | no `*.cs` line over 120 characters in either backend; rendered HTML byte-identical |
+| M-23 | fixed | both apps on PostgreSQL in `ocharo_{env}` (schemas `marketing`, `blog`; sessions in `*_cache`; key rings in each schema), Identity FKs as Studio keys them; the SQLite data moves once by `import-sqlite`, an operator verb outside `migrate` per `migrations.md` |
+| M-24 | fixed | EF migrations, `EnsureCreated` and the boot DDL replaced by bespoke SQL sets; a local run applies at boot, a deployed boot checks levels |
 | M-25 | fixed | `{Product}.Tests.Unit`, `.Integration`, `.E2E` and `.Support` per backend, with `tests/tests.md` |
 | M-26 | fixed | AwesomeAssertions; no `Assert.` left in either test tree |
 | M-27 | fixed | `FakeTimeProvider` and the SDK's bounded `UntilAsync` polling; no fixed sleeps |
 | M-28 | fixed | tests named `{Unit}_Should{Expectation}_When{Condition}` |
+| M-29 | fixed | `@wow-two-beta/fe` 0.0.41 in `web`, `editorial` and `connect`; its breaking change renames helpers the product never imports |
+| M-30 | fixed | favicons and a 180 px `apple-touch-icon.png` from the Ocharo symbol in both private apps |
+| M-31 | fixed | `noindex, nofollow` robots meta in both private apps |
+| M-32 | fixed | static splash twin in `#root` and a mounted `BootSplash` in both private apps |
+| M-33 | fixed where the SDK allows | `ActionButton` deleted; `MediaPicker`, `PickerTrigger` and `MarketingSelect` wait on open SDK gaps, listed in the backlog's SDK gaps |
+| M-34 | fixed | `packages/connect/src/session.ts` returns `Result` on its four expected failures |
+| M-35 | fixed in application and presentation | the desk splits into posts, products, delivery, connections, inquiries, results, channels and automation slices plus `common/`; `integration/common` and `domain/marketing` stay whole, since one desk-wide workspace coordinator calls every endpoint |
+| M-36 | fixed | `output/verification/` moved to `engineering/operations/verification/` |
+| M-37 | fixed | `engineering/operations/**/*.html` in Git LFS; both renders stored as pointers |
+| M-38 | fixed | the frontend `evidence/` moved to `engineering/operations/frontend-evidence/` |
+| M-39 | fixed | lead docs added, `blog/` stubs folded, `engineering/versions/` removed; the `apps/blog/editorial-*` folders got leads too |
+| M-40 | fixed | binding facts moved to `product/context.md` § Delivery boundaries; `handoff.md` deleted |
+| M-41 | fixed, split excepted | Verification last, prose cut, tasks reworded; splitting v0.1 means closing it, which needs the developer's word (version-track § Lifecycle), so the sweep's iterations sit in v0.1 |
+| M-42 | fixed | every backlog group is an `Item · Type · Notes` table; the session-expiry decision moved to `architecture.md` |
+| M-43 | fixed | the receipt moved to `engineering/operations/catalogue-web-verification.md` |
