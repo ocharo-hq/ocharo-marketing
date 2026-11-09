@@ -1,6 +1,6 @@
 # Research
 
-*Last updated: 2026-10-19*
+*Last updated: 2026-11-09*
 
 - [Providers](providers.md): official contracts, prerequisites, publishing distinctions, uncertain outcomes.
 - [Operator experience](operator-experience.md): Maftuna's daily dashboard and post-creation workflow.
@@ -9,3 +9,4 @@
 - [Domain](domain.md): availability, prices and spelling-dependent options for the brand site domain.
 - [Brand site concept](brand-site-concept.md): "abr register" signature motion, chapters, references, budget and effort for the root brand site.
 - [Seedance video](seedance-video.md): Seedance 2.0/2.5 capabilities, access from Uzbekistan, pricing, fashion fidelity, alternatives and a photo-first pipeline.
+- [Convention sweep](convention-sweep.md): 43 breaks from the WoW2 conventions, by area, size and whether they change behaviour or data.

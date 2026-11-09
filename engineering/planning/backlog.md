@@ -1,6 +1,6 @@
 # Backlog
 
-*Last updated: 2026-10-21*
+*Last updated: 2026-11-09*
 
 ## Features
 
@@ -73,6 +73,23 @@ After the move to Ocharo's Identity (2026-11-04):
   decision before live publishing turns on.
 - **Public writes in the BFF.** Each host branches `/api/public/*` around `UseIdentityBff`, whose antiforgery check would
   refuse a signed-in visitor's form; an SDK exemption for public writes would replace that branch.
+
+## Convention sweep
+
+WoW2 convention breaks found on 2026-11-09, grouped by theme; the top row is the next to pull. Each id is a row of the [sweep](../research/convention-sweep.md).
+
+| Item | Type | Notes |
+|---|---|---|
+| PostgreSQL for Blog and Marketing | `engineering` | Both services move from SQLite volumes to PostgreSQL; import existing data, drop `.db` volumes. Size L; changes data. Covers M-23 ([sweep](../research/convention-sweep.md)). |
+| Bespoke SQL migrations and deploy verbs | `engineering` | Marketing and Blog replace EF migrations and `EnsureCreated` with SQL sets, `app migrate` and `migrate:` deploy items. Size L; changes data. Covers M-24, M-1 ([sweep](../research/convention-sweep.md)). |
+| SDK host composition | `engineering` | Both hosts adopt the API boot bundle, `/health`, `SpaHosting`, SDK JSON, option records, `AddPeriodicJob`, `config check`. Size L; M-14 changes behaviour (JSON typing). Covers M-2, M-9, M-11, M-12, M-13, M-14, M-15, M-16, M-17 ([sweep](../research/convention-sweep.md)). |
+| Mediator and AppResult | `engineering` | Marketing and Blog return `AppResult` from handlers instead of exceptions plus middleware; split Marketing into subdomains. Size L; no behaviour change. Covers M-20, M-21 ([sweep](../research/convention-sweep.md)). |
+| TimeProvider and line length | `engineering` | Replace own `IClock` and direct `UtcNow` reads with `TimeProvider`; format to 120 characters. Size M; no behaviour change. Covers M-18, M-19, M-22 ([sweep](../research/convention-sweep.md)). |
+| AwesomeAssertions and test structure | `engineering` | Convert ~1,450 `Assert.*` calls, split test tiers, add `FakeTimeProvider`, rename tests. Marketing and Blog. Size L; no behaviour change. Covers M-25, M-26, M-27, M-28 ([sweep](../research/convention-sweep.md)). |
+| Frontend SDK and structure | `engineering` | Re-pin `@wow-two-beta/fe` 0.0.32 to latest, delete app-local wrappers, return `Result` in connect, slice `marketing` by area. Size M; M-29 changes behaviour. Covers M-29, M-33, M-34, M-35 ([sweep](../research/convention-sweep.md)). |
+| Private app document | `engineering` | Web and Editorial gain favicon, `apple-touch-icon`, `noindex` meta and a boot splash twin. Size S; changes behaviour (head and markup). Covers M-30, M-31, M-32 ([sweep](../research/convention-sweep.md)). |
+| Deploy descriptor and CI hygiene | `engineering` | `deploy.yml` identity, `dotnetEnvironment`, `verify`; pipelines tag pin, Renovate, port ledger, Dockerfile comment. Size S; M-4 changes dev config. Covers M-3, M-4, M-5, M-6, M-7, M-8, M-10 ([sweep](../research/convention-sweep.md)). |
+| Docs hygiene | `engineering` | Move `output/` and `evidence/` to `engineering/operations/`, untrack 4 MB HTML, add lead docs, delete `handoff.md`, split v0.1, fix backlog tables. Size M; no behaviour change. Covers M-36, M-37, M-38, M-39, M-40, M-41, M-42, M-43 ([sweep](../research/convention-sweep.md)). |
 
 ## Retained source follow-ups
 
