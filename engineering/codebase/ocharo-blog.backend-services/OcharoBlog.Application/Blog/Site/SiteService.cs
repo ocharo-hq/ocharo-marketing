@@ -47,19 +47,24 @@ public sealed class SiteService(IBlogRepository repository, TopicService topics,
     }
 
     /// <summary>
-    /// The published brand kit wins over the blog's own logo and links. Its logo is copied into the blog's media store
-    /// (same SHA-256), so live pages and the static export share one path; an unreachable Brand service keeps the settings.
+    /// The published brand kit wins over the blog's own logo and links. Its logo enters the blog's media index under the
+    /// same SHA-256, so live pages and the static export share one path: on WoW2 Files as a reference to Brand's own file,
+    /// otherwise as a copy of its bytes. An unreachable Brand service keeps the settings.
     /// </summary>
     private async Task<SiteSettings> BrandedAsync(SiteSettings site, BrandSnapshot? snapshot, CancellationToken ct)
     {
         if (snapshot is not { } kit) return site;
-        var logo = site.LogoSha256;
-        if (kit.LogoSha256 is { } sha && kit.LogoUrl is { } url)
-        {
-            if (await repository.FindMediaAsync(sha, ct) is not null) logo = sha;
-            else if (await brand.DownloadAsync(url, ct) is { } bytes) logo = (await media.StoreAsync(bytes, $"ocharo-logo-r{kit.Release}.png", ct)).Sha256;
-        }
-        return site with { LogoSha256 = logo, Links = kit.Links.Count > 0 ? kit.Links : site.Links };
+        return site with { LogoSha256 = await BrandLogoAsync(kit, ct) ?? site.LogoSha256, Links = kit.Links.Count > 0 ? kit.Links : site.Links };
+    }
+
+    /// <summary>The brand logo's SHA-256 once the media index holds it; none when it can be neither referenced nor copied.</summary>
+    private async Task<string?> BrandLogoAsync(BrandSnapshot kit, CancellationToken ct)
+    {
+        if (kit.LogoSha256 is not { } sha) return null;
+        var name = $"ocharo-logo-r{kit.Release}.png";
+        if (kit.LogoFileId is { } fileId && await media.ReferenceAsync(sha, fileId, name, ct) is not null) return sha;
+        if (await repository.FindMediaAsync(sha, ct) is not null) return sha;
+        return kit.LogoUrl is { } url && await brand.DownloadAsync(url, ct) is { } bytes ? (await media.StoreAsync(bytes, name, ct)).Sha256 : null;
     }
 
     /// <summary>Resolves a public path to a page, or null for 404.</summary>

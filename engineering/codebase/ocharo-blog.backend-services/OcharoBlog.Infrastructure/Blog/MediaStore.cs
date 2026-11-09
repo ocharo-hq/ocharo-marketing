@@ -49,6 +49,9 @@ public sealed class MediaStore(IBlogRepository repository, IBlobRepository blobs
     public async Task<(MediaBlobRecord Record,Stream Content)?> ReadAsync(string sha256,bool preview,CancellationToken ct)=>
         await OpenAsync(sha256,preview,ct) is {Content:{} content} opened?(opened.Record,content):null;
 
+    /// <summary>A run without WoW2 Files has no file to reference, so the caller copies the bytes.</summary>
+    public Task<MediaBlobRecord?> ReferenceAsync(string sha256,string fileId,string fileName,CancellationToken ct)=>Task.FromResult<MediaBlobRecord?>(null);
+
     /// <summary>Opens a stored file's bytes from the local blob folder, its preview when it has one; none once they are gone.</summary>
     internal async Task<MediaContent?> OpenLocalAsync(MediaBlobRecord record,bool preview,CancellationToken ct)
     {

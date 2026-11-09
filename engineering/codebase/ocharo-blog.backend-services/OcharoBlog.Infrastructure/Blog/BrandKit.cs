@@ -26,7 +26,9 @@ public sealed class BrandKit(HttpClient http,IOptions<BlogOptions> options,ILogg
             var sha=logo.ValueKind==JsonValueKind.Object?logo.GetProperty("sha256").GetString():null;
             var location=logo.ValueKind==JsonValueKind.Object?logo.GetProperty(canonical?"url":"fileUrl").GetString():null;
             var url=location is not null&&Uri.TryCreate(new Uri(origin+"/"),location,out var absolute)&&absolute.Authority==new Uri(origin).Authority?absolute.ToString():null;
-            return new(release,sha,url,links,canonical?null:Event(kit));
+            // Brand's WoW2 Files id for the logo, so Editorial references the file instead of copying it; absent before Files.
+            var fileId=logo.ValueKind==JsonValueKind.Object&&logo.TryGetProperty("fileId",out var file)&&file.ValueKind==JsonValueKind.String?file.GetString():null;
+            return new(release,sha,url,links,canonical?null:Event(kit),string.IsNullOrWhiteSpace(fileId)?null:fileId);
         }
         catch(Exception e)when(e is HttpRequestException or JsonException or TaskCanceledException or KeyNotFoundException or InvalidOperationException or FormatException){logger.LogWarning("Published brand unavailable at {Origin}: {Message}",origin,e.Message);return null;}
     }

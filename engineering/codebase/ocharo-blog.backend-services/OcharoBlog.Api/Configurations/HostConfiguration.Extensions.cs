@@ -206,6 +206,7 @@ public static partial class HostConfiguration
     private static WebApplicationBuilder AddBrand(this WebApplicationBuilder builder)
     {
         builder.Services.AddHttpClient<IBrandKit, BrandKit>(client => client.Timeout = TimeSpan.FromSeconds(5));
+        builder.Services.AddMemoryCache();
         return builder;
     }
 

@@ -1,5 +1,6 @@
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.Extensions.Caching.Memory;
 using Microsoft.Extensions.Options;
 using OcharoBlog.Api.Blog;
 using OcharoBlog.Application.Blog;
@@ -17,7 +18,8 @@ namespace OcharoBlog.Api.Access;
 /// session's active organization must be it and carry a role there. Reads need the membership, writes
 /// <see cref="EditorialIdentity.EditPermission"/>, approval actions <see cref="EditorialIdentity.ApprovePermission"/> too.
 /// Runs after the BFF, which resolves the session and checks its <c>X-Csrf-Token</c>; technical, public and session routes
-/// pass untouched. Controllers read the admitted person from <c>Ocharo.CanApprove</c>, <c>Ocharo.OrganizationId</c> and <c>Ocharo.UserId</c>.
+/// pass untouched, and so does media the public site shows: the settings' images, published covers and the published brand
+/// logo. Controllers read the admitted person from <c>Ocharo.CanApprove</c>, <c>Ocharo.OrganizationId</c> and <c>Ocharo.UserId</c>.
 /// A live export also admits a service token with <see cref="EditorialAccess.ExportScope"/>, setting no person.
 /// </summary>
 public sealed class EditorialAccessMiddleware(RequestDelegate next, IOptions<BlogOptions> options)
@@ -25,7 +27,7 @@ public sealed class EditorialAccessMiddleware(RequestDelegate next, IOptions<Blo
     public async Task InvokeAsync(HttpContext context)
     {
         var path = (context.Request.Path.Value ?? "/").ToLowerInvariant();
-        if (TechnicalRoutes.IsPublic(context.Request) || EditorialAccess.IsSessionRoute(path) || !await IsPrivateAsync(context, path))
+        if (TechnicalRoutes.IsPublic(context.Request) || EditorialAccess.IsSessionRoute(path) || !await IsPrivateAsync(context, path, options.Value.OrganizationId))
         {
             await next(context);
             return;
@@ -92,16 +94,31 @@ public sealed class EditorialAccessMiddleware(RequestDelegate next, IOptions<Blo
         await next(context);
     }
 
-    private static async Task<bool> IsPrivateAsync(HttpContext context, string path)
+    /// <summary>Holds the cache key of the published brand logo's SHA-256.</summary>
+    private const string BrandLogoCacheKey = "editorial.access.brand-logo";
+
+    private static async Task<bool> IsPrivateAsync(HttpContext context, string path, Guid organization)
     {
         if (!EditorialAccess.IsMediaRoute(path)) return EditorialAccess.IsPrivateRoute(path);
         var sha = path.Split('/').ElementAtOrDefault(2);
         var site = await context.RequestServices.GetRequiredService<SiteSettingsService>().GetAsync(context.RequestAborted);
         if (new[] { site.Settings.LogoSha256, site.Settings.HeroSha256, site.Settings.BandSha256 }.Contains(sha)) return false;
         var articles = await context.RequestServices.GetRequiredService<IBlogRepository>().GetArticlesAsync(context.RequestAborted);
-        return !articles.Where(article => article.Status == "published")
+        if (articles.Where(article => article.Status == "published")
             .Select(article => BlogJson.Read<ArticleDocument>(article.Json))
-            .Any(document => document.Cover?.MediaSha256 == sha);
+            .Any(document => document.Cover?.MediaSha256 == sha)) return false;
+
+        // The published brand logo stands in for the settings' logo on every page (SiteService.BrandedAsync), and Brand's
+        // own feed discloses it. Asking Brand costs a call, so a member, whom the session checks admit anyway, never waits on
+        // it, and every page's logo request shares one answer a minute (ten seconds while Brand gives none).
+        if (EditorialIdentity.IsMember(context.User, organization)) return true;
+        var logo = await context.RequestServices.GetRequiredService<IMemoryCache>().GetOrCreateAsync(BrandLogoCacheKey, async entry =>
+        {
+            var kit = await context.RequestServices.GetRequiredService<IBrandKit>().GetAsync(context.RequestAborted);
+            entry.AbsoluteExpirationRelativeToNow = kit?.LogoSha256 is null ? TimeSpan.FromSeconds(10) : TimeSpan.FromMinutes(1);
+            return kit?.LogoSha256;
+        });
+        return sha is null || logo != sha;
     }
 
     private static Task ProblemAsync(HttpContext context, int status, string title, string code) =>

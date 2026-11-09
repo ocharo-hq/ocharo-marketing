@@ -18,6 +18,11 @@ public interface IMediaStore
     /// <summary>Reads a stored file's bytes on the server, for editing and static exports: the original, or its WebP
     /// preview; null when unknown or gone.</summary>
     Task<(MediaBlobRecord Record, Stream Content)?> ReadAsync(string sha256, bool preview, CancellationToken ct);
+
+    /// <summary>Records another Ocharo app's WoW2 Files file under its SHA-256 by attaching Editorial's reference to it,
+    /// with no bytes downloaded or uploaded (planning/files-adoption.md #11). A row that already has a file id is returned
+    /// as it is. Null when this run keeps no Files, or the file is gone or holds other bytes, so the caller copies instead.</summary>
+    Task<MediaBlobRecord?> ReferenceAsync(string sha256, string fileId, string fileName, CancellationToken ct);
 }
 
 /// <summary>Where one stored file's bytes come from: a short-lived WoW2 Files link to redirect to
@@ -51,8 +56,10 @@ public interface ICatalogueFeed
     Task<byte[]?> DownloadAsync(string url, CancellationToken ct);
 }
 
-/// <summary>The published Ocharo brand kit as the blog uses it: the on-light logo file and the public links.</summary>
-public sealed record BrandSnapshot(int Release, string? LogoSha256, string? LogoUrl, IReadOnlyList<SiteLink> Links, BrandEvent? Event = null);
+/// <summary>The published Ocharo brand kit as the blog uses it: the on-light logo file and the public links.
+/// <paramref name="LogoFileId"/> names the WoW2 Files file Brand keeps the logo in; none while Brand keeps it locally.</summary>
+public sealed record BrandSnapshot(int Release, string? LogoSha256, string? LogoUrl, IReadOnlyList<SiteLink> Links, BrandEvent? Event = null,
+    string? LogoFileId = null);
 
 /// <summary>An active brand appearance's event badge: shown beside the logo on live pages until <see cref="EndsAt"/>.</summary>
 public sealed record BrandEvent(string Name, string Label, string Url, DateTimeOffset EndsAt);
@@ -62,6 +69,7 @@ public interface IBrandKit
 {
     Task<BrandSnapshot?> GetAsync(CancellationToken ct);
 
-    /// <summary>Downloads a brand file (the logo is copied into the blog's media store); null when unavailable.</summary>
+    /// <summary>Downloads a brand file (the logo is copied into the blog's media store when it cannot be referenced in
+    /// WoW2 Files); null when unavailable.</summary>
     Task<byte[]?> DownloadAsync(string url, CancellationToken ct);
 }

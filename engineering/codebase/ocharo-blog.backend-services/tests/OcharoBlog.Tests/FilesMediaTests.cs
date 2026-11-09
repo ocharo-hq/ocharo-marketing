@@ -230,6 +230,7 @@ public sealed class FilesMediaTests : IAsyncDisposable
         var first = await anonymous.GetStringAsync("/");
         var second = await anonymous.GetStringAsync("/journal/");
         var record = await Get<IBlogRepository>(host).FindMediaAsync(sha, default);
+        using var preview = await anonymous.GetAsync($"/media/{sha}/preview");
 
         Assert.Contains($"/media/{sha}/preview", first);
         Assert.Contains($"/media/{sha}/preview", second);
@@ -237,6 +238,84 @@ public sealed class FilesMediaTests : IAsyncDisposable
         Assert.Equal(1, files.Uploads);
         Assert.Contains(new FileReference("editorial.media", sha), files.ReferencesOf(await FileOfAsync(host, sha)));
         Assert.Equal("ocharo-logo-r7.png", record?.FileName);
+        Assert.Equal(HttpStatusCode.Redirect, preview.StatusCode);
+        Assert.Equal(TestFiles.Link(await FileOfAsync(host, sha), 1400), preview.Headers.Location);
+    }
+
+    [Fact]
+    public async Task A_public_render_references_brands_logo_file_without_copying_it_and_the_logo_opens_anonymously()
+    {
+        var logo = BlogHarness.Png(230);
+        var sha = Sha(logo);
+        var files = new TestFiles();
+        var brandFile = files.Add(logo, "brand", new FileReference("brand.media", sha));
+        var brand = new LogoKit(new BrandSnapshot(8, sha, "https://brand.example.test/api/public/brand/media/" + sha, [], LogoFileId: brandFile.Id.ToString()), logo);
+        var host = Host(files, services: services => services.Replace(ServiceDescriptor.Singleton<IBrandKit>(brand)));
+        using var anonymous = EditorialSignIn.Anonymous(host);
+
+        var first = await anonymous.GetStringAsync("/");
+        var second = await anonymous.GetStringAsync("/journal/");
+        using var preview = await anonymous.GetAsync($"/media/{sha}/preview");
+        using var original = await anonymous.GetAsync($"/media/{sha}");
+        var record = await Get<IBlogRepository>(host).FindMediaAsync(sha, default);
+
+        Assert.Contains($"/media/{sha}/preview", first);
+        Assert.Contains($"/media/{sha}/preview", second);
+        Assert.Equal(0, brand.Downloads);
+        Assert.Equal(0, files.Uploads);
+        Assert.Empty(files.Of("editorial"));
+        Assert.Equal(brandFile.Id.ToString(), record?.FileId);
+        Assert.Equal("ocharo-logo-r8.png", record?.FileName);
+        Assert.Equal("image/png", record?.ContentType);
+        Assert.Equal(logo.LongLength, record?.ByteLength);
+        Assert.Equal(2, files.ReferencesOf(brandFile.Id).Count);
+        Assert.Contains(new FileReference("editorial.media", sha), files.ReferencesOf(brandFile.Id));
+        Assert.Equal(HttpStatusCode.Redirect, preview.StatusCode);
+        Assert.Equal(TestFiles.Link(brandFile.Id, 1400), preview.Headers.Location);
+        Assert.Equal(HttpStatusCode.Redirect, original.StatusCode);
+        Assert.Equal(TestFiles.Link(brandFile.Id, null), original.Headers.Location);
+    }
+
+    [Fact]
+    public async Task A_logo_row_that_already_has_a_file_is_left_alone()
+    {
+        var logo = BlogHarness.Png(240);
+        var sha = Sha(logo);
+        var files = new TestFiles();
+        var brandFile = files.Add(logo, "brand", new FileReference("brand.media", sha));
+        var brand = new LogoKit(new BrandSnapshot(9, sha, "https://brand.example.test/api/public/brand/media/" + sha, [], LogoFileId: brandFile.Id.ToString()), logo);
+        var host = Host(files, services: services => services.Replace(ServiceDescriptor.Singleton<IBrandKit>(brand)));
+        var copied = await Get<IMediaStore>(host).StoreAsync(logo, "ocharo-logo-r8.png", default);
+        using var anonymous = EditorialSignIn.Anonymous(host);
+
+        var home = await anonymous.GetStringAsync("/");
+        var record = await Get<IBlogRepository>(host).FindMediaAsync(sha, default);
+
+        Assert.Contains($"/media/{sha}/preview", home);
+        Assert.Equal(copied.FileId, record?.FileId);
+        Assert.NotEqual(brandFile.Id.ToString(), record?.FileId);
+        Assert.Equal(1, files.Uploads);
+        Assert.Equal(0, brand.Downloads);
+        Assert.DoesNotContain(new FileReference("editorial.media", sha), files.ReferencesOf(brandFile.Id));
+    }
+
+    [Fact]
+    public async Task A_brand_file_gone_from_files_falls_back_to_a_copy()
+    {
+        var logo = BlogHarness.Png(250);
+        var sha = Sha(logo);
+        var files = new TestFiles();
+        var brand = new LogoKit(new BrandSnapshot(10, sha, "https://brand.example.test/api/public/brand/media/" + sha, [], LogoFileId: FileId.New().ToString()), logo);
+        var host = Host(files, services: services => services.Replace(ServiceDescriptor.Singleton<IBrandKit>(brand)));
+        using var anonymous = EditorialSignIn.Anonymous(host);
+
+        var home = await anonymous.GetStringAsync("/");
+        var copy = Assert.Single(files.Of("editorial"));
+
+        Assert.Contains($"/media/{sha}/preview", home);
+        Assert.Equal(1, brand.Downloads);
+        Assert.Equal(sha, copy.Sha256);
+        Assert.Equal(copy.Id, await FileOfAsync(host, sha));
     }
 
     [Fact]

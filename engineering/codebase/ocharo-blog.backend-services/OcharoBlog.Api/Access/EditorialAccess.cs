@@ -42,7 +42,8 @@ public static class EditorialAccess
         (path == "/api" || path.StartsWith("/api/", StringComparison.Ordinal)) && !path.StartsWith(PublicApiPrefix, StringComparison.Ordinal)
         || path == "/preview" || path.StartsWith("/preview/", StringComparison.Ordinal);
 
-    /// <summary>Whether a path names media, which is public while a published article or the site settings use it.</summary>
+    /// <summary>Whether a path names media, which is public while a published article, the site settings or the published
+    /// brand logo use it.</summary>
     public static bool IsMediaRoute(string path) => path.StartsWith("/media/", StringComparison.Ordinal);
 
     /// <summary>Whether a path names an approval action.</summary>

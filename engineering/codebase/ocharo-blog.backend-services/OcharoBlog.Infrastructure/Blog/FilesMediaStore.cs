@@ -29,7 +29,8 @@ public static class BlogFiles
 /// <summary>Stores originals and edited derivatives in WoW2 Files once per SHA-256, and links to them for
 /// <see cref="MediaContent.LinkLifetime"/>; Files makes the 1400 px WebP preview as a variant, so none is written here. A
 /// file stored before Files reads from the local blob folder through <see cref="MediaStore"/> until the migration fills its
-/// id. Server-side reads (editing, static exports) take the original from Files and render a preview from it.</summary>
+/// id. Server-side reads (editing, static exports) take the original from Files and render a preview from it. A file
+/// another Ocharo app keeps in Files (Brand's logo) is referenced, never copied.</summary>
 /// <remarks>A person's request calls Files with their exchanged token, any other call (the seeder, an anonymous public
 /// render) with Editorial's own; the Files client picks by whether the request has a signed-in session.</remarks>
 public sealed class FilesMediaStore(
@@ -127,6 +128,39 @@ public sealed class FilesMediaStore(
             original = buffer.ToArray();
         }
         return (record, new MemoryStream(await MediaInput.PreviewAsync(images, original, MediaInput.PreviewSize(options.Value), ct), false));
+    }
+
+    public async Task<MediaBlobRecord?> ReferenceAsync(string sha256, string fileId, string fileName, CancellationToken ct)
+    {
+        if (!MediaInput.IsSha256(sha256) || !FileId.TryParse(fileId, out var id)) return null;
+        var existing = await repository.FindMediaAsync(sha256, ct);
+        if (existing is { FileId: not null }) return existing;
+
+        // Files checks references and links per tenant only, so Editorial may hold one on another Ocharo app's file.
+        var found = await store.GetAsync(id, ct);
+        if (found is Result<FileModel>.Failure { Error.Type: AppErrorType.NotFound }) return null;
+        var file = Unwrap(found);
+        if (file.Sha256 != sha256 || file.State != FileState.Ready || file.DeletedAtUtc is not null) return null;
+        Unwrap(await references.AttachAsync(file.Id, new FileReference(BlogFiles.MediaReference, sha256), ct));
+
+        if (existing is not null)
+        {
+            await repository.SetMediaFileAsync(sha256, file.Id.ToString(), ct);
+            existing.FileId = file.Id.ToString();
+            return existing;
+        }
+
+        var record = new MediaBlobRecord
+        {
+            Sha256 = sha256,
+            FileName = MediaInput.SafeName(fileName),
+            ContentType = file.ContentType,
+            ByteLength = file.Size,
+            FileId = file.Id.ToString(),
+            StoredAt = clock.UtcNow,
+        };
+        await repository.SaveMediaAsync(record, ct);
+        return record;
     }
 
     /// <summary>Keeps an edited derivative's receipt beside the file it describes.</summary>
