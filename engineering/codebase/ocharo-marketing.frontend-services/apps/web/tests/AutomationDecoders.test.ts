@@ -14,9 +14,9 @@ const settings = {
 
 describe('automation wire contracts', () => {
   it('accepts the automation settings shape and rejects a missing slot field', () => {
-    expect(MarketingDecoders.automation(settings)).toBe(true);
+    expect(MarketingDecoders.accepts(MarketingDecoders.automation, settings)).toBe(true);
     expect(
-      MarketingDecoders.automation({
+      MarketingDecoders.accepts(MarketingDecoders.automation, {
         ...settings,
         slots: [{ id: 'tg', channel: 'telegram', days: [1], enabled: true }],
       }),
@@ -25,7 +25,7 @@ describe('automation wire contracts', () => {
 
   it('accepts sync, fill and story payloads', () => {
     expect(
-      MarketingDecoders.syncReport({
+      MarketingDecoders.accepts(MarketingDecoders.syncReport, {
         received: 29,
         created: 29,
         updated: 0,
@@ -35,14 +35,14 @@ describe('automation wire contracts', () => {
         warnings: [],
       }),
     ).toBe(true);
-    expect(MarketingDecoders.fillReport({ planned: [], skipped: ['x'] })).toBe(true);
+    expect(MarketingDecoders.accepts(MarketingDecoders.fillReport, { planned: [], skipped: ['x'] })).toBe(true);
     expect(
-      MarketingDecoders.stories([
+      MarketingDecoders.accepts(MarketingDecoders.stories, [
         { title: 'T', link: 'http://b/journal/t/', excerpt: 'E', topic: null, publishedAt: null, draftId: null },
       ]),
     ).toBe(true);
     expect(
-      MarketingDecoders.automationRun({
+      MarketingDecoders.accepts(MarketingDecoders.automationRun, {
         lastSyncAt: null,
         lastFillAt: null,
         lastFillPlanned: 0,

@@ -13,3 +13,79 @@ html.dark body {
 body {
   margin: 0;
 }
+
+/* The first paint's splash, shown inside `#root` before any script runs. It draws what the mounted BootSplash
+   (`@ocharomarketing/connect/BootSplash.vue`) renders — the Ocharo wordmark 40px high above a 12rem bar on the theme
+   background — so the mounted splash takes over without a visible change. Colours mirror the fe SDK Ocharo theme
+   (`background`, `muted`, `primary`). The wordmark classes are shared with the mounted splash. */
+.boot-splash {
+  position: fixed;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 1.5rem;
+  padding: 0 1.5rem;
+  background-color: #f5f6fa;
+}
+
+.boot-splash-wordmark {
+  display: block;
+  width: auto;
+  height: 40px;
+}
+
+.boot-splash-wordmark-reverse {
+  display: none;
+}
+
+.boot-splash-track {
+  width: 12rem;
+  max-width: 100%;
+  height: 0.25rem;
+  overflow: hidden;
+  border-radius: 9999px;
+  background-color: #eef0f6;
+}
+
+/* Fills to the stage the static page reaches, easing out, and holds there until the app mounts. */
+.boot-splash-fill {
+  width: 35%;
+  height: 100%;
+  border-radius: 9999px;
+  background-color: #8b2459;
+  animation: boot-splash-fill 1.2s cubic-bezier(0, 0, 0.2, 1) both;
+}
+
+html.dark .boot-splash {
+  background-color: #141416;
+}
+
+html.dark .boot-splash-track {
+  background-color: #262629;
+}
+
+html.dark .boot-splash-fill {
+  background-color: #c24783;
+}
+
+html.dark .boot-splash-wordmark-ink {
+  display: none;
+}
+
+html.dark .boot-splash-wordmark-reverse {
+  display: block;
+}
+
+@keyframes boot-splash-fill {
+  from {
+    width: 0;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .boot-splash-fill {
+    animation: none;
+  }
+}

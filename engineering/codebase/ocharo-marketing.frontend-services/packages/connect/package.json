@@ -6,6 +6,7 @@
   "exports": {
     ".": "./src/session.ts",
     "./SessionConnection.vue": "./src/SessionConnection.vue",
+    "./BootSplash.vue": "./src/BootSplash.vue",
     "./UseUiLocale": "./src/UseUiLocale.ts",
     "./UiMessages": "./src/UiMessages.ts",
     "./RequestFeedback": "./src/RequestFeedback.ts",
@@ -19,7 +20,7 @@
   },
   "dependencies": {
     "vue": "^3.5.13",
-    "@wow-two-beta/fe": "0.0.32",
+    "@wow-two-beta/fe": "0.0.41",
     "lucide-vue-next": "^0.460.0"
   }
 }

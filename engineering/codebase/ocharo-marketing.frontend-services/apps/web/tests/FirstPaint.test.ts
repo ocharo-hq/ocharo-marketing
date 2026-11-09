@@ -1,6 +1,6 @@
 // @vitest-environment node
 /// <reference types="node" />
-import { readFileSync } from 'node:fs';
+import { existsSync, readFileSync } from 'node:fs';
 import { resolve } from 'node:path';
 import { runInNewContext } from 'node:vm';
 import { describe, expect, it } from 'vitest';
@@ -31,6 +31,13 @@ function paint(script: string, getItem: () => string | null, systemDark: boolean
     },
   });
   return { classes: [...classes], colorScheme: style.colorScheme };
+}
+
+/** Reads a PNG's width, height and whether its colour type carries alpha, from the IHDR chunk. */
+function pngSize(appPath: string, file: string): [number, number, boolean] {
+  const bytes = readFileSync(resolve(root, appPath, 'public', file));
+  const colourType = bytes.readUInt8(25);
+  return [bytes.readUInt32BE(16), bytes.readUInt32BE(20), colourType === 4 || colourType === 6];
 }
 
 describe.each(apps)('$name first paint', (app) => {
@@ -70,6 +77,42 @@ describe.each(apps)('$name first paint', (app) => {
     expect(stylesheet).toContain('background: #f5f6fa');
     expect(stylesheet).toContain('html.dark');
     expect(stylesheet).toContain('background: #141416');
+  });
+
+  it('marks the private app noindex and links its icons from public/', () => {
+    expect(html).toContain('<meta name="robots" content="noindex, nofollow" />');
+    expect(html).toContain('<link rel="icon" type="image/png" href="%BASE_URL%favicon.png" />');
+    expect(html).toContain(
+      '<link rel="icon" type="image/png" href="%BASE_URL%favicon-dark.png" media="(prefers-color-scheme: dark)" />',
+    );
+    expect(html).toContain('<link rel="apple-touch-icon" href="%BASE_URL%apple-touch-icon.png" />');
+    for (const icon of ['favicon.png', 'favicon-dark.png']) expect(pngSize(app.path, icon)).toEqual([64, 64, true]);
+    // 180 × 180 on an opaque tile: an RGB PNG (colour type 2) carries no alpha channel.
+    expect(pngSize(app.path, 'apple-touch-icon.png')).toEqual([180, 180, false]);
+  });
+
+  it('paints the splash twin inside the mount node, styled by boot-splash.css with both wordmarks', () => {
+    const mount = html.slice(html.indexOf('<div id="root">'), html.indexOf('type="module"'));
+    expect(mount).toContain('<div class="boot-splash" role="status"');
+    expect(mount).toContain('src="%BASE_URL%ocharo-wordmark-ink.png"');
+    expect(mount).toContain('src="%BASE_URL%ocharo-wordmark-reverse.png"');
+    expect(mount).toContain('<div class="boot-splash-track"><div class="boot-splash-fill"></div></div>');
+    for (const rule of [
+      '.boot-splash {',
+      '.boot-splash-wordmark-reverse {',
+      'html.dark .boot-splash-wordmark-ink {',
+      'html.dark .boot-splash-wordmark-reverse {',
+      // The mounted splash: SDK theme `background`, `muted` and `primary`, light then dark.
+      'background-color: #f5f6fa',
+      'background-color: #eef0f6',
+      'background-color: #8b2459',
+      'background-color: #141416',
+      'background-color: #262629',
+      'background-color: #c24783',
+    ])
+      expect(stylesheet).toContain(rule);
+    for (const wordmark of ['ocharo-wordmark-ink.png', 'ocharo-wordmark-reverse.png'])
+      expect(existsSync(resolve(root, app.path, 'public', wordmark))).toBe(true);
   });
 
   it('leaves the page to the provider when browser storage is unavailable', () => {

@@ -8,7 +8,7 @@ import { loadOcharoApps, ocharoAppsPlugin, reportOcharoAppsStartup } from '@ocha
 import { initializeUiLocale } from '@ocharomarketing/connect/UseUiLocale';
 
 import { createMarketingWorkspace, MarketingWorkspaceKey } from '../application/marketing';
-import AppRoot from './AppRoot.vue';
+import AppBoot from './AppBoot.vue';
 import { createMarketingRouter } from './MarketingRouter';
 
 initializeUiLocale();
@@ -17,7 +17,7 @@ configureIntegration({ permissionNamespace: 'marketing' });
 // An expired sign-in shows one neutral notice; the page and its unsaved edits stay while the operator signs in again.
 subscribeIntegrationExpired(sessionExpiryNotice());
 const router = createMarketingRouter();
-const app = createApp(AppRoot);
+const app = createApp(AppBoot);
 const workspace = createMarketingWorkspace((path) => {
   void router.push(path);
 });

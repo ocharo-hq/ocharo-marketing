@@ -68,9 +68,12 @@ function localTime(value: string | null) {
     pad = (n: number) => String(n).padStart(2, '0');
   return `${date.getFullYear()}-${pad(date.getMonth() + 1)}-${pad(date.getDate())}T${pad(date.getHours())}:${pad(date.getMinutes())}`;
 }
+/** The API omits empty fields (`WhenWritingNull`); the editor holds each as `null`. */
 function editable(item: Inquiry): EditableInquiry {
   return {
     ...item,
+    productId: item.productId ?? null,
+    note: item.note ?? null,
     assignedTo: item.assignedTo ?? null,
     followUpAt: item.followUpAt ?? null,
     nextStep: item.nextStep ?? null,

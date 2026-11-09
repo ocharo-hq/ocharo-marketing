@@ -7,7 +7,7 @@ import { sessionExpiryNotice } from '@ocharomarketing/connect/Feedback';
 import { loadOcharoApps, ocharoAppsPlugin, reportOcharoAppsStartup } from '@ocharomarketing/connect/OcharoAppsConfig';
 import { initializeUiLocale } from '@ocharomarketing/connect/UseUiLocale';
 
-import AppRoot from './AppRoot.vue';
+import AppBoot from './AppBoot.vue';
 import { createBlogRouter } from './BlogRouter';
 
 initializeUiLocale();
@@ -16,7 +16,7 @@ configureIntegration({ permissionNamespace: 'editorial' });
 // An expired sign-in shows one neutral notice; the page and its unsaved edits stay while the operator signs in again.
 subscribeIntegrationExpired(sessionExpiryNotice());
 const router = createBlogRouter();
-const app = createApp(AppRoot);
+const app = createApp(AppBoot);
 app.use(router);
 // The app menu's runtime settings load beside the first route and the session, within a bounded wait; a failure falls
 // back to the build-time addresses. Only this app module can read `import.meta.env`, so it hands the values over.

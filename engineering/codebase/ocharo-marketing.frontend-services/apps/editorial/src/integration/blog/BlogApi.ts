@@ -22,6 +22,15 @@ import type {
   SiteSettings,
   TopicDocument,
 } from '../../domain/blog/BlogModels';
+import {
+  readBrand,
+  readCatalogue,
+  readDetail,
+  readEditingCapabilities,
+  readMedia,
+  readSettings,
+  readSummaries,
+} from './BlogDecoders';
 
 const envelope: ResponseEnvelope = {
   unwrap: rawEnvelope.unwrap,
@@ -34,10 +43,14 @@ const envelope: ResponseEnvelope = {
         : null,
     ),
 };
-function shape<T>(check: (value: unknown) => boolean) {
+/** Validates a payload, then reads it into the model (omitted nullable fields become `null`, see `BlogDecoders`). */
+function shape<T>(check: (value: unknown) => boolean, read: (value: unknown) => T = (value) => value as T) {
   return (value: unknown) =>
-    check(value) ? ResultExtensions.ok(value as T) : ResultExtensions.fail(ApiFailureFactory.create('protocol'));
+    check(value) ? ResultExtensions.ok(read(value)) : ResultExtensions.fail(ApiFailureFactory.create('protocol'));
 }
+/** Whether an omitted (`WhenWritingNull`) or `null` field, or one `test` accepts. */
+const absentOr = (value: unknown, test: (present: unknown) => boolean) =>
+  value === undefined || value === null || test(value);
 const isObject = (value: unknown) => typeof value === 'object' && value !== null && !Array.isArray(value);
 const isArray = (value: unknown) => Array.isArray(value);
 const isDetail = (value: unknown) => isObject(value) && isObject((value as { document?: unknown }).document);
@@ -52,10 +65,10 @@ const isMedia = (value: unknown): value is MediaView => {
     typeof media.fileName === 'string' &&
     ['image/png', 'image/jpeg', 'image/webp'].includes(String(media.contentType)) &&
     positiveInteger(media.byteLength) &&
-    (media.width === null || positiveInteger(media.width)) &&
-    (media.height === null || positiveInteger(media.height)) &&
+    absentOr(media.width, positiveInteger) &&
+    absentOr(media.height, positiveInteger) &&
     media.url === `/media/${media.sha256}` &&
-    (media.previewUrl === null || media.previewUrl === `/media/${media.sha256}/preview`)
+    absentOr(media.previewUrl, (previewUrl) => previewUrl === `/media/${media.sha256}/preview`)
   );
 };
 const isEditingCapabilities = (value: unknown): value is MediaEditingCapabilities => {
@@ -70,7 +83,7 @@ const isEditingCapabilities = (value: unknown): value is MediaEditingCapabilitie
     c.formats.every((format) => ['png', 'jpeg', 'webp'].includes(String(format))) &&
     ['maximumBytes', 'maximumPixels', 'maximumDimension'].every((key) => positiveInteger(c[key])) &&
     typeof background.available === 'boolean' &&
-    (background.model === null || typeof background.model === 'string')
+    absentOr(background.model, (model) => typeof model === 'string')
   );
 };
 
@@ -86,29 +99,33 @@ export function createBlogApi(fetchImplementation: typeof fetch = integrationFet
   const lifecycle = (id: string, action: string, expectedRevision: number, publishAt?: string) =>
     client.post<ArticleDetail>(`${root}/articles/${id}/${action}`, {
       body: { expectedRevision, publishAt },
-      decode: shape(isDetail),
+      decode: shape(isDetail, readDetail),
     });
   return {
     translate(id: string, language: string) {
       return client.post<ArticleDetail>(`${root}/articles/${id}/translate`, {
         body: { language },
-        decode: shape(isDetail),
+        decode: shape(isDetail, readDetail),
       });
     },
     list(
       filter: { status?: string; topic?: string; q?: string; language?: string; publication?: string },
       signal?: AbortSignal,
     ) {
-      return client.get<ArticleSummary[]>(`${root}/articles`, { query: filter, signal, decode: shape(isArray) });
+      return client.get<ArticleSummary[]>(`${root}/articles`, {
+        query: filter,
+        signal,
+        decode: shape(isArray, readSummaries),
+      });
     },
     get(id: string) {
-      return client.get<ArticleDetail>(`${root}/articles/${id}`, { decode: shape(isDetail) });
+      return client.get<ArticleDetail>(`${root}/articles/${id}`, { decode: shape(isDetail, readDetail) });
     },
     create(input: ArticleInput) {
-      return client.post<ArticleDetail>(`${root}/articles`, { body: input, decode: shape(isDetail) });
+      return client.post<ArticleDetail>(`${root}/articles`, { body: input, decode: shape(isDetail, readDetail) });
     },
     update(id: string, input: ArticleInput) {
-      return client.put<ArticleDetail>(`${root}/articles/${id}`, { body: input, decode: shape(isDetail) });
+      return client.put<ArticleDetail>(`${root}/articles/${id}`, { body: input, decode: shape(isDetail, readDetail) });
     },
     publish: (id: string, revision: number) => lifecycle(id, 'publish', revision),
     schedule: (id: string, revision: number, publishAt: string) => lifecycle(id, 'schedule', revision, publishAt),
@@ -120,7 +137,7 @@ export function createBlogApi(fetchImplementation: typeof fetch = integrationFet
     restore(id: string, revision: number, expectedRevision: number) {
       return client.post<ArticleDetail>(`${root}/articles/${id}/revisions/${revision}/restore`, {
         body: { expectedRevision },
-        decode: shape(isDetail),
+        decode: shape(isDetail, readDetail),
       });
     },
     topics() {
@@ -136,28 +153,28 @@ export function createBlogApi(fetchImplementation: typeof fetch = integrationFet
       return client.delete(`${root}/topics/${encodeURIComponent(key)}`, { response: 'empty' });
     },
     settings() {
-      return client.get<SettingsEnvelope>(`${root}/settings`, { decode: shape(isObject) });
+      return client.get<SettingsEnvelope>(`${root}/settings`, { decode: shape(isObject, readSettings) });
     },
     brand() {
-      return client.get<BrandStatus>(`${root}/brand`, { decode: shape(isObject) });
+      return client.get<BrandStatus>(`${root}/brand`, { decode: shape(isObject, readBrand) });
     },
     saveSettings(settings: SiteSettings, expectedRevision: number) {
       return client.put<SettingsEnvelope>(`${root}/settings`, {
         body: { settings, expectedRevision },
-        decode: shape(isObject),
+        decode: shape(isObject, readSettings),
       });
     },
     editingCapabilities(signal: AbortSignal) {
       return client.get<MediaEditingCapabilities>(`${root}/media/editing-capabilities`, {
         signal,
-        decode: shape(isEditingCapabilities),
+        decode: shape(isEditingCapabilities, readEditingCapabilities),
       });
     },
     applyMediaEdit(sha: string, recipe: ImageEditRecipe, signal: AbortSignal) {
       return client.post<MediaView>(`${root}/media/${encodeURIComponent(sha)}/edits`, {
         signal,
         body: recipe,
-        decode: shape(isMedia),
+        decode: shape(isMedia, readMedia),
       });
     },
     async previewMediaEdit(sha: string, recipe: ImageEditRecipe, signal: AbortSignal) {
@@ -194,11 +211,14 @@ export function createBlogApi(fetchImplementation: typeof fetch = integrationFet
     },
     media() {
       return client.get<MediaView[]>(`${root}/media`, {
-        decode: shape((value) => Array.isArray(value) && value.every(isMedia)),
+        decode: shape(
+          (value) => Array.isArray(value) && value.every(isMedia),
+          (value) => (value as unknown[]).map(readMedia),
+        ),
       });
     },
     catalogue() {
-      return client.get<CatalogueProduct[]>(`${root}/catalogue`, { decode: shape(isArray) });
+      return client.get<CatalogueProduct[]>(`${root}/catalogue`, { decode: shape(isArray, readCatalogue) });
     },
     /** Multipart upload stays on fetch: the JSON client serializes bodies. */
     async upload(file: File) {
@@ -212,7 +232,7 @@ export function createBlogApi(fetchImplementation: typeof fetch = integrationFet
             ApiFailureFactory.create('http', response, isObject(parsed) ? (parsed as Record<string, unknown>) : null),
           );
         return isObject(parsed)
-          ? ResultExtensions.ok(parsed as MediaView)
+          ? ResultExtensions.ok(readMedia(parsed))
           : ResultExtensions.fail(ApiFailureFactory.create('protocol'));
       } catch {
         return ResultExtensions.fail(ApiFailureFactory.create('transport'));

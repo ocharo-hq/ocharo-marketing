@@ -127,3 +127,9 @@ Each row's outcome: fixed (with the commit), excepted (with the reason) or waiti
 | M-43 | fixed | the receipt moved to `engineering/operations/catalogue-web-verification.md` |
 | M-7 | fixed | `.github/renovate.json` extends the pipelines `renovate-private` preset |
 | M-10 | fixed | the Blog Dockerfile header names `ocharo-marketing.frontend-services` and the ledger port |
+| M-29 | fixed | `@wow-two-beta/fe` 0.0.41 in `web`, `editorial` and `connect`; its breaking change renames helpers the product never imports |
+| M-30 | fixed | favicons and a 180 px `apple-touch-icon.png` from the Ocharo symbol in both private apps |
+| M-31 | fixed | `noindex, nofollow` robots meta in both private apps |
+| M-32 | fixed | static splash twin in `#root` and a mounted `BootSplash` in both private apps |
+| M-33 | fixed where the SDK allows | `ActionButton` deleted; `MediaPicker`, `PickerTrigger` and `MarketingSelect` wait on open SDK gaps, listed in the backlog's SDK gaps |
+| M-34 | fixed | `packages/connect/src/session.ts` returns `Result` on its four expected failures |

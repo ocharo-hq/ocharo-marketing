@@ -1,3 +1,4 @@
+import { createApiClient } from '@wow-two-beta/fe/foundation/http';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
 const success = (data: unknown) =>
@@ -34,6 +35,14 @@ const load = async (permissionNamespace: string | null = 'marketing') => {
   return session;
 };
 const assignSpy = () => vi.spyOn(window.location, 'assign').mockImplementation(() => {});
+/** A write without an authorizing session is not sent; it resolves the local 401 problem, never a throw. */
+const expectRefusedWrite = async (session: Awaited<ReturnType<typeof load>>, method = 'POST') => {
+  const calls = fetcher.mock.calls.length;
+  const response = await session.integrationFetch('/api/drafts', { method });
+  expect(response.status).toBe(401);
+  expect(await response.json()).toMatchObject({ code: session.SessionRequiredCode });
+  expect(fetcher).toHaveBeenCalledTimes(calls);
+};
 
 describe('Ocharo shared sign-in', () => {
   it('reads the Identity session and keeps its token only in memory', async () => {
@@ -119,6 +128,7 @@ describe('Ocharo shared sign-in', () => {
     success({ ...signedIn, person: null }),
     success({ ...signedIn, permissions: 'marketing:edit' }),
     success({}),
+    new Response('not json', { headers: { 'Content-Type': 'application/json' } }),
   ])('blocks safely when the session cannot be established', async (response) => {
     fetcher.mockResolvedValueOnce(response);
     const assign = assignSpy();
@@ -129,7 +139,27 @@ describe('Ocharo shared sign-in', () => {
     expect(session.integrationError.value).not.toBe('');
     expect(assign).not.toHaveBeenCalled();
     expect(fetcher).toHaveBeenCalledTimes(1);
-    await expect(session.integrationFetch('/api/drafts', { method: 'POST' })).rejects.toThrow('Sign in again');
+    await expectRefusedWrite(session);
+    expect(fetcher).toHaveBeenCalledTimes(1);
+  });
+
+  it('blocks safely when the API does not answer the session read', async () => {
+    fetcher.mockRejectedValueOnce(new TypeError('Failed to fetch'));
+    const session = await load();
+    expect(await session.initializeIntegration()).toBe(true);
+    expect(session.integrationAccess.value).toBe(false);
+    expect(session.integrationError.value).toContain('unavailable');
+    expect(session.integrationChecking.value).toBe(false);
+  });
+
+  it('hands a refused write to an API client as a quiet unauthorized failure, not a transport one', async () => {
+    fetcher.mockResolvedValueOnce(success(signedOut));
+    window.history.replaceState({}, '', '/posts?signInError=callback_failed');
+    const session = await load();
+    await session.initializeIntegration();
+    const client = createApiClient({ retry: false, fetch: session.integrationFetch });
+    const result = await client.post('/api/drafts', { body: {}, response: 'empty' });
+    expect(result).toMatchObject({ ok: false, failure: { code: 'http', status: 401, type: 'unauthorized' } });
     expect(fetcher).toHaveBeenCalledTimes(1);
   });
 
@@ -183,7 +213,7 @@ describe('Ocharo shared sign-in', () => {
     expect(response.status).toBe(401);
     expect(session.integrationSession.value).toMatchObject({ active: false, canEdit: false, canApprove: false });
     expect(session.integrationError.value).toContain('Sign in again');
-    await expect(session.integrationFetch('/api/drafts', { method: 'DELETE' })).rejects.toThrow();
+    await expectRefusedWrite(session, 'DELETE');
     expect(fetcher).toHaveBeenCalledTimes(2);
     expect(assign).not.toHaveBeenCalled();
   });
@@ -263,7 +293,7 @@ describe('Ocharo shared sign-in', () => {
     expect(session.integrationIdentityChanged.value).toBe(true);
     expect(session.integrationAccess.value).toBe(false);
     expect(session.integrationError.value).toContain('Reload this app');
-    await expect(session.integrationFetch('/api/drafts', { method: 'POST' })).rejects.toThrow();
+    await expectRefusedWrite(session);
     expect(fetcher).toHaveBeenCalledTimes(2);
   });
 
@@ -367,7 +397,7 @@ describe('Ocharo shared sign-in', () => {
     expect(session.integrationError.value).toBe('');
     expect(session.integrationReturnPath.value).toBe('/posts?view=drafts');
     expect(expired).not.toHaveBeenCalled();
-    await expect(session.integrationFetch('/api/drafts', { method: 'POST' })).rejects.toThrow('Sign in again');
+    await expectRefusedWrite(session);
   });
 
   it.each([

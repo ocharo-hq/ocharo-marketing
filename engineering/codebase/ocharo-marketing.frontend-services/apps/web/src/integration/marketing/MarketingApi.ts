@@ -93,8 +93,7 @@ export function createMarketingApi(fetchImplementation: typeof fetch = integrati
     getPublication(id: string, signal?: AbortSignal) {
       return client.get<PublicationOperationModel | null>(`${root}/schedules/${encodeURIComponent(id)}/publication`, {
         signal,
-        decode: (value) =>
-          MarketingDecoders.decode((item) => item === null || MarketingDecoders.publication(item), value),
+        decode: (value) => MarketingDecoders.decode(MarketingDecoders.publicationOrNone, value),
       });
     },
     reconcilePublication(id: string) {

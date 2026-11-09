@@ -1,4 +1,9 @@
 import { computed, ref } from "vue";
+import {
+  AppErrorFactory,
+  ResultExtensions,
+  type Result,
+} from "@wow-two-beta/fe/foundation/results";
 /**
  * The Ocharo session of a signed-in app, as Ocharo's Identity BFF serves it at `GET /api/identity/session`. Sign-in
  * happens at Identity; the API keeps the tokens and the browser only a secure session cookie. Every unsafe request
@@ -108,19 +113,20 @@ function safeDestination(value: unknown): string | null {
   if (!link) return null;
   return link.startsWith("/") && !link.startsWith("//") ? link : httpsUrl(link);
 }
-function decodeSession(value: unknown): DecodedSession {
+/** A session the BFF answered in a shape this app cannot trust fails as `unavailable`, never as signed out. */
+function decodeSession(value: unknown): Result<DecodedSession> {
   const data = record(record(value)?.data);
   if (!data || typeof data.isAuthenticated !== "boolean")
-    throw new Error(unavailable);
+    return ResultExtensions.fail(AppErrorFactory.unavailable());
   if (!data.isAuthenticated)
-    return {
+    return ResultExtensions.ok({
       authenticated: false,
       identity: null,
       account: null,
       permissions: [],
       csrfToken: null,
       expiresAt: null,
-    };
+    });
   const person = record(data.person);
   if (
     !person ||
@@ -128,9 +134,9 @@ function decodeSession(value: unknown): DecodedSession {
     !filled(data.csrfToken) ||
     !Array.isArray(data.permissions)
   )
-    throw new Error(unavailable);
+    return ResultExtensions.fail(AppErrorFactory.unavailable());
   const organization = record(data.organization);
-  return {
+  return ResultExtensions.ok({
     authenticated: true,
     identity: `${filled(organization?.id) ? organization.id : ""}:${person.sub}`,
     account: {
@@ -145,7 +151,29 @@ function decodeSession(value: unknown): DecodedSession {
     ),
     csrfToken: data.csrfToken,
     expiresAt: displayText(data.expiresAt),
-  };
+  });
+}
+/**
+ * Reads `GET /api/identity/session`. An API that does not answer, a non-success status and an unreadable or
+ * untrusted body each fail as `unavailable`.
+ */
+async function fetchSession(): Promise<Result<DecodedSession>> {
+  const sent = await ResultExtensions.fromPromise(
+    () =>
+      globalThis.fetch("/api/identity/session", {
+        credentials: "same-origin",
+        cache: "no-store",
+      }),
+    () => AppErrorFactory.unavailable(),
+  );
+  if (!sent.ok) return sent;
+  if (!sent.value.ok)
+    return ResultExtensions.fail(AppErrorFactory.unavailable());
+  const body = await ResultExtensions.fromPromise(
+    (): Promise<unknown> => sent.value.json(),
+    () => AppErrorFactory.unavailable(),
+  );
+  return body.ok ? decodeSession(body.value) : body;
 }
 function allows(permissions: readonly string[], action: "edit" | "approve") {
   return (
@@ -190,13 +218,13 @@ async function readSession() {
   let wasActive = false;
   integrationChecking.value = true;
   try {
-    const response = await fetch("/api/identity/session", {
-      credentials: "same-origin",
-      cache: "no-store",
-    });
-    if (!response.ok) throw new Error(unavailable);
-    const session = decodeSession(await response.json());
+    const read = await fetchSession();
     if (version !== generation) return;
+    if (!read.ok) {
+      expire(unavailable);
+      return;
+    }
+    const session = read.value;
     if (identity && session.identity && identity !== session.identity) {
       integrationIdentityChanged.value = true;
       expire(accountChanged);
@@ -217,8 +245,6 @@ async function readSession() {
     };
     integrationError.value = "";
     announceExpiry(wasActive);
-  } catch {
-    if (version === generation) expire(unavailable);
   } finally {
     integrationChecking.value = false;
   }
@@ -272,7 +298,25 @@ export async function initializeIntegration(): Promise<boolean> {
   }
   return true;
 }
-/** Cookie credentials and the anti-forgery token stay on this app's origin. */
+/** The problem `code` of a write this app refused to send because no signed-in session can authorize it. */
+export const SessionRequiredCode = "SessionRequired";
+/**
+ * Answers a write refused before sending as a local `401` problem, the fetch-shaped expected failure: an API client
+ * returns it as a failed `Result` (unauthorized, quiet like any expiry), never as a transport error.
+ */
+function sessionRequired(): Response {
+  return Response.json(
+    { status: 401, title: "Unauthorized", code: SessionRequiredCode },
+    {
+      status: 401,
+      headers: { "Content-Type": "application/problem+json" },
+    },
+  );
+}
+/**
+ * Cookie credentials and the anti-forgery token stay on this app's origin. A write without an active session, its
+ * CSRF token or after an account change is not sent; it resolves the local `401` of `sessionRequired`.
+ */
 export const integrationFetch: typeof fetch = async (input, init) => {
   const request = input instanceof Request ? input : undefined;
   const url = new URL(request?.url ?? String(input), window.location.href);
@@ -288,7 +332,7 @@ export const integrationFetch: typeof fetch = async (input, init) => {
       !csrfToken ||
       integrationIdentityChanged.value
     )
-      throw new Error("Sign in again. Your edits are preserved.");
+      return sessionRequired();
     headers.set("X-Csrf-Token", csrfToken);
   }
   const response = await globalThis.fetch(input, {

@@ -33,10 +33,11 @@ Each is a fix for the SDK, not a product workaround; the narrow product adapter 
 
 | Item | Type | Notes |
 |---|---|---|
-| `FilePickerProps` lacks the native `accept` attribute | `engineering` | Strict Vue templates reject it. Adapter `apps/web/.../compatibility/MediaPicker.vue`; delete it once the SDK declares `accept`. |
-| `SelectPickerTriggerProps` lacks `aria-label` | `engineering` | Strict Vue templates reject it. Adapter `apps/web/.../compatibility/PickerTrigger.vue`; delete it once the SDK declares native accessible naming. |
+| `FilePickerProps` lacks the native `accept` attribute | `engineering` | Strict Vue templates reject it (still open in 0.0.41). Adapter `apps/web/.../compatibility/MediaPicker.vue`; delete it once the SDK declares `accept`. |
+| `SelectPickerTriggerProps` lacks `aria-label` | `engineering` | Strict Vue templates reject it (still open in 0.0.41). Adapter `apps/web/.../compatibility/PickerTrigger.vue`; delete it once the SDK declares native accessible naming. |
 | `MarkdownEditor` view-mode labels have no locale key | `engineering` | Editorial's translated selector hides the SDK one (`SectionTextEditor.vue`) until the SDK localizes them. |
 | The router exposes no app-wide unsaved-work state | `engineering` | `useNavigationBlocker` guards navigation only, so a frame cannot hold sign-out on it. Registry `packages/connect/src/UnsavedWork.ts` goes once the SDK exposes the blockers' combined state. |
+| `SelectPicker` lacks native `required`, `fieldset[disabled]` inheritance and `aria-label` | `engineering` | Adapter `apps/web/.../MarketingSelect.vue`; delete it once the SDK picker validates, inherits disabled state and takes accessible naming (still open in 0.0.41). |
 | `MIGRATION.md` skips published versions | `engineering` | No rows for 0.0.29, 0.0.30 or 0.0.37 onward; the SDK records every published version. |
 
 ## Identity follow-ups
@@ -45,6 +46,7 @@ Each is a fix for the SDK, not a product workaround; the narrow product adapter 
 |---|---|---|
 | A removed person's queued publication | `product` | Editorial's `ScheduledPublishingWorker` and Marketing's `PublicationWorker` record no person, so a removed person's scheduled story or plan still publishes. Decide whether a removal withdraws them before live publishing turns on. |
 | Local containers boot alone | `fix` | `deployment/docker-compose.yml` and `deployment/blog/docker-compose.yml` set no `Identity:Client:*` or organization id. |
+| SDK BFF session strategy | `engineering` | `@wow-two-beta/fe` 0.0.38+ ships a BFF session strategy that may replace the hand-rolled `packages/connect/src/session.ts`; check it covers CSRF, the identity-change rule and return paths ([architecture](../architecture/architecture.md#sign-in-and-session-expiry)). |
 | Public writes inside the BFF | `engineering` | Each host branches `/api/public/*` around `UseIdentityBff`, whose antiforgery check refuses a signed-in visitor's form; an SDK exemption for public writes replaces the branch. |
 | Page headings carry the navigation label | `fix` | Pages keep editorial headlines ("Each channel's purpose") as `<h1>`; align with the shell convention when the pages are next reworked. |
 

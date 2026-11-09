@@ -211,10 +211,15 @@ describe('channel operations', () => {
     ).toHaveLength(2);
   });
   it('rejects malformed operations evidence instead of rendering invented defaults', () => {
-    expect(MarketingDecoders.operations(overview())).toBe(true);
-    expect(MarketingDecoders.operations({ ...overview(), observationCount: undefined })).toBe(false);
+    expect(MarketingDecoders.accepts(MarketingDecoders.operations, overview())).toBe(true);
     expect(
-      MarketingDecoders.engagementObservation({ ...evidence('a', '2026-09-29T10:00:00Z', null), source: 'provider' }),
+      MarketingDecoders.accepts(MarketingDecoders.operations, { ...overview(), observationCount: undefined }),
+    ).toBe(false);
+    expect(
+      MarketingDecoders.accepts(MarketingDecoders.engagementObservation, {
+        ...evidence('a', '2026-09-29T10:00:00Z', null),
+        source: 'provider',
+      }),
     ).toBe(false);
   });
   it('never retries a manual evidence mutation automatically', async () => {
