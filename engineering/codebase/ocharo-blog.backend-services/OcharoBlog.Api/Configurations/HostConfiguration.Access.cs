@@ -75,8 +75,7 @@ public static partial class HostConfiguration
     /// <summary>Reads a setting the service token check depends on, in the <c>Uri.AbsoluteUri</c> form Identity
     /// writes.</summary>
     /// <remarks>The JWT registration takes its issuer and audience while the host is built, so a test host hands them
-    /// over
-    /// with <c>UseSetting</c>; its own configuration arrives later.</remarks>
+    /// over with <c>UseSetting</c>; its own configuration arrives later.</remarks>
     private static string RequiredAddress(IConfiguration configuration, string key) =>
         HttpsAddress(configuration, key) ?? throw new InvalidOperationException($"{key} {AddressRule}");
 
@@ -100,8 +99,8 @@ public static partial class HostConfiguration
     private sealed class IdentityAddresses;
 
     /// <summary>Configures the session pipeline: HTTPS for the session routes, the BFF (authentication, the
-    /// <c>X-Csrf-Token</c>
-    /// check, authorization), then the bound-organization membership and permission check.</summary>
+    /// <c>X-Csrf-Token</c> check, authorization), then the bound-organization membership and permission
+    /// check.</summary>
     private static IApplicationBuilder UseAccess(this IApplicationBuilder app)
     {
         app.Use(async (context, next) =>

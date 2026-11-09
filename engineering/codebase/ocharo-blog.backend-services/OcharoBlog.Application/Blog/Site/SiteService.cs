@@ -60,8 +60,7 @@ public sealed class SiteService(IBlogRepository repository, TopicService topics,
     /// The published brand kit wins over the blog's own logo and links. Its logo enters the blog's media index under
     /// the
     /// same SHA-256, so live pages and the static export share one path: on WoW2 Files as a reference to Brand's own
-    /// file,
-    /// otherwise as a copy of its bytes. An unreachable Brand service keeps the settings.
+    /// file, otherwise as a copy of its bytes. An unreachable Brand service keeps the settings.
     /// </summary>
     private async Task<SiteSettings> BrandedAsync(SiteSettings site, BrandSnapshot? snapshot, CancellationToken ct)
     {

@@ -19,8 +19,7 @@ public sealed record ImportDigest(int Rows, string Sha256)
 
     /// <summary>Hashes rows read from either side, each value already in its canonical .NET form: a string for text and
     /// documents, a <see cref="long"/> for integers and for instants (microseconds since the Unix epoch), or
-    /// null.</summary>
-    /// <remarks>
+    /// null.</summary> <remarks>
     ///   - each row is a JSON array of its values; a document is embedded with its object keys sorted (the last of a
     ///     repeated key wins, as in <c>jsonb</c>) and its numbers in PostgreSQL <c>numeric</c>'s plain form, so a
     ///     document reads alike before and after <c>jsonb</c> normalises it

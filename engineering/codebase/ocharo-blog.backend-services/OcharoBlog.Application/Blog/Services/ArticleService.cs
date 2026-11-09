@@ -214,8 +214,7 @@ public sealed partial class ArticleService(IBlogRepository repository, TimeProvi
     /// <summary>
     /// Creates a draft edition in another language: same structure, sources, cover and pieces, linked by translation
     /// key; the text is copied for translating in place. Related stories are cleared (they belong to the source
-    /// language).
-    /// </summary>
+    /// language). </summary>
     public async Task<DetailResult> TranslateAsync(Guid id, string language, CancellationToken ct)
     {
         if (language is not ("en" or "uz" or "ru"))

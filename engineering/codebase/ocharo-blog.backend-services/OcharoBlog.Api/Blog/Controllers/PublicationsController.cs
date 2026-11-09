@@ -1,7 +1,7 @@
 using Microsoft.AspNetCore.Mvc;
-using OcharoBlog.Api.Blog.Errors;
 using OcharoBlog.Application.Blog.Queries;
 using WoW.Two.Sdk.Beta.Be.Mediator;
+using WoW.Two.Sdk.Beta.Be.Web.ExceptionHandling.Extensions;
 using WoW.Two.Sdk.Beta.Be.Web.SecureHeaders;
 
 namespace OcharoBlog.Api.Blog.Controllers;
@@ -35,7 +35,7 @@ public sealed class PublicationsController(ISender sender) : ControllerBase
 
         return result.Match<IActionResult>(
             ok => File(ok.Data, "application/zip", $"ocharo-{publication}.zip"),
-            fail => this.ToBlogProblem(fail.Error));
+            fail => this.ToProblem(fail.Error));
     }
 
     private async Task<IActionResult> RenderAsync(string publication, string? tail, bool preview, CancellationToken ct)
@@ -59,6 +59,6 @@ public sealed class PublicationsController(ISender sender) : ControllerBase
                 // A path no page answers stays the same bare 404 as any other missing public resource.
                 return ok.Data.Page is { } page ? Content(page.Content, page.ContentType) : NotFound();
             },
-            fail => this.ToBlogProblem(fail.Error));
+            fail => this.ToProblem(fail.Error));
     }
 }

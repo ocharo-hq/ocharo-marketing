@@ -36,7 +36,7 @@ public sealed class StudioHostingTests
         var slash = await client.GetAsync("/studio/");
 
         bare.StatusCode.Should().Be(HttpStatusCode.MovedPermanently);
-        (bare.Headers.Location?.AbsolutePath).Should().Be("/studio/");
+        (bare.Headers.Location?.OriginalString).Should().EndWith("/studio/");
         slash.StatusCode.Should().Be(HttpStatusCode.OK);
     }
 
@@ -70,6 +70,59 @@ public sealed class StudioHostingTests
 
         response.StatusCode.Should().Be(HttpStatusCode.NotFound);
         (response.Content.Headers.ContentType?.MediaType).Should().Be("application/problem+json");
+    }
+
+    [Fact]
+    public async Task StudioRoute_ShouldServeTheShell_WhenNoDocumentMatches()
+    {
+        using var studio = new StudioBundle();
+        await using var host = EditorialHost.Create(new Dictionary<string, string?>(), webRoot: studio.Root);
+        using var client = host.Client();
+
+        using var shell = await client.GetAsync("/studio/");
+        using var response = await client.GetAsync("/studio/x");
+
+        response.StatusCode.Should().Be(HttpStatusCode.OK);
+        (response.Content.Headers.ContentType?.MediaType).Should().Be("text/html");
+        (await response.Content.ReadAsStringAsync()).Should().Be(await shell.Content.ReadAsStringAsync());
+    }
+
+    [Fact]
+    public async Task StudioAsset_ShouldCacheAsImmutable_WhenItIsUnderTheStudioAssets()
+    {
+        using var studio = new StudioBundle();
+        await using var host = EditorialHost.Create(new Dictionary<string, string?>(), webRoot: studio.Root);
+        using var client = host.Client();
+
+        using var response = await client.GetAsync("/studio/assets/app.js");
+
+        response.StatusCode.Should().Be(HttpStatusCode.OK);
+        response.Headers.CacheControl.Should().NotBeNull();
+        response.Headers.CacheControl!.ToString().Should().Contain("immutable");
+    }
+
+    [Fact]
+    public async Task PublicStory_ShouldReturn200_WhenTheStudioIsServedUnderItsPrefix()
+    {
+        await using var harness = new BlogHarness();
+        using var client = harness.Anonymous();
+
+        using var response = await client.GetAsync("/journal/the-nimcha-in-a-new-light/");
+
+        response.StatusCode.Should().Be(HttpStatusCode.OK);
+        (response.Content.Headers.ContentType?.MediaType).Should().Be("text/html");
+    }
+
+    [Fact]
+    public async Task UnknownApiRoute_ShouldReturn401_WhenNoSessionComes()
+    {
+        using var studio = new StudioBundle();
+        await using var host = EditorialHost.Create(new Dictionary<string, string?>(), webRoot: studio.Root);
+        using var client = host.Client();
+
+        using var response = await client.GetAsync("/api/x");
+
+        response.StatusCode.Should().Be(HttpStatusCode.Unauthorized);
     }
 
     /// <summary>A built Studio in a temporary web root: its shell and one hashed asset.</summary>

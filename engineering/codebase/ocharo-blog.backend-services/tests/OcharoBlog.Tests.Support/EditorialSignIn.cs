@@ -19,10 +19,8 @@ namespace OcharoBlog.Tests.Support;
 /// What the Editorial test hosts replace for sign-in: a stand-in for the Identity BFF cookie scheme. A request that
 /// names one
 /// of the <see cref="People"/> in <see cref="PersonHeader"/> is signed in with the claims Identity's token carries and
-/// a
-/// session reference, so the BFF's <c>X-Csrf-Token</c> check holds as for a real session; any other request is
-/// anonymous. No
-/// call reaches the Identity instance.
+/// a session reference, so the BFF's <c>X-Csrf-Token</c> check holds as for a real session; any other request is
+/// anonymous. No call reaches the Identity instance.
 /// </summary>
 public static class EditorialSignIn
 {
@@ -53,8 +51,7 @@ public static class EditorialSignIn
         .ToDictionary(person => person.Subject, StringComparer.Ordinal);
 
     /// <summary>Settings that satisfy <c>Identity:Client</c> validation without any network call to the authority and
-    /// bind the
-    /// test organization.</summary>
+    /// bind the test organization.</summary>
     public static IReadOnlyDictionary<string, string?> Settings { get; } = new Dictionary<string, string?>
     {
         ["Identity:Client:Authority"] = "https://identity.example.test/",
@@ -65,8 +62,7 @@ public static class EditorialSignIn
     };
 
     /// <summary>Hands over the settings the host reads while it is being built, which <c>ConfigureAppConfiguration</c>
-    /// reaches
-    /// too late for.</summary>
+    /// reaches too late for.</summary>
     public static void UseBootSettings(IWebHostBuilder builder, IReadOnlyDictionary<string, string?>? settings = null)
     {
         settings ??= Settings;
@@ -94,8 +90,7 @@ public static class EditorialSignIn
         { BaseAddress = new Uri("https://localhost"), HandleCookies = false, AllowAutoRedirect = false });
 
     /// <summary>A client over HTTPS signed in as <paramref name="person"/>; with <paramref name="csrf"/> its unsafe
-    /// requests carry
-    /// the session's <c>X-Csrf-Token</c>, read from the session route as the SPA does.</summary>
+    /// requests carry the session's <c>X-Csrf-Token</c>, read from the session route as the SPA does.</summary>
     public static HttpClient Client(WebApplicationFactory<Program> factory, Person person, bool csrf = true) =>
         factory.CreateDefaultClient(new Uri("https://localhost"), new SessionHandler(person, csrf));
 
@@ -172,8 +167,7 @@ public static class EditorialSignIn
                     .Select(permission => new Claim(OrganizationClaimTypeConstants.Permission, $"{id}:{permission}")));
             }
             // The BFF's session reference (`.bff.sid`, `.bff.ref`): the session route then issues a CSRF token bound to
-            // it,
-            // and the antiforgery check demands it on unsafe API requests.
+            // it, and the antiforgery check demands it on unsafe API requests.
             var properties = new AuthenticationProperties { ExpiresUtc = DateTimeOffset.UtcNow.AddHours(1) };
             properties.Items[".bff.sid"] = session;
             properties.Items[".bff.ref"] = "test-reference";

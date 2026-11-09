@@ -66,13 +66,12 @@ public static partial class HostConfiguration
         return builder;
     }
 
-    /// <summary>Configures the Studio's bundle in <c>wwwroot/studio/</c>: a bare <c>/studio</c> redirects to
-    /// <c>/studio/</c>, its hashed assets cache for a year, and an unmatched page falls back to its shell.</summary>
+    /// <summary>Configures the Studio's bundle in <c>wwwroot/studio/</c> under its own prefix: a bare <c>/studio</c>
+    /// redirects to <c>/studio/</c>, its hashed assets cache for a year, an unmatched page under it falls back to its
+    /// shell, and every other unmatched route answers the API guard's 404.</summary>
     private static void ConfigureStudioHosting(SpaHostingOptions studio)
     {
-        studio.FallbackFile = "studio/index.html";
-        studio.ImmutableAssetsPath = "/studio/assets";
-        studio.RedirectToTrailingSlash = true;
+        studio.PathPrefix = "/studio";
     }
 
     /// <summary>Registers the public inquiry relay client.</summary>
@@ -209,8 +208,7 @@ public static partial class HostConfiguration
             })
             .AddOAuth2ClientCredentials(_ => { });
         // Resolve late so test-host configuration overrides continue to win. Editorial calls as its own client; without
-        // a
-        // usable Blog:DeskBaseUrl the worker makes no call, so nothing here may fail the boot.
+        // a usable Blog:DeskBaseUrl the worker makes no call, so nothing here may fail the boot.
         builder.Services.AddOptions<OAuth2ClientCredentialsOptions>(EditorialImageWorker.ClientName)
             .Configure<IConfiguration>((options, configuration) =>
             {
@@ -232,14 +230,12 @@ public static partial class HostConfiguration
     }
 
     /// <summary>Holds the root URL of the WoW2 Files instance Editorial stores its media in; unset, media stay in the
-    /// local
-    /// blob folder.</summary>
+    /// local blob folder.</summary>
     private const string FilesBaseUrlKey = "Files:BaseUrl";
 
     /// <summary>Registers the media store: WoW2 Files over HTTP when <see cref="FilesBaseUrlKey"/> is set, by tokens of
     /// Editorial's own Identity client (a person's exchanged within their BFF session, Editorial's own otherwise), else
-    /// the
-    /// local blob folder. Both read at resolve time, so a test host's settings decide.</summary>
+    /// the local blob folder. Both read at resolve time, so a test host's settings decide.</summary>
     private static WebApplicationBuilder AddEditorialFiles(this WebApplicationBuilder builder)
     {
         builder.Services.AddFilesClient(_ => { });
@@ -317,8 +313,7 @@ public static partial class HostConfiguration
     }
 
     /// <summary>Registers the mediator against the Infrastructure assembly, which holds the handlers; a save that lost
-    /// a
-    /// race as the 409 Editorial has always answered it; and Editorial's error statuses for the problem
+    /// a race as the 409 Editorial has always answered it; and Editorial's error statuses for the problem
     /// factory.</summary>
     private static WebApplicationBuilder AddMediator(this WebApplicationBuilder builder)
     {
@@ -392,10 +387,7 @@ public static partial class HostConfiguration
         pipeline.UseAccess();
     }
 
-    /// <summary>Matches a page outside <c>/studio/</c> and <c>/api/</c>: the public site's misses.</summary>
-    private const string PublicPageMiss = "/{**path:regex(^(?!(studio|api)(/|$)).+)}";
-
-    /// <summary>Configures controller, status, Identity and public-miss endpoints.</summary>
+    /// <summary>Configures controller, status and Identity endpoints.</summary>
     private static WebApplication MapEndpoints(this WebApplication app)
     {
         app.WarnAboutRejectedRuntimeConfig();
@@ -410,10 +402,6 @@ public static partial class HostConfiguration
             version = typeof(HostConfiguration).Assembly.GetCustomAttribute<AssemblyInformationalVersionAttribute>()
                 ?.InformationalVersion ?? "dev",
         }));
-        // The SDK falls back to the Studio's shell for every unmatched page and has no path prefix for it yet; the
-        // public site's misses stay 404s, outranking that fallback.
-        app.MapMethods(PublicPageMiss, [HttpMethods.Get, HttpMethods.Head], () => Results.NotFound())
-            .ExcludeFromDescription();
         return app;
     }
 }

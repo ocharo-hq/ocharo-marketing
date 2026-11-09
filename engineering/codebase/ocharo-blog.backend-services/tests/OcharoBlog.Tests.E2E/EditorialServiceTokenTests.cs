@@ -24,8 +24,7 @@ namespace OcharoBlog.Tests.E2E;
 
 /// <summary>
 /// Editorial's two service paths, with no Identity running: as a caller it reaches Desk's background removal with its
-/// own
-/// service token, and as a resource its live exports take a service token beside a session.
+/// own service token, and as a resource its live exports take a service token beside a session.
 /// </summary>
 [Collection(MediaEditingCapacity.Name)]
 public sealed class EditorialServiceTokenTests

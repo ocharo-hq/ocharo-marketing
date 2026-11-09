@@ -21,8 +21,7 @@ namespace OcharoBlog.Api.Access;
 /// Runs after the BFF, which resolves the session and checks its <c>X-Csrf-Token</c>; technical, public and session
 /// routes
 /// pass untouched, and so does media the public site shows: the settings' images, published covers and the published
-/// brand
-/// logo. Controllers read the admitted person from <c>Ocharo.CanApprove</c>, <c>Ocharo.OrganizationId</c> and
+/// brand logo. Controllers read the admitted person from <c>Ocharo.CanApprove</c>, <c>Ocharo.OrganizationId</c> and
 /// <c>Ocharo.UserId</c>.
 /// A live export also admits a service token with <see cref="EditorialAccess.ExportScope"/>, setting no person.
 /// </summary>
@@ -137,8 +136,7 @@ public sealed class EditorialAccessMiddleware(RequestDelegate next, IOptions<Blo
         // The published brand logo stands in for the settings' logo on every page (SiteService.BrandedAsync), and
         // Brand's
         // own feed discloses it. Asking Brand costs a call, so a member, whom the session checks admit anyway, never
-        // waits on
-        // it, and every page's logo request shares one answer a minute (ten seconds while Brand gives none).
+        // waits on it, and every page's logo request shares one answer a minute (ten seconds while Brand gives none).
         if (EditorialIdentity.IsMember(context.User, organization)) return true;
         var logo =
             await context.RequestServices.GetRequiredService<IMemoryCache>()

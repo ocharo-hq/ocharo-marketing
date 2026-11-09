@@ -7,8 +7,7 @@ namespace OcharoBlog.Infrastructure.Blog.Extensions;
 internal static class BlogResultExtensions
 {
     /// <summary>Carries <paramref name="result"/> across the handler boundary: its value on success, its error on
-    /// failure.</summary>
-    /// <typeparam name="T">The success value type.</typeparam>
+    /// failure.</summary> <typeparam name="T">The success value type.</typeparam>
     /// <param name="result">The service's result.</param>
     public static AppResult<T> ToAppResult<T>(this Result<T> result) where T : notnull
     {

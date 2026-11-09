@@ -1,9 +1,9 @@
 using Microsoft.AspNetCore.Mvc;
-using OcharoBlog.Api.Blog.Errors;
 using OcharoBlog.Application.Blog.Commands;
 using OcharoBlog.Application.Blog.Models;
 using OcharoBlog.Application.Blog.Queries;
 using WoW.Two.Sdk.Beta.Be.Mediator;
+using WoW.Two.Sdk.Beta.Be.Web.ExceptionHandling.Extensions;
 using WoW.Two.Sdk.Beta.Be.Web.SecureHeaders;
 
 namespace OcharoBlog.Api.Blog.Controllers;
@@ -32,7 +32,7 @@ public sealed class ArticlesController(ISender sender) : ControllerBase
         };
         var result = await sender.SendAsync(query, ct);
 
-        return result.Match<IActionResult>(ok => Ok(ok.Data), fail => this.ToBlogProblem(fail.Error));
+        return result.Match<IActionResult>(ok => Ok(ok.Data), fail => this.ToProblem(fail.Error));
     }
 
     [HttpGet("{id:guid}")]
@@ -120,7 +120,7 @@ public sealed class ArticlesController(ISender sender) : ControllerBase
     {
         var result = await sender.SendAsync(new ArticleRevisionGetAllQuery { ArticleId = id }, ct);
 
-        return result.Match<IActionResult>(ok => Ok(ok.Data), fail => this.ToBlogProblem(fail.Error));
+        return result.Match<IActionResult>(ok => Ok(ok.Data), fail => this.ToProblem(fail.Error));
     }
 
     [HttpPost("{id:guid}/revisions/{revision:int}/restore")]
@@ -147,11 +147,11 @@ public sealed class ArticlesController(ISender sender) : ControllerBase
 
         return result.Match<IActionResult>(
             ok => Content(ok.Data, "text/html; charset=utf-8"),
-            fail => this.ToBlogProblem(fail.Error));
+            fail => this.ToProblem(fail.Error));
     }
 
     private IActionResult Detail(WoW.Two.Sdk.Beta.Be.Mediator.Result.AppResult<ArticleDetail> result)
     {
-        return result.Match<IActionResult>(ok => Ok(ok.Data), fail => this.ToBlogProblem(fail.Error));
+        return result.Match<IActionResult>(ok => Ok(ok.Data), fail => this.ToProblem(fail.Error));
     }
 }

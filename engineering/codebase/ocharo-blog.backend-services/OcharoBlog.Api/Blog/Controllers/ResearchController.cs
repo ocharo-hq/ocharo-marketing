@@ -1,7 +1,7 @@
 using Microsoft.AspNetCore.Mvc;
-using OcharoBlog.Api.Blog.Errors;
 using OcharoBlog.Application.Blog.Commands;
 using WoW.Two.Sdk.Beta.Be.Mediator;
+using WoW.Two.Sdk.Beta.Be.Web.ExceptionHandling.Extensions;
 
 namespace OcharoBlog.Api.Blog.Controllers;
 
@@ -16,6 +16,6 @@ public sealed class ResearchController(ISender sender, IWebHostEnvironment envir
         var command = new ResearchImportCommand { ContentRoot = environment.ContentRootPath };
         var result = await sender.SendAsync(command, ct);
 
-        return result.Match<IActionResult>(ok => Ok(ok.Data), fail => this.ToBlogProblem(fail.Error));
+        return result.Match<IActionResult>(ok => Ok(ok.Data), fail => this.ToProblem(fail.Error));
     }
 }

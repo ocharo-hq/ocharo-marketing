@@ -12,8 +12,7 @@ using WoW.Two.Sdk.Beta.Be.Storage.Core;
 namespace OcharoBlog.Infrastructure.Blog;
 
 /// <summary>Preserves validated original bytes and creates upright alpha-preserving web renditions through the SDK, in
-/// the
-/// local blob folder. It serves a run with no WoW2 Files (<c>Files:BaseUrl</c> unset), and
+/// the local blob folder. It serves a run with no WoW2 Files (<c>Files:BaseUrl</c> unset), and
 /// <see cref="FilesMediaStore"/>
 /// reads through it the files stored before Files until the migration fills their ids.</summary>
 public sealed class MediaStore(

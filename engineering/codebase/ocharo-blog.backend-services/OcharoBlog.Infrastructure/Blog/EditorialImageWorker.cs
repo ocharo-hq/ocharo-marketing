@@ -15,8 +15,7 @@ namespace OcharoBlog.Infrastructure.Blog;
 
 /// <summary>Asks Desk to remove backgrounds and checks a saved edit against the current session.</summary>
 /// <remarks>Editorial calls Desk as its own client: <see cref="ClientName"/> carries a service token and no person
-/// travels on
-/// the call. The access middleware has checked the person's <c>editorial:edit</c> by then.</remarks>
+/// travels on the call. The access middleware has checked the person's <c>editorial:edit</c> by then.</remarks>
 public sealed class EditorialImageWorker(
     IOptions<BlogOptions> options,
     IHttpContextAccessor accessor,

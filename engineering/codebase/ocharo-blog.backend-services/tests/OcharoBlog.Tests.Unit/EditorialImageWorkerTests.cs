@@ -11,8 +11,7 @@ using Xunit;
 namespace OcharoBlog.Tests.Unit;
 
 /// <summary>With no Desk configured the worker makes no HTTP call and reports itself unavailable; it checks a saved
-/// edit against
-/// the current session's claims. Its calls to Desk have their own tests in
+/// edit against the current session's claims. Its calls to Desk have their own tests in
 /// <see cref="EditorialServiceTokenTests"/>.</summary>
 public sealed class EditorialImageWorkerTests
 {

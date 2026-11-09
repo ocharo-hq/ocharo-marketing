@@ -1,11 +1,11 @@
 using Microsoft.AspNetCore.Mvc;
-using OcharoBlog.Api.Blog.Errors;
 using OcharoBlog.Application.Blog.Commands;
 using OcharoBlog.Application.Blog.Models;
 using OcharoBlog.Application.Blog.Queries;
 using OcharoBlog.Application.Blog.Services;
 using OcharoBlog.Domain.Blog;
 using WoW.Two.Sdk.Beta.Be.Mediator;
+using WoW.Two.Sdk.Beta.Be.Web.ExceptionHandling.Extensions;
 
 namespace OcharoBlog.Api.Blog.Controllers;
 
@@ -20,7 +20,7 @@ public sealed class BlogAdminController(ISender sender) : ControllerBase
     {
         var result = await sender.SendAsync(new TopicGetAllQuery(), ct);
 
-        return result.Match<IActionResult>(ok => Ok(ok.Data), fail => this.ToBlogProblem(fail.Error));
+        return result.Match<IActionResult>(ok => Ok(ok.Data), fail => this.ToProblem(fail.Error));
     }
 
     [HttpPut("topics/{key}")]
@@ -28,7 +28,7 @@ public sealed class BlogAdminController(ISender sender) : ControllerBase
     {
         var result = await sender.SendAsync(new TopicSaveCommand { Topic = topic with { Key = key } }, ct);
 
-        return result.Match<IActionResult>(ok => Ok(ok.Data), fail => this.ToBlogProblem(fail.Error));
+        return result.Match<IActionResult>(ok => Ok(ok.Data), fail => this.ToProblem(fail.Error));
     }
 
     [HttpDelete("topics/{key}")]
@@ -36,7 +36,7 @@ public sealed class BlogAdminController(ISender sender) : ControllerBase
     {
         var result = await sender.SendAsync(new TopicDeleteCommand { Key = key }, ct);
 
-        return result.Match<IActionResult>(_ => NoContent(), fail => this.ToBlogProblem(fail.Error));
+        return result.Match<IActionResult>(_ => NoContent(), fail => this.ToProblem(fail.Error));
     }
 
     [HttpGet("settings")]
@@ -44,7 +44,7 @@ public sealed class BlogAdminController(ISender sender) : ControllerBase
     {
         var result = await sender.SendAsync(new SiteSettingsGetQuery(), ct);
 
-        return result.Match<IActionResult>(ok => Ok(ok.Data), fail => this.ToBlogProblem(fail.Error));
+        return result.Match<IActionResult>(ok => Ok(ok.Data), fail => this.ToProblem(fail.Error));
     }
 
     [HttpPut("settings")]
@@ -57,7 +57,7 @@ public sealed class BlogAdminController(ISender sender) : ControllerBase
         };
         var result = await sender.SendAsync(command, ct);
 
-        return result.Match<IActionResult>(ok => Ok(ok.Data), fail => this.ToBlogProblem(fail.Error));
+        return result.Match<IActionResult>(ok => Ok(ok.Data), fail => this.ToProblem(fail.Error));
     }
 
     [HttpGet("media")]
@@ -65,7 +65,7 @@ public sealed class BlogAdminController(ISender sender) : ControllerBase
     {
         var result = await sender.SendAsync(new MediaGetAllQuery(), ct);
 
-        return result.Match<IActionResult>(ok => Ok(ok.Data.Select(View)), fail => this.ToBlogProblem(fail.Error));
+        return result.Match<IActionResult>(ok => Ok(ok.Data.Select(View)), fail => this.ToProblem(fail.Error));
     }
 
     [HttpPost("media")]
@@ -78,7 +78,7 @@ public sealed class BlogAdminController(ISender sender) : ControllerBase
         var command = new MediaUploadCommand { Bytes = buffer.ToArray(), FileName = file.FileName };
         var result = await sender.SendAsync(command, ct);
 
-        return result.Match<IActionResult>(ok => Ok(View(ok.Data)), fail => this.ToBlogProblem(fail.Error));
+        return result.Match<IActionResult>(ok => Ok(View(ok.Data)), fail => this.ToProblem(fail.Error));
     }
 
     [HttpGet("brand")]
@@ -86,7 +86,7 @@ public sealed class BlogAdminController(ISender sender) : ControllerBase
     {
         var result = await sender.SendAsync(new BrandStatusGetQuery(), ct);
 
-        return result.Match<IActionResult>(ok => Ok(ok.Data), fail => this.ToBlogProblem(fail.Error));
+        return result.Match<IActionResult>(ok => Ok(ok.Data), fail => this.ToProblem(fail.Error));
     }
 
     [HttpGet("catalogue")]
@@ -94,7 +94,7 @@ public sealed class BlogAdminController(ISender sender) : ControllerBase
     {
         var result = await sender.SendAsync(new CatalogueProductGetAllQuery(), ct);
 
-        return result.Match<IActionResult>(ok => Ok(ok.Data), fail => this.ToBlogProblem(fail.Error));
+        return result.Match<IActionResult>(ok => Ok(ok.Data), fail => this.ToProblem(fail.Error));
     }
 
     [HttpGet("export/site.zip")]
@@ -104,7 +104,7 @@ public sealed class BlogAdminController(ISender sender) : ControllerBase
 
         return result.Match<IActionResult>(
             ok => File(ok.Data, "application/zip", "ocharo-blog-site.zip"),
-            fail => this.ToBlogProblem(fail.Error));
+            fail => this.ToProblem(fail.Error));
     }
 
     [HttpGet("/media/{sha256}")]
@@ -123,7 +123,7 @@ public sealed class BlogAdminController(ISender sender) : ControllerBase
     {
         var result = await sender.SendAsync(new MediaContentGetQuery { Sha256 = sha256, Preview = preview }, ct);
 
-        return result.Match<IActionResult>(ok => Serve(ok.Data.Content), fail => this.ToBlogProblem(fail.Error));
+        return result.Match<IActionResult>(ok => Serve(ok.Data.Content), fail => this.ToProblem(fail.Error));
     }
 
     private IActionResult Serve(MediaContent? opened)

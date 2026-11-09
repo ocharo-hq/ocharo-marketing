@@ -38,7 +38,6 @@ Each is a fix for the SDK, not a product workaround; the narrow product adapter 
 | `MarkdownEditor` view-mode labels have no locale key | `engineering` | Editorial's translated selector hides the SDK one (`SectionTextEditor.vue`) until the SDK localizes them. |
 | The router exposes no app-wide unsaved-work state | `engineering` | `useNavigationBlocker` guards navigation only, so a frame cannot hold sign-out on it. Registry `packages/connect/src/UnsavedWork.ts` goes once the SDK exposes the blockers' combined state. |
 | `SelectPicker` lacks native `required`, `fieldset[disabled]` inheritance and `aria-label` | `engineering` | Adapter `packages/connect/src/MarketingSelect.vue`; delete it once the SDK picker validates, inherits disabled state and takes accessible naming (still open in 0.0.41). |
-| be sdk `SpaHosting` has no path prefix | `engineering` | Blog serves the Editorial SPA under `/studio/` and answers other non-API paths with its own 404 endpoint so public pages never get the Studio shell; delete it once `SpaHosting` takes a prefix. |
 | `MIGRATION.md` skips published versions | `engineering` | No rows for 0.0.29, 0.0.30 or 0.0.37 onward; the SDK records every published version. |
 
 ## Identity follow-ups

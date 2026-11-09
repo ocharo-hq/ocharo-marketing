@@ -240,8 +240,7 @@ public sealed class FilesMediaStore(
 /// <summary>Fills the file id of each file stored before Files from the files the migration moved: every Editorial file
 /// in
 /// Files, matched by SHA-256 (Files t9 #5 step 6). Runs at boot as Editorial itself; a file the migration has not moved
-/// yet
-/// keeps reading from the local blob folder.</summary>
+/// yet keeps reading from the local blob folder.</summary>
 public sealed class FilesMediaBackfill(IBlogRepository repository, IFileStoreBroker files, SqliteImportGate gate,
     ILogger<FilesMediaBackfill> logger)
 {

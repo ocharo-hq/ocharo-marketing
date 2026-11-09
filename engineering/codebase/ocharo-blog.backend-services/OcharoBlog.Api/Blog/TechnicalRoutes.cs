@@ -2,8 +2,7 @@ namespace OcharoBlog.Api.Blog;
 
 /// <summary>
 /// Names the technical routes the access middleware answers before sign-in: health, service status and the public
-/// runtime settings.
-/// </summary>
+/// runtime settings. </summary>
 public static class TechnicalRoutes
 {
     /// <summary>The technical paths, without a trailing slash.</summary>

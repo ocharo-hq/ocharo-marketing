@@ -5,8 +5,7 @@ namespace OcharoBlog.Api.Access;
 /// (<c>/api/public/*</c>), the public site and the Studio's files answer anonymously; the rest of <c>/api</c>, previews
 /// and
 /// non-public media need a session of the bound organization. <see cref="Blog.TechnicalRoutes"/> names the technical
-/// routes.
-/// The live export routes take a service token instead.
+/// routes. The live export routes take a service token instead.
 /// </summary>
 public static class EditorialAccess
 {
@@ -54,8 +53,7 @@ public static class EditorialAccess
         || path == "/preview" || path.StartsWith("/preview/", StringComparison.Ordinal);
 
     /// <summary>Whether a path names media, which is public while a published article, the site settings or the
-    /// published
-    /// brand logo use it.</summary>
+    /// published brand logo use it.</summary>
     public static bool IsMediaRoute(string path) => path.StartsWith("/media/", StringComparison.Ordinal);
 
     /// <summary>Whether a path names an approval action.</summary>

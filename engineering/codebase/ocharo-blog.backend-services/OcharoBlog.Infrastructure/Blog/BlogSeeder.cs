@@ -15,8 +15,7 @@ namespace OcharoBlog.Infrastructure.Blog;
 /// published — matching the existing preview — while the site-wide noindex stays on until the owner launches. The
 /// seed
 /// runs at boot, which reads failures as exceptions: a refused save leaves through the SDK's error bridge and fails the
-/// boot.
-/// </summary>
+/// boot. </summary>
 public sealed class BlogSeeder(IBlogRepository repository, IMediaStore media, SiteSettingsService settings,
     IOptions<BlogOptions> options,
     TimeProvider time, SqliteImportGate gate, ILogger<BlogSeeder> logger)

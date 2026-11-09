@@ -141,7 +141,7 @@ Each row's outcome: fixed (with the commit), excepted (with the reason) or waiti
 | M-9 | fixed | loopback URLs, `AllowedHosts` and Blog's trusted origin moved to the gitignored `appsettings.Local.json`; `deploy.yml` sets every removed key dev needs |
 | M-11 | fixed, one part excepted | both hosts on `AddApiDefaults`/`UseApiDefaults`; `AddHttpProblemDetails` stays because `problem-details.md` composes it beside the bundle |
 | M-12 | fixed | `/health` from the bundle with the database readiness check |
-| M-13 | fixed | `SpaHosting` in both hosts; Blog keeps `/studio/` with its own non-API 404 until the SDK takes a prefix (backlog SDK gaps) |
+| M-13 | fixed | `SpaHosting` in both hosts; Blog serves Editorial with the be sdk `PathPrefix = "/studio"` added for it in `10.0.110-beta` (`wow-two-sdk-beta.be` `be367d5`) |
 | M-14 | fixed | `AddControllersWithSdkJson()`; no enum or `TimeSpan` reaches the wire, omitted nulls read back as `null` in both frontends' decoders |
 | M-15 | fixed | `Program.cs` hands `args` to `ServiceHost.RunAsync` in both hosts |
 | M-16 | fixed | `PublishedProductVerifier`, `DeliveryPolicy` and `PublicInquiriesController` take option records |

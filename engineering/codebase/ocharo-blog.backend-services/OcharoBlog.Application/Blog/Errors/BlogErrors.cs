@@ -3,25 +3,16 @@ using WoW.Two.Sdk.Beta.Be.Foundation.Errors;
 namespace OcharoBlog.Application.Blog.Errors;
 
 /// <summary>Holds the error catalogue of Editorial's blog use cases; the host maps each to the status the API has
-/// always
-/// answered it with.</summary>
+/// always answered it with.</summary>
 public static class BlogErrors
 {
     /// <summary>The metadata key that marks a dependency Editorial needs as unavailable: the host answers it 503 under
-    /// the
-    /// <c>Unexpected</c> code the API has always given it.</summary>
+    /// the <c>Unexpected</c> code the API has always given it.</summary>
     public const string UnavailableKey = "unavailable";
 
     /// <summary>The metadata key that marks a call WoW2 Files refused for a reason Editorial cannot name: the host
-    /// answers
-    /// it 502 under the <c>Unexpected</c> code the API has always given it.</summary>
+    /// answers it 502 under the <c>Unexpected</c> code the API has always given it.</summary>
     public const string FilesRefusedKey = "filesRefused";
-
-    /// <summary>The metadata key that marks an image beyond the size Editorial accepts: the host answers it 413 under
-    /// the
-    /// <c>PayloadTooLarge</c> code the API has always given it. The SDK release after 10.0.108 carries that kind as
-    /// <c>AppErrorType.PayloadTooLarge</c>, which replaces the mark.</summary>
-    public const string TooLargeKey = "tooLarge";
 
     /// <summary>Creates the error for input a use case refuses.</summary>
     /// <param name="message">What to change, as the editor reads it.</param>
@@ -51,7 +42,7 @@ public static class BlogErrors
 
     /// <summary>Creates the error for an image beyond the size Editorial accepts.</summary>
     /// <param name="message">The limit, as the editor reads it.</param>
-    public static AppError TooLarge(string message) => Marked(AppErrorType.Validation, message, TooLargeKey);
+    public static AppError TooLarge(string message) => AppErrorFactory.PayloadTooLarge(message);
 
     /// <summary>Creates the error for work refused while image processing runs at capacity.</summary>
     /// <param name="message">When to retry, as the editor reads it.</param>

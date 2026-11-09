@@ -1,12 +1,12 @@
 using System.Globalization;
 using Microsoft.AspNetCore.Mvc;
-using OcharoBlog.Api.Blog.Errors;
 using OcharoBlog.Application.Blog.Commands;
 using OcharoBlog.Application.Blog.Models;
 using OcharoBlog.Application.Blog.Queries;
 using OcharoBlog.Application.Blog.Services;
 using OcharoBlog.Infrastructure.Blog;
 using WoW.Two.Sdk.Beta.Be.Mediator;
+using WoW.Two.Sdk.Beta.Be.Web.ExceptionHandling.Extensions;
 
 namespace OcharoBlog.Api.Blog.Controllers;
 
@@ -34,7 +34,7 @@ public sealed class MediaEditingController(ISender sender) : ControllerBase
                 maximumDimension = MediaEditingService.MaximumDimension,
                 backgroundRemoval = ok.Data,
             }),
-            fail => this.ToBlogProblem(fail.Error));
+            fail => this.ToProblem(fail.Error));
     }
 
     [HttpPost("{sha}/edits/preview")]
@@ -51,7 +51,7 @@ public sealed class MediaEditingController(ISender sender) : ControllerBase
                 Response.Headers["X-Image-Height"] = ok.Data.Height.ToString(CultureInfo.InvariantCulture);
                 return File(ok.Data.Bytes, ok.Data.ContentType);
             },
-            fail => this.ToBlogProblem(fail.Error));
+            fail => this.ToProblem(fail.Error));
     }
 
     [HttpPost("{sha}/edits")]
@@ -75,7 +75,7 @@ public sealed class MediaEditingController(ISender sender) : ControllerBase
                 ok.Data.Height,
                 $"/media/{ok.Data.Sha256}",
                 MediaPreview.Exists(ok.Data) ? $"/media/{ok.Data.Sha256}/preview" : null)),
-            fail => this.ToBlogProblem(fail.Error));
+            fail => this.ToProblem(fail.Error));
     }
 
     [HttpGet("{sha}/edits")]
@@ -83,6 +83,6 @@ public sealed class MediaEditingController(ISender sender) : ControllerBase
     {
         var result = await sender.SendAsync(new MediaEditGetAllQuery { Sha256 = sha }, ct);
 
-        return result.Match<IActionResult>(ok => Ok(ok.Data), fail => this.ToBlogProblem(fail.Error));
+        return result.Match<IActionResult>(ok => Ok(ok.Data), fail => this.ToProblem(fail.Error));
     }
 }
