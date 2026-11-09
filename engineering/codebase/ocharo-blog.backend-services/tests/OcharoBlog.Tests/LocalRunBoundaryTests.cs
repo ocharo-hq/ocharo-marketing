@@ -30,7 +30,7 @@ public sealed class LocalRunBoundaryTests
                 {
                     ["ConnectionStrings:OcharoBlog"] = $"Data Source={Path.Combine(root, "api.db")};Pooling=False",
                     ["Blog:DataRoot"] = Path.Combine(root, "data"),
-                    ["Blog:SeedFile"] = Path.Combine(root, "no-seed.json"), ["Blog:RunScheduler"] = "false",
+                    ["Blog:SeedFile"] = Path.Combine(root, "no-seed.json"), ["Blog:SchedulerSeconds"] = "0",
                 }));
                 builder.ConfigureServices(services =>
                 {

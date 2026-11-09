@@ -11,7 +11,9 @@ using OcharoBlog.Domain.Blog;
 namespace OcharoBlog.Application.Blog.Site;
 
 /// <summary>Publication-specific public experiences over the same reviewed editorial documents.</summary>
-public sealed partial class PublicationSiteService(IBlogRepository repository, SiteService blog, ICatalogueFeed catalogue, IMediaStore media, PublicationSiteOptions? options = null)
+public sealed partial class PublicationSiteService(
+    IBlogRepository repository, SiteService blog, ICatalogueFeed catalogue, IMediaStore media, TimeProvider time,
+    PublicationSiteOptions? options = null)
 {
     private sealed record Model(SiteSettings Settings, IReadOnlyList<ArticleDocument> Documents, IReadOnlyList<CatalogueProduct> Products,
         Func<string, string> Media, bool Preview, CatalogueEdition? Edition, string Locale, bool IsStaticExport = false, string? CatalogueAdminUrl = null, IReadOnlyList<string>? AvailableLocales = null, IReadOnlyList<CatalogueCollection>? Catalogues = null);
@@ -238,7 +240,10 @@ public sealed partial class PublicationSiteService(IBlogRepository repository, S
             foreach(var path in paths){var html=Render(model,path,new Dictionary<string,string>());if(html is not null)Text(path.TrimStart('/')+"index.html",html);}
             Text("index.html",Render(model,$"/{publication}/",new Dictionary<string,string>())!);Text($"{publication}/boot-splash.css",PublicDocumentPaint.Css);Text($"{publication}/site.css",Css);Text($"{publication}/site.js",Script);
             Text("robots.txt",model.Settings.NoIndex?"User-agent: *\nDisallow: /\n":"User-agent: *\nAllow: /\n");
-            Text("publication.json",System.Text.Json.JsonSerializer.Serialize(new{schemaVersion=1,publication,locale=model.Locale,generatedAt=DateTimeOffset.UtcNow,pages=paths.Count,noIndex=model.Settings.NoIndex,catalogueEditionId=publication=="catalogue"?model.Edition?.Id:null,catalogueSlugs=publication=="catalogue"?model.Catalogues?.Select(item=>item.Slug).ToArray():null}));
+            Text("publication.json",System.Text.Json.JsonSerializer.Serialize(new{schemaVersion=1,publication,
+                locale=model.Locale,generatedAt=time.GetUtcNow(),pages=paths.Count,noIndex=model.Settings.NoIndex,
+                catalogueEditionId=publication=="catalogue"?model.Edition?.Id:null,
+                catalogueSlugs=publication=="catalogue"?model.Catalogues?.Select(item=>item.Slug).ToArray():null}));
             foreach(var file in editionFiles){await using var entry=zip.CreateEntry(file.Key,CompressionLevel.NoCompression).Open();await entry.WriteAsync(file.Value,ct);}
             foreach(var sha in used){var opened=await media.ReadAsync(sha,true,ct);if(opened is null)continue;await using var input=opened.Value.Content;await using var entry=zip.CreateEntry($"media/{sha}.webp",CompressionLevel.NoCompression).Open();await input.CopyToAsync(entry,ct);}
         }

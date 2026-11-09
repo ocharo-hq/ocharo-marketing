@@ -5,6 +5,9 @@ public sealed class BlogOptions
 {
     public const string Section = "Blog";
 
+    /// <summary>The fewest seconds between scheduled-publishing passes; <c>0</c> turns the passes off.</summary>
+    public const int MinimumSchedulerSeconds = 5;
+
     /// <summary>The Identity organization this Editorial instance belongs to; only its members reach the private routes. Required.</summary>
     public Guid OrganizationId { get; set; }
 
@@ -32,9 +35,23 @@ public sealed class BlogOptions
     /// <summary>Ocharo Desk origin for background removal, e.g. https://desk.example.com/; unset or not plain HTTPS leaves removal unavailable.</summary>
     public string? DeskBaseUrl { get; set; }
 
-    /// <summary>How often scheduled stories are checked.</summary>
+    /// <summary>Ocharo Marketing origin the public enquiry relay posts to; unset or not plain HTTPS answers enquiries
+    /// with 503.</summary>
+    public string? MarketingBaseUrl { get; set; }
+
+    /// <summary>Other HTTPS origins, such as <c>https://studio.example.com</c>, whose writes Editorial accepts
+    /// besides its own; each is scheme, host and an optional port, with no path.</summary>
+    public IList<string> TrustedOrigins { get; set; } = [];
+
+    /// <summary>Seconds between scheduled-publishing passes: <c>0</c> turns them off, else at least
+    /// <see cref="MinimumSchedulerSeconds"/>.</summary>
     public int SchedulerSeconds { get; set; } = 30;
 
     public long MaximumImageBytes { get; set; } = 30 * 1024 * 1024;
     public int PreviewSize { get; set; } = 1400;
+
+    /// <summary>Whether <paramref name="value"/> is an HTTPS origin: scheme, host and an optional port.</summary>
+    public static bool IsHttpsOrigin(string? value) =>
+        Uri.TryCreate(value, UriKind.Absolute, out var uri) && uri.Scheme == Uri.UriSchemeHttps
+        && uri.UserInfo.Length == 0 && uri.GetLeftPart(UriPartial.Authority) == value;
 }

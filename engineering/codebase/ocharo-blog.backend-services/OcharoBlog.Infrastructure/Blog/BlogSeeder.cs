@@ -2,7 +2,6 @@ using System.Text.Json;
 using System.Text.Json.Serialization;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
-using OcharoBlog.Application.Abstractions;
 using OcharoBlog.Application.Blog;
 using OcharoBlog.Application.Blog.Repositories;
 using OcharoBlog.Application.Blog.Services;
@@ -15,7 +14,7 @@ namespace OcharoBlog.Infrastructure.Blog;
 /// published — matching the existing preview — while the site-wide noindex stays on until the owner launches.
 /// </summary>
 public sealed class BlogSeeder(IBlogRepository repository, IMediaStore media, SiteSettingsService settings, IOptions<BlogOptions> options,
-    IClock clock, ILogger<BlogSeeder> logger)
+    TimeProvider time, ILogger<BlogSeeder> logger)
 {
     public async Task<int> SeedIfEmptyAsync(string contentRoot, CancellationToken ct)
     {
@@ -42,7 +41,7 @@ public sealed class BlogSeeder(IBlogRepository repository, IMediaStore media, Si
             return images[name] = stored.Sha256;
         }
 
-        var now = clock.UtcNow;
+        var now = time.GetUtcNow();
         for (var i = 0; i < seed.Stories.Count; i++)
         {
             var s = seed.Stories[i];

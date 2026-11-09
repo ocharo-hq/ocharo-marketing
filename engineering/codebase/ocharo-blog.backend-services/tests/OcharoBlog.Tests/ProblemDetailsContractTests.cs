@@ -29,7 +29,7 @@ public sealed class ProblemDetailsContractTests
                     ["ConnectionStrings:OcharoBlog"] = $"Data Source={Path.Combine(root, "api.db")};Pooling=False",
                     ["Blog:DataRoot"] = Path.Combine(root, "data"),
                     ["Blog:SeedFile"] = Path.Combine(root, "no-seed.json"),
-                    ["Blog:RunScheduler"] = "false",
+                    ["Blog:SchedulerSeconds"] = "0",
                 }));
                 builder.ConfigureServices(EditorialSignIn.Use);
             });

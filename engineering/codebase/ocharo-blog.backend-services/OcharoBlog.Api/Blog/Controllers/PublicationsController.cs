@@ -1,5 +1,6 @@
 using Microsoft.AspNetCore.Mvc;
 using OcharoBlog.Application.Blog.Site;
+using WoW.Two.Sdk.Beta.Be.Web.SecureHeaders;
 
 namespace OcharoBlog.Api.Blog.Controllers;
 
@@ -22,6 +23,8 @@ public sealed class PublicationsController(PublicationSiteService publications) 
 
   [HttpGet("/preview/apps/{publication:regex(^(atlas|wear|catalogue)$)}")]
   [HttpGet("/preview/apps/{publication:regex(^(atlas|wear|catalogue)$)}/{**tail}")]
+  [SecureHeaderOverride(StudioPreviewFraming.FrameOptionsHeader, StudioPreviewFraming.SameOrigin)]
+  [SecureHeaderOverride(StudioPreviewFraming.PolicyHeader, StudioPreviewFraming.Policy)]
   public Task<IActionResult> Preview(
       string publication,
       string? tail,

@@ -2,6 +2,7 @@ using Microsoft.AspNetCore.Mvc;
 using OcharoBlog.Application.Blog.Models;
 using OcharoBlog.Application.Blog.Services;
 using OcharoBlog.Application.Blog.Site;
+using WoW.Two.Sdk.Beta.Be.Web.SecureHeaders;
 
 namespace OcharoBlog.Api.Blog.Controllers;
 /// <summary>Story editor API: CRUD, lifecycle (publish, schedule, unpublish, archive) and history.</summary>
@@ -140,6 +141,8 @@ public sealed class ArticlesController(
 
   /// <summary>Server-rendered preview of any story, exactly as the public page would look.</summary>
   [HttpGet("/preview/{id:guid}")]
+  [SecureHeaderOverride(StudioPreviewFraming.FrameOptionsHeader, StudioPreviewFraming.SameOrigin)]
+  [SecureHeaderOverride(StudioPreviewFraming.PolicyHeader, StudioPreviewFraming.Policy)]
   public async Task<IActionResult> Preview(Guid id, CancellationToken ct)
   {
     var item = await articles.GetAsync(id, ct);

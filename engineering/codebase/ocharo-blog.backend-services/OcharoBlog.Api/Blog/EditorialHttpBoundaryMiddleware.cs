@@ -1,4 +1,5 @@
 using OcharoBlog.Api.Access;
+using OcharoBlog.Infrastructure.Blog;
 
 namespace OcharoBlog.Api.Blog;
 
@@ -7,7 +8,7 @@ namespace OcharoBlog.Api.Blog;
 /// <c>nosniff</c>, the API, previews and media are <c>no-store</c>, and a write must come from this origin or
 /// <c>Blog:TrustedOrigins</c>. Who may call what is <see cref="EditorialAccessMiddleware"/>'s.
 /// </summary>
-public sealed class EditorialHttpBoundaryMiddleware(RequestDelegate next, IConfiguration configuration)
+public sealed class EditorialHttpBoundaryMiddleware(RequestDelegate next, BlogOptions options)
 {
     public async Task InvokeAsync(HttpContext context)
     {
@@ -45,6 +46,6 @@ public sealed class EditorialHttpBoundaryMiddleware(RequestDelegate next, IConfi
             || uri.AbsolutePath != "/" || uri.Query.Length > 0 || uri.Fragment.Length > 0) return false;
         var authority = uri.GetLeftPart(UriPartial.Authority);
         if (string.Equals(authority, $"{request.Scheme}://{request.Host.Value}", StringComparison.OrdinalIgnoreCase)) return true;
-        return (configuration.GetSection("Blog:TrustedOrigins").Get<string[]>() ?? []).Contains(authority, StringComparer.OrdinalIgnoreCase);
+        return options.TrustedOrigins.Contains(authority, StringComparer.OrdinalIgnoreCase);
     }
 }

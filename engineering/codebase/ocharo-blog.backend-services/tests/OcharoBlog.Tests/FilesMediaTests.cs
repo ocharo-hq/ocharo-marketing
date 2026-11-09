@@ -356,7 +356,7 @@ public sealed class FilesMediaTests : IAsyncDisposable
                 ["Blog:SeedAssetRoot"] = assets,
                 ["Blog:CatalogueBaseUrl"] = "",
                 ["Blog:BrandBaseUrl"] = "",
-                ["Blog:RunScheduler"] = "false",
+                ["Blog:SchedulerSeconds"] = "0",
                 ["Files:BaseUrl"] = files is null ? null : TestFiles.Url,
             }).AddInMemoryCollection(settings ?? new Dictionary<string, string?>()));
             builder.ConfigureServices(collection => EditorialSignIn.Use(collection));

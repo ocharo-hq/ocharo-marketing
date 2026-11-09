@@ -1,6 +1,5 @@
 using System.IO.Compression;
 using System.Text;
-using OcharoBlog.Application.Abstractions;
 using OcharoBlog.Application.Blog.Models;
 using OcharoBlog.Application.Blog.Repositories;
 using OcharoBlog.Application.Blog.Services;
@@ -13,7 +12,7 @@ public sealed record SitePage(string Content, string ContentType);
 
 /// <summary>Serves the public site from live data, renders previews, and exports a static copy.</summary>
 public sealed class SiteService(IBlogRepository repository, TopicService topics, SiteSettingsService settings, ICatalogueFeed catalogue,
-    IBrandKit brand, IMediaStore media, IClock clock)
+    IBrandKit brand, IMediaStore media, TimeProvider time)
 {
     private static readonly Lazy<string> Theme = new(() =>
     {
@@ -41,9 +40,9 @@ public sealed class SiteService(IBlogRepository repository, TopicService topics,
             ? (await catalogue.GetProductsAsync(ct)).ToDictionary(p => p.Id)
             : new Dictionary<string, CatalogueProduct>();
         var kit = await brand.GetAsync(ct);
-        var badge = live && kit?.Event is { } ev && ev.EndsAt > clock.UtcNow ? ev : null;
+        var badge = live && kit?.Event is { } ev && ev.EndsAt > time.GetUtcNow() ? ev : null;
         return new SiteModel(await BrandedAsync((await settings.GetAsync(ct)).Settings, kit, ct), await topics.ListAsync(ct), stories, products,
-            mediaUrl, clock.UtcNow, language, editions, available, badge);
+            mediaUrl, time.GetUtcNow(), language, editions, available, badge);
     }
 
     /// <summary>

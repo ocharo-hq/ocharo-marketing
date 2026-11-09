@@ -6,13 +6,11 @@ using OcharoBlog.Application.Blog.Site;
 namespace OcharoBlog.Tests;
 public sealed class VersionReportingTests
 {
-    [Theory]
-    [InlineData("/health")]
-    [InlineData("/api/system/status")]
-    public async Task Status_reports_the_actual_host_assembly_version(string path)
+    [Fact]
+    public async Task Status_reports_the_actual_host_assembly_version()
     {
         await using var harness = new BlogHarness();
-        var result = await harness.Client().GetFromJsonAsync<JsonElement>(path);
+        var result = await harness.Client().GetFromJsonAsync<JsonElement>("/api/system/status");
         var expected = typeof(HostConfiguration).Assembly.GetCustomAttribute<AssemblyInformationalVersionAttribute>()!.InformationalVersion;
         Assert.Equal(expected, result.GetProperty("version").GetString());
     }

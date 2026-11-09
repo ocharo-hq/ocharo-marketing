@@ -3,7 +3,7 @@ using Microsoft.AspNetCore.Mvc.Testing;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection.Extensions;
-using OcharoBlog.Application.Abstractions;
+using Microsoft.Extensions.Time.Testing;
 using SkiaSharp;
 
 namespace OcharoBlog.Tests;
@@ -12,7 +12,7 @@ namespace OcharoBlog.Tests;
 public sealed class BlogHarness : IAsyncDisposable
 {
     public string Root { get; } = Path.Combine(Path.GetTempPath(), "ocharo-blog-tests", Guid.NewGuid().ToString("N"));
-    public FixedClock Clock { get; } = new();
+    public FakeTimeProvider Clock { get; } = new(new DateTimeOffset(2026, 9, 28, 9, 0, 0, TimeSpan.Zero));
     public WebApplicationFactory<Program> Factory { get; }
 
     public BlogHarness(bool seed = true, bool seedImages = true, string? catalogueUrl = null, string? brandUrl = null,
@@ -39,13 +39,13 @@ public sealed class BlogHarness : IAsyncDisposable
                 ["Blog:SeedAssetRoot"] = relativeSeedAssets ? Path.GetRelativePath(context.HostingEnvironment.ContentRootPath, assets) : assets,
                 ["Blog:CatalogueBaseUrl"] = catalogueUrl ?? "",
                 ["Blog:BrandBaseUrl"] = brandUrl ?? "",
-                ["Blog:RunScheduler"] = "false",
+                ["Blog:SchedulerSeconds"] = "0",
                 ["Blog:CatalogueAdminUrl"] = catalogueAdminUrl,
             }));
             builder.ConfigureServices(collection =>
             {
                 EditorialSignIn.Use(collection);
-                collection.Replace(ServiceDescriptor.Singleton<IClock>(Clock));
+                collection.Replace(ServiceDescriptor.Singleton<TimeProvider>(Clock));
                 services?.Invoke(collection);
             });
         });
@@ -72,10 +72,4 @@ public sealed class BlogHarness : IAsyncDisposable
         using var image = SKImage.FromBitmap(bitmap);
         return image.Encode(SKEncodedImageFormat.Png, 100).ToArray();
     }
-}
-
-/// <summary>Deterministic, movable clock.</summary>
-public sealed class FixedClock : IClock
-{
-    public DateTimeOffset UtcNow { get; set; } = new(2026, 9, 28, 9, 0, 0, TimeSpan.Zero);
 }

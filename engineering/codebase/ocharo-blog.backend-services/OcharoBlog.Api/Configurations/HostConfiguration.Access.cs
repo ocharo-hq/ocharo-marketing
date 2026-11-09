@@ -60,7 +60,7 @@ public static partial class HostConfiguration
 
     /// <summary>Configures the session pipeline: HTTPS for the session routes, the BFF (authentication, the <c>X-Csrf-Token</c>
     /// check, authorization), then the bound-organization membership and permission check.</summary>
-    private static WebApplication UseAccess(this WebApplication app)
+    private static IApplicationBuilder UseAccess(this IApplicationBuilder app)
     {
         app.Use(async (context, next) =>
         {

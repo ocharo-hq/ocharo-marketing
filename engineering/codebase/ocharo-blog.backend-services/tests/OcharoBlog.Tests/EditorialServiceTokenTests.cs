@@ -8,6 +8,7 @@ using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Mvc.Testing;
 using Microsoft.AspNetCore.WebUtilities;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Time.Testing;
 using Microsoft.IdentityModel.JsonWebTokens;
 using OcharoBlog.Api.Access;
 using OcharoBlog.Application.Blog.Models;
@@ -250,7 +251,7 @@ public sealed class EditorialServiceTokenTests
     {
         using var issuer = new FakeTokenIssuer();
         using var stranger = new FakeTokenIssuer();
-        using var past = new FakeTokenIssuer(clock: new PastClock());
+        using var past = new FakeTokenIssuer(clock: new FakeTimeProvider(DateTimeOffset.UtcNow.AddHours(-1)));
         await using var harness = new BlogHarness(seed: false, services: services => services.AddFakeTokenIssuer(issuer));
         var person = new FakePerson { Id = Guid.NewGuid(), OrganizationId = Organization, Role = "owner", Permissions = ["editorial:edit"], SessionId = Guid.NewGuid() };
 
@@ -529,11 +530,6 @@ public sealed class EditorialServiceTokenTests
             rig.TokenRequests.Enqueue(new(request.RequestUri!, await request.Content!.ReadAsStringAsync(cancellationToken)));
             return rig.TokenAnswer is { } answer ? answer() : await base.SendAsync(request, cancellationToken);
         }
-    }
-
-    private sealed class PastClock : TimeProvider
-    {
-        public override DateTimeOffset GetUtcNow() => base.GetUtcNow().AddHours(-1);
     }
 }
 

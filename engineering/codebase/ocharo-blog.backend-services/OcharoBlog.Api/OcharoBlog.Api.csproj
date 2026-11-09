@@ -7,7 +7,6 @@
     <PackageReference Include="WoW2.Sdk.Beta.Be.Identity.Client" />
     <!-- Media: WoW2 Files over HTTP, by Identity tokens of the same `editorial` client. -->
     <PackageReference Include="WoW2.Sdk.Beta.Be.Files.Client" />
-    <PackageReference Include="Microsoft.AspNetCore.OpenApi" />
   </ItemGroup>
 
   <ItemGroup>

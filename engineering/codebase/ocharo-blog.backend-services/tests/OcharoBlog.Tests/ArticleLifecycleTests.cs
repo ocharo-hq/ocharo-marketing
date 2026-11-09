@@ -74,9 +74,10 @@ public sealed class ArticleLifecycleTests
         var story = await articles.CreateAsync(Story(), CancellationToken.None);
 
         var refused = await Assert.ThrowsAsync<BlogException>(() => articles.PublishAsync(empty.Id, 1, CancellationToken.None));
-        var scheduled = await articles.ScheduleAsync(story.Id, 1, harness.Clock.UtcNow.AddHours(2), CancellationToken.None);
+        var publishAt = harness.Clock.GetUtcNow().AddHours(2);
+        var scheduled = await articles.ScheduleAsync(story.Id, 1, publishAt, CancellationToken.None);
         var early = await articles.PublishDueAsync(CancellationToken.None);
-        harness.Clock.UtcNow = harness.Clock.UtcNow.AddHours(3);
+        harness.Clock.Advance(TimeSpan.FromHours(3));
         var due = await articles.PublishDueAsync(CancellationToken.None);
         var live = await articles.GetAsync(story.Id, CancellationToken.None);
 

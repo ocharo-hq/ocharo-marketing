@@ -11,7 +11,7 @@
 
   <ItemGroup>
     <!-- wow-two backend SDK (kit): mediator, Result/DomainError, IKeyedEntity, web/problem-details. On nuget.org. -->
-    <PackageVersion Include="WoW2.Sdk.Beta.Be" Version="10.0.105-beta" />
+    <PackageVersion Include="WoW2.Sdk.Beta.Be" Version="10.0.106-beta" />
     <!-- Sign-in through Ocharo's Identity instance: the BFF (session cookie, OIDC code flow with PKCE, X-Csrf-Token). -->
     <PackageVersion Include="WoW2.Sdk.Beta.Be.Identity.Client" Version="10.0.30-beta" />
     <!-- The organization claim readers Infrastructure's image worker checks; same version as the client above. -->
@@ -23,7 +23,6 @@
 
   <ItemGroup>
     <!-- ASP.NET Core / EF Core (.NET 10). Floors satisfy the kit's transitive minimums (no downgrades). -->
-    <PackageVersion Include="Microsoft.AspNetCore.OpenApi" Version="10.0.12" />
     <PackageVersion Include="Microsoft.EntityFrameworkCore" Version="10.0.14" />
     <PackageVersion Include="Microsoft.EntityFrameworkCore.Sqlite" Version="10.0.14" />
     <PackageVersion Include="Microsoft.Extensions.DependencyInjection.Abstractions" Version="10.0.14" />
@@ -41,6 +40,7 @@
     <PackageVersion Include="Microsoft.AspNetCore.Mvc.Testing" Version="10.0.9" />
     <PackageVersion Include="xunit" Version="2.9.2" />
     <PackageVersion Include="xunit.runner.visualstudio" Version="2.8.2" />
+    <PackageVersion Include="Microsoft.Extensions.TimeProvider.Testing" Version="10.7.0" />
     <!-- Service tokens with no Identity running: the fake issuer and its token endpoint; same version as the client above. -->
     <PackageVersion Include="WoW2.Sdk.Beta.Be.Identity.Testing" Version="10.0.30-beta" />
   </ItemGroup>

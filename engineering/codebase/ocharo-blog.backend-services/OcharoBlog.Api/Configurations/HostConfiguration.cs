@@ -1,5 +1,3 @@
-using WoW.Two.Sdk.Beta.Be.Foundation.Configuration;
-
 namespace OcharoBlog.Api.Configurations;
 
 /// <summary>Extends the host builder and the web application for startup wiring.</summary>
@@ -9,12 +7,10 @@ public static partial class HostConfiguration
     public static WebApplicationBuilder Configure(this WebApplicationBuilder builder)
     {
         builder
-            .AddSettingsFiles()
-            .AddForwardedHeaders()
+            .AddHostDefaults()
             .AddAccess()
             .AddInquiries()
             .AddSqliteDatabase()
-            .AddClock()
             .AddBlog()
             .AddMedia()
             .AddCatalogue()

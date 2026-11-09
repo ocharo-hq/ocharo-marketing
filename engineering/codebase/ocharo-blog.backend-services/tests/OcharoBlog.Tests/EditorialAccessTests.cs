@@ -139,13 +139,11 @@ public sealed class EditorialAccessTests
         File.WriteAllText(Path.Combine(root, "studio", "assets", "app.js"), "export {};");
         try
         {
-            using var files = new PhysicalFileProvider(root);
-            await using var host = EditorialHost.Create(new Dictionary<string, string?>(),
-                services: services => services.Configure<StaticFileOptions>(options => options.FileProvider = files));
+            await using var host = EditorialHost.Create(new Dictionary<string, string?>(), webRoot: root);
             using var client = Anonymous(host.Factory);
 
             using var bare = await client.GetAsync("/studio");
-            Assert.Equal(HttpStatusCode.Redirect, bare.StatusCode);
+            Assert.Equal(HttpStatusCode.MovedPermanently, bare.StatusCode);
             foreach (var path in new[] { "/studio/", "/studio/stories/123", "/studio/assets/app.js" })
                 Assert.Equal(HttpStatusCode.OK, (await client.GetAsync(path)).StatusCode);
         }
@@ -339,7 +337,7 @@ public sealed class EditorialAccessTests
     }
 
     [Theory]
-    [InlineData("/health", false)]
+    [InlineData("/health", true)]
     [InlineData("/", false)]
     [InlineData("/api/runtime-config", true)]
     [InlineData("/api/public/anything", true)]
@@ -386,7 +384,7 @@ public sealed class EditorialAccessTests
         var failure = Record.Exception(() => host.Factory.CreateClient());
 
         Assert.NotNull(failure);
-        Assert.Contains("Blog:OrganizationId", failure.ToString());
+        Assert.Contains("OrganizationId", failure.ToString());
     }
 
     [Theory]
@@ -432,19 +430,13 @@ public sealed class EditorialAccessTests
         using var created = await harness.Client().PostAsJsonAsync("/api/blog/articles", Guide);
         created.EnsureSuccessStatusCode();
         var id = (await created.Content.ReadFromJsonAsync<JsonElement>()).GetProperty("id").GetGuid();
-        await harness.Get<ArticleService>().ScheduleAsync(id, 1, harness.Clock.UtcNow.AddHours(2), CancellationToken.None);
+        var publishAt = harness.Clock.GetUtcNow().AddHours(2);
+        await harness.Get<ArticleService>().ScheduleAsync(id, 1, publishAt, CancellationToken.None);
         Assert.Equal(HttpStatusCode.NotFound, (await anonymous.GetAsync("/wear/guides/a-wear-guide/")).StatusCode);
-        harness.Clock.UtcNow = harness.Clock.UtcNow.AddHours(3);
+        harness.Clock.Advance(TimeSpan.FromHours(3));
 
-        var worker = ActivatorUtilities.CreateInstance<ScheduledPublishingWorker>(harness.Factory.Services);
-        await worker.StartAsync(CancellationToken.None);
-        try
-        {
-            var deadline = DateTime.UtcNow.AddSeconds(10);
-            while ((await anonymous.GetAsync("/wear/guides/a-wear-guide/")).StatusCode != HttpStatusCode.OK && DateTime.UtcNow < deadline)
-                await Task.Delay(50);
-        }
-        finally { await worker.StopAsync(CancellationToken.None); }
+        // The periodic job runs this pass every Blog:SchedulerSeconds; the harness turns the job off and runs it once.
+        await harness.Get<ScheduledPublisher>().PublishDueAsync(CancellationToken.None);
 
         Assert.Equal(HttpStatusCode.OK, (await anonymous.GetAsync("/wear/guides/a-wear-guide/")).StatusCode);
     }

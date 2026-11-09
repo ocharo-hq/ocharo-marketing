@@ -1,6 +1,5 @@
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
-using OcharoBlog.Application.Abstractions;
 using OcharoBlog.Application.Blog;
 using OcharoBlog.Application.Blog.Repositories;
 using OcharoBlog.Application.Blog.Services;
@@ -41,7 +40,7 @@ public sealed class FilesMediaStore(
     IFileStoreBroker store,
     MediaStore local,
     IOptions<BlogOptions> options,
-    IClock clock,
+    TimeProvider time,
     IImageService images) : IMediaStore
 {
     public Task<MediaBlobRecord> StoreAsync(byte[] bytes, string fileName, CancellationToken ct) => StoreCoreAsync(bytes, fileName, null, ct);
@@ -86,7 +85,7 @@ public sealed class FilesMediaStore(
             FileId = file.Id.ToString(),
             Width = info.Width,
             Height = info.Height,
-            StoredAt = clock.UtcNow,
+            StoredAt = time.GetUtcNow(),
         };
         if (edit is null) await repository.SaveMediaAsync(record, ct);
         else await repository.SaveMediaWithEditAsync(record, edit, ct);
@@ -157,7 +156,7 @@ public sealed class FilesMediaStore(
             ContentType = file.ContentType,
             ByteLength = file.Size,
             FileId = file.Id.ToString(),
-            StoredAt = clock.UtcNow,
+            StoredAt = time.GetUtcNow(),
         };
         await repository.SaveMediaAsync(record, ct);
         return record;

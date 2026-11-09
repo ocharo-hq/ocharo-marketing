@@ -1,7 +1,6 @@
 using System.Security.Cryptography;
 using System.Text;
 using System.Text.Json;
-using OcharoBlog.Application.Abstractions;
 using OcharoBlog.Application.Blog;
 using OcharoBlog.Application.Blog.Models;
 using OcharoBlog.Application.Blog.Services;
@@ -12,7 +11,8 @@ using WoW.Two.Sdk.Beta.Be.Media.Images;
 namespace OcharoBlog.Infrastructure.Blog;
 
 /// <summary>Applies SDK edits to immutable source bytes; preview never persists or changes stories.</summary>
-public sealed class MediaEditingService(IMediaStore media, IImageService images, IEditorialImageWorker worker, IClock clock) : IMediaEditingService
+public sealed class MediaEditingService(
+    IMediaStore media, IImageService images, IEditorialImageWorker worker, TimeProvider time) : IMediaEditingService
 {
     private static readonly SemaphoreSlim Operations = new(2, 2);
     public const int MaximumBytes = 20 * 1024 * 1024;
@@ -74,7 +74,8 @@ public sealed class MediaEditingService(IMediaStore media, IImageService images,
         var outputSha = Convert.ToHexStringLower(SHA256.HashData(result.Bytes));
         var identity = JsonSerializer.Serialize(new { source=sha,output=outputSha,recipe,model=result.Model,organization=actor.OrganizationId,user=actor.UserId }, BlogJson.Options);
         var edit = new MediaEditRecord { Id=Convert.ToHexStringLower(SHA256.HashData(Encoding.UTF8.GetBytes(identity))),
-            SourceSha256=sha,Sha256=outputSha,RecipeJson=json,OrganizationId=actor.OrganizationId,Actor=actor.UserId,Model=result.Model,CreatedAt=clock.UtcNow };
+            SourceSha256=sha,Sha256=outputSha,RecipeJson=json,OrganizationId=actor.OrganizationId,Actor=actor.UserId,
+            Model=result.Model,CreatedAt=time.GetUtcNow() };
         return await media.StoreEditedAsync(result.Bytes, $"edited-{sha[..12]}.{result.Extension}", edit, ct);
     }
 

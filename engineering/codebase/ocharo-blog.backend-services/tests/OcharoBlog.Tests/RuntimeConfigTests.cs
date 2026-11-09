@@ -193,7 +193,10 @@ internal sealed class EditorialHost : IAsyncDisposable
     /// <param name="logs">Keeps the host's warnings.</param>
     /// <param name="services">Service changes after the host's own.</param>
     /// <param name="realCookie">Keeps the BFF's own cookie scheme instead of the test sign-in, so every request is anonymous.</param>
-    public static EditorialHost Create(IReadOnlyDictionary<string, string?> settings, CapturedLogs? logs = null, Action<IServiceCollection>? services = null, bool realCookie = false)
+    /// <param name="webRoot">The folder the host serves files from, such as a Studio bundle; null keeps the project's.
+    /// </param>
+    public static EditorialHost Create(IReadOnlyDictionary<string, string?> settings, CapturedLogs? logs = null,
+        Action<IServiceCollection>? services = null, bool realCookie = false, string? webRoot = null)
     {
         var root = Path.Combine(Path.GetTempPath(), "ocharo-blog-runtime-config", Guid.NewGuid().ToString("N"));
         Directory.CreateDirectory(root);
@@ -202,10 +205,11 @@ internal sealed class EditorialHost : IAsyncDisposable
         configuration["ConnectionStrings:OcharoBlog"] = $"Data Source={Path.Combine(root, "api.db")};Pooling=False";
         configuration["Blog:DataRoot"] = Path.Combine(root, "data");
         configuration["Blog:SeedFile"] = Path.Combine(root, "no-seed.json");
-        configuration["Blog:RunScheduler"] = "false";
+        configuration["Blog:SchedulerSeconds"] = "0";
         var factory = new WebApplicationFactory<Program>().WithWebHostBuilder(builder =>
         {
             builder.UseEnvironment("Development");
+            if (webRoot is not null) builder.UseWebRoot(webRoot);
             EditorialSignIn.UseBootSettings(builder, configuration);
             builder.ConfigureAppConfiguration((_, config) => config.AddInMemoryCollection(configuration));
             builder.ConfigureServices(collection =>
@@ -213,8 +217,11 @@ internal sealed class EditorialHost : IAsyncDisposable
                 collection.RemoveAll<IHostedService>();
                 if (!realCookie) EditorialSignIn.Use(collection);
                 services?.Invoke(collection);
+                // The host logs through Serilog, which reads no logging providers: the captured logs replace its
+                // logger factory.
+                if (logs is not null)
+                    collection.AddSingleton<ILoggerFactory>(_ => LoggerFactory.Create(l => l.AddProvider(logs)));
             });
-            if (logs is not null) builder.ConfigureLogging(logging => logging.AddProvider(logs));
         });
         return new EditorialHost(root, factory);
     }

@@ -8,6 +8,7 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using OcharoBlog.Api.Blog.Controllers;
+using OcharoBlog.Infrastructure.Blog;
 using Xunit;
 
 namespace OcharoBlog.Tests;
@@ -208,7 +209,7 @@ public sealed class InquiryRelayTests
         Assert.Empty(handler.Attempts);
     }
 
-    // https://localhost:8284 is the local Vite origin, trusted in appsettings.json.
+    // https://localhost:8284 is the local Vite origin, which a local run trusts through appsettings.Local.json.
     [Theory]
     [InlineData("https://localhost")]
     [InlineData("https://localhost:8284")]
@@ -225,7 +226,10 @@ public sealed class InquiryRelayTests
     }
 
     private static EditorialHost RelayHost(HttpMessageHandler upstream) => EditorialHost.Create(
-        new Dictionary<string, string?> { ["Blog:MarketingBaseUrl"] = "https://receiver.test" },
+        new Dictionary<string, string?>
+        {
+            ["Blog:MarketingBaseUrl"] = "https://receiver.test", ["Blog:TrustedOrigins:0"] = "https://localhost:8284",
+        },
         services: collection => collection.AddHttpClient("ocharo-inquiries").ConfigurePrimaryHttpMessageHandler(() => upstream));
 
     private sealed class StaticHandler(HttpResponseMessage response) : HttpMessageHandler
@@ -239,9 +243,7 @@ public sealed class InquiryRelayTests
     private static PublicInquiriesController Controller(HttpMessageHandler handler,
         string? origin = "https://localhost:8354")
     {
-        var configuration = new ConfigurationBuilder().AddInMemoryCollection(
-            new Dictionary<string, string?> { ["Blog:MarketingBaseUrl"] = origin }).Build();
-        return new(configuration, new Factory(handler))
+        return new(new BlogOptions { MarketingBaseUrl = origin }, new Factory(handler))
         {
             ControllerContext = new ControllerContext { HttpContext = new DefaultHttpContext
             { RequestServices = new ServiceCollection().AddLogging().AddControllers().Services.BuildServiceProvider() } }

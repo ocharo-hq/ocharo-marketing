@@ -134,3 +134,17 @@ Each row's outcome: fixed (with the commit), excepted (with the reason) or waiti
 | M-33 | fixed where the SDK allows | `ActionButton` deleted; `MediaPicker`, `PickerTrigger` and `MarketingSelect` wait on open SDK gaps, listed in the backlog's SDK gaps |
 | M-34 | fixed | `packages/connect/src/session.ts` returns `Result` on its four expected failures |
 | M-35 | fixed in application and presentation | the desk splits into posts, products, delivery, connections, inquiries, results, channels and automation slices plus `common/`; `integration/common` and `domain/marketing` stay whole, since one desk-wide workspace coordinator calls every endpoint |
+| M-2 | fixed | both images answer `config check` (`ServiceHost`), validating `Marketing:*`, `Providers:*` and `Blog:*`; `deploy.yml` declares both `configCheck:` items |
+| M-3 | fixed | `product/product.json` removed; a product of several repositories takes its identity from the catalog, so `deploy.yml` names its two services |
+| M-4 | fixed | `dotnetEnvironment: true`; both `appsettings.Development.json` hold logging levels only |
+| M-5 | fixed | `verify` checks both hosts' `/health`, Marketing's status and the Blog home |
+| M-9 | fixed | loopback URLs, `AllowedHosts` and Blog's trusted origin moved to the gitignored `appsettings.Local.json`; `deploy.yml` sets every removed key dev needs |
+| M-11 | fixed, one part excepted | both hosts on `AddApiDefaults`/`UseApiDefaults`; `AddHttpProblemDetails` stays because `problem-details.md` composes it beside the bundle |
+| M-12 | fixed | `/health` from the bundle with the database readiness check |
+| M-13 | fixed | `SpaHosting` in both hosts; Blog keeps `/studio/` with its own non-API 404 until the SDK takes a prefix (backlog SDK gaps) |
+| M-14 | fixed | `AddControllersWithSdkJson()`; no enum or `TimeSpan` reaches the wire, omitted nulls read back as `null` in both frontends' decoders |
+| M-15 | fixed | `Program.cs` hands `args` to `ServiceHost.RunAsync` in both hosts |
+| M-16 | fixed | `PublishedProductVerifier`, `DeliveryPolicy` and `PublicInquiriesController` take option records |
+| M-17 | fixed | Marketing's automation and Blog's scheduler run through `AddPeriodicJob` |
+| M-18 | fixed | both own `IClock`s deleted; `TimeProvider` injected |
+| M-19 | fixed | production code reads `TimeProvider.GetUtcNow()` |

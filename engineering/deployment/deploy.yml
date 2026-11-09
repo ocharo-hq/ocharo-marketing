@@ -30,11 +30,12 @@ verify:
       "$VERIFY_SERVICE_BLOG/"
       && echo "marketing and blog answered health, status and the Blog home"
   timeout: 1m
-# Each service checks the settings the deploy applies before any restart (ServiceHost's built-in verb); the blog image
-# gets its item once it answers the verb.
+# Each service checks the settings the deploy applies before any restart (ServiceHost's built-in verb).
 configCheck:
   - service: marketing
     command: [dotnet, OcharoMarketing.Api.dll, config, check]
+  - service: blog
+    command: [dotnet, OcharoBlog.Api.dll, config, check]
 sites:
   marketing: {}                         # the Marketing desk, behind sign-in; /api/public stays anonymous
   blog: {}                              # the public Blog site, and its /studio/ editor behind sign-in

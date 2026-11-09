@@ -1,5 +1,4 @@
 using System.Text.RegularExpressions;
-using OcharoBlog.Application.Abstractions;
 using OcharoBlog.Application.Blog.Models;
 using OcharoBlog.Application.Blog.Repositories;
 using OcharoBlog.Domain.Blog;
@@ -7,7 +6,7 @@ using OcharoBlog.Domain.Blog;
 namespace OcharoBlog.Application.Blog.Services;
 
 /// <summary>Story commands and queries: validation, revision-checked saves, publishing lifecycle and history.</summary>
-public sealed partial class ArticleService(IBlogRepository repository, IClock clock)
+public sealed partial class ArticleService(IBlogRepository repository, TimeProvider time)
 {
     public async Task<IReadOnlyList<ArticleSummary>> ListAsync(string? status, string? topic, string? query, CancellationToken ct, string? language = null, string? publication = null)
     {
@@ -38,7 +37,7 @@ public sealed partial class ArticleService(IBlogRepository repository, IClock cl
     public async Task<ArticleDetail> CreateAsync(ArticleInput input, CancellationToken ct)
     {
         var document = await NormalizeAsync(input, null, ArticleStatus.Draft, null, null, ct);
-        var now = clock.UtcNow;
+        var now = time.GetUtcNow();
         var record = ToRecord(Guid.NewGuid(), document, 1, now, now);
         await repository.InsertArticleAsync(record, Summary(input.ChangeSummary, "Created"), ct);
         return Detail(record);
@@ -51,7 +50,8 @@ public sealed partial class ArticleService(IBlogRepository repository, IClock cl
         var current = BlogJson.Read<ArticleDocument>(record.Json);
         var document = await NormalizeAsync(input, id, current.Status, current.PublishAt, current.PublishedAt, ct);
         if (document.Status is ArticleStatus.Published or ArticleStatus.Scheduled) EnsurePublishable(document);
-        var saved = await repository.UpdateArticleAsync(ToRecord(id, document, expected + 1, record.CreatedAt, clock.UtcNow), expected,
+        var saved = await repository.UpdateArticleAsync(
+            ToRecord(id, document, expected + 1, record.CreatedAt, time.GetUtcNow()), expected,
             Summary(input.ChangeSummary, current.Status == ArticleStatus.Published ? "Edited live story" : "Edited"), ct);
         return Detail(saved);
     }
@@ -60,14 +60,15 @@ public sealed partial class ArticleService(IBlogRepository repository, IClock cl
         TransitionAsync(id, expectedRevision, d =>
         {
             EnsurePublishable(d);
-            var now = clock.UtcNow;
+            var now = time.GetUtcNow();
             return (d with { Status = ArticleStatus.Published, PublishAt = null, PublishedAt = d.PublishedAt ?? now }, "Published");
         }, ct);
 
     public Task<ArticleDetail> ScheduleAsync(Guid id, int expectedRevision, DateTimeOffset publishAt, CancellationToken ct) =>
         TransitionAsync(id, expectedRevision, d =>
         {
-            if (publishAt <= clock.UtcNow.AddMinutes(1)) throw new BlogException("Choose a publication time at least a minute from now.");
+            if (publishAt <= time.GetUtcNow().AddMinutes(1))
+                throw new BlogException("Choose a publication time at least a minute from now.");
             EnsurePublishable(d);
             return (d with { Status = ArticleStatus.Scheduled, PublishAt = publishAt.ToUniversalTime() }, $"Scheduled for {publishAt.ToUniversalTime():yyyy-MM-dd HH:mm} UTC");
         }, ct);
@@ -81,7 +82,7 @@ public sealed partial class ArticleService(IBlogRepository repository, IClock cl
     /// <summary>Publishes every scheduled story whose time has come; returns the slugs published.</summary>
     public async Task<IReadOnlyList<string>> PublishDueAsync(CancellationToken ct)
     {
-        var now = clock.UtcNow;
+        var now = time.GetUtcNow();
         var published = new List<string>();
         foreach (var record in (await repository.GetArticlesAsync(ct)).Where(r => r.Status == ArticleStatus.Scheduled && r.PublishAt <= now))
         {
@@ -124,7 +125,8 @@ public sealed partial class ArticleService(IBlogRepository repository, IClock cl
         };
         if (await SlugTakenAsync(restored.Slug, id, ct)) throw BlogException.Conflict($"Another story now uses '{restored.Slug}'.");
         if (restored.Status is ArticleStatus.Published or ArticleStatus.Scheduled) EnsurePublishable(restored);
-        var saved = await repository.UpdateArticleAsync(ToRecord(id, restored, expectedRevision + 1, record.CreatedAt, clock.UtcNow),
+        var saved = await repository.UpdateArticleAsync(
+            ToRecord(id, restored, expectedRevision + 1, record.CreatedAt, time.GetUtcNow()),
             expectedRevision, $"Restored revision {revision}", ct);
         return Detail(saved);
     }
@@ -145,7 +147,7 @@ public sealed partial class ArticleService(IBlogRepository repository, IClock cl
             throw BlogException.Conflict("An edition in that language already exists.");
         var slug = $"{source.Slug}-{language}";
         for (var n = 2; siblings.Any(s => s.Slug == slug); n++) slug = $"{source.Slug}-{language}-{n}";
-        var now = clock.UtcNow;
+        var now = time.GetUtcNow();
         if (source.TranslationKey is null)
             await repository.UpdateArticleAsync(ToRecord(id, source with { TranslationKey = key }, record.Revision + 1, record.CreatedAt, now), record.Revision,
                 $"Linked translation group '{key}'", ct);
@@ -201,7 +203,9 @@ public sealed partial class ArticleService(IBlogRepository repository, IClock cl
         var record = await repository.FindArticleAsync(id, ct) ?? throw BlogException.NotFound("Story");
         if (record.Revision != expectedRevision) throw BlogException.Conflict($"The story changed (now revision {record.Revision}). Reload first.");
         var (next, summary) = change(BlogJson.Read<ArticleDocument>(record.Json));
-        var saved = await repository.UpdateArticleAsync(ToRecord(id, next, expectedRevision + 1, record.CreatedAt, clock.UtcNow), expectedRevision, summary, ct);
+        var saved = await repository.UpdateArticleAsync(
+            ToRecord(id, next, expectedRevision + 1, record.CreatedAt, time.GetUtcNow()),
+            expectedRevision, summary, ct);
         return Detail(saved);
     }
 

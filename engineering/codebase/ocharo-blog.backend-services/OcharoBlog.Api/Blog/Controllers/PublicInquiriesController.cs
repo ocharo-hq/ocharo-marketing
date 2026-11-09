@@ -1,17 +1,18 @@
 using System.Text.Json;
 using Microsoft.AspNetCore.Mvc;
+using OcharoBlog.Infrastructure.Blog;
 
 namespace OcharoBlog.Api.Blog.Controllers;
 
 [ApiController]
-public sealed class PublicInquiriesController(IConfiguration configuration, IHttpClientFactory clients) : ControllerBase
+public sealed class PublicInquiriesController(BlogOptions options, IHttpClientFactory clients) : ControllerBase
 {
   [HttpPost("/api/public/inquiries")]
   [RequestSizeLimit(12_000)]
   public async Task<IActionResult> Submit([FromBody] JsonElement input, CancellationToken ct)
   {
     Response.Headers.CacheControl = "no-store";
-    var value = configuration["Blog:MarketingBaseUrl"];
+    var value = options.MarketingBaseUrl;
     if (!Uri.TryCreate(
         value,
         UriKind.Absolute,

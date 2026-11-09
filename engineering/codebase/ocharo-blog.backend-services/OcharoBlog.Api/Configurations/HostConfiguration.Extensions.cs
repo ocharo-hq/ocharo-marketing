@@ -6,43 +6,63 @@ using OcharoBlog.Api.Access;
 using OcharoBlog.Api.Blog;
 using OcharoBlog.Api.RuntimeConfig.Settings;
 using OcharoBlog.Application;
-using OcharoBlog.Application.Abstractions;
 using OcharoBlog.Application.Blog.Repositories;
 using OcharoBlog.Application.Blog.Services;
 using OcharoBlog.Application.Blog.Settings;
 using OcharoBlog.Application.Blog.Site;
 using OcharoBlog.Infrastructure.Blog;
-using OcharoBlog.Infrastructure.Time;
 using OcharoBlog.Persistence;
 using OcharoBlog.Persistence.Blog;
-using WoW.Two.Sdk.Beta.Be.Foundation.Configuration;
-using WoW.Two.Sdk.Beta.Be.Foundation.Options;
 using WoW.Two.Sdk.Beta.Be.Files.Client;
+using WoW.Two.Sdk.Beta.Be.Foundation.Configuration.ConfigCheck;
+using WoW.Two.Sdk.Beta.Be.Foundation.Options;
 using WoW.Two.Sdk.Beta.Be.Http.Auth.OAuth2ClientCredentials;
 using WoW.Two.Sdk.Beta.Be.Identity.Bff;
 using WoW.Two.Sdk.Beta.Be.Identity.Signals;
+using WoW.Two.Sdk.Beta.Be.Jobs.Core;
 using WoW.Two.Sdk.Beta.Be.Media.Images;
 using WoW.Two.Sdk.Beta.Be.Mediator;
+using WoW.Two.Sdk.Beta.Be.Meta;
+using WoW.Two.Sdk.Beta.Be.Observability.HealthChecks;
 using WoW.Two.Sdk.Beta.Be.Storage.Core;
 using WoW.Two.Sdk.Beta.Be.Storage.FileSystem;
 using WoW.Two.Sdk.Beta.Be.Web.Hosting;
+using WoW.Two.Sdk.Beta.Be.Web.Json;
 using WoW.Two.Sdk.Beta.Be.Web.ProblemDetails;
 
 namespace OcharoBlog.Api.Configurations;
 
 public static partial class HostConfiguration
 {
-    /// <summary>Registers forwarded headers trusted only from loopback and <c>Deployment:TrustedProxies</c>.</summary>
-    private static WebApplicationBuilder AddForwardedHeaders(this WebApplicationBuilder builder)
+    /// <summary>Names the service in telemetry and in the <c>config check</c> result.</summary>
+    private const string ServiceName = "ocharo-blog";
+
+    /// <summary>Registers the SDK boot bundle and the HTTP problem-details boundary: forwarded headers trusted
+    /// only from loopback and <c>Deployment:TrustedProxies</c>, the Studio served under <c>/studio/</c>, and the
+    /// public pages free to embed images from WoW2 Files, Catalogue and Brand.</summary>
+    private static WebApplicationBuilder AddHostDefaults(this WebApplicationBuilder builder)
     {
-        // Behind the TLS-terminating ingress, same-origin write checks need the forwarded scheme; any other sender keeps its own.
-        var proxies = builder.Configuration.GetSection("Deployment:TrustedProxies").Get<string[]>() ?? [];
-        builder.Services.AddProxyAwareHosting(options =>
+        builder.AddApiDefaults(options =>
         {
-            foreach (var proxy in proxies)
-                options.TrustedProxies.Add(proxy);
+            options.ServiceName = ServiceName;
+            // Behind the TLS-terminating ingress, same-origin write checks need the forwarded scheme.
+            options.TrustProxiesFrom(builder.Configuration.GetSection("Deployment"));
+            // Public pages and previews show cross-origin images that send no CORP opt-in; other origins embed /media.
+            options.EnableCrossOriginEmbedderPolicy = false;
+            options.CrossOriginEmbeddingPaths.Add("/media");
+            options.SpaHosting = ConfigureStudioHosting;
         });
+        builder.Services.AddHttpProblemDetails();
         return builder;
+    }
+
+    /// <summary>Configures the Studio's bundle in <c>wwwroot/studio/</c>: a bare <c>/studio</c> redirects to
+    /// <c>/studio/</c>, its hashed assets cache for a year, and an unmatched page falls back to its shell.</summary>
+    private static void ConfigureStudioHosting(SpaHostingOptions studio)
+    {
+        studio.FallbackFile = "studio/index.html";
+        studio.ImmutableAssetsPath = "/studio/assets";
+        studio.RedirectToTrailingSlash = true;
     }
 
     /// <summary>Registers the public inquiry relay client.</summary>
@@ -52,7 +72,8 @@ public static partial class HostConfiguration
         return builder;
     }
 
-    /// <summary>Registers SQLite with late configuration overrides and content-root-relative database files.</summary>
+    /// <summary>Registers SQLite with late configuration overrides and content-root-relative database files, and its
+    /// readiness check on <c>/health</c>.</summary>
     private static WebApplicationBuilder AddSqliteDatabase(this WebApplicationBuilder builder)
     {
         builder.Services.AddDbContext<OcharoBlogDbContext>((provider, options) =>
@@ -69,35 +90,49 @@ public static partial class HostConfiguration
 
             options.UseSqlite(connection.ToString());
         });
-        return builder;
-    }
-
-    /// <summary>Registers the shared system clock.</summary>
-    private static WebApplicationBuilder AddClock(this WebApplicationBuilder builder)
-    {
-        builder.Services.AddSingleton<IClock, SystemClock>();
+        builder.Services.AddHealthChecks().AddDatabaseReadinessCheck<OcharoBlogDbContext>();
         return builder;
     }
 
     /// <summary>Registers blog settings, records, editorial services, seeding and scheduled publishing.</summary>
     private static WebApplicationBuilder AddBlog(this WebApplicationBuilder builder)
     {
-        builder.Services.AddOptions<BlogOptions>().Bind(builder.Configuration.GetSection(BlogOptions.Section))
-            .Validate(options => options.OrganizationId != Guid.Empty, "Blog:OrganizationId must name the Identity organization this Editorial instance belongs to.")
-            .ValidateOnStart();
+        builder.Services
+            .AddSettingsRoot(BlogOptions.Section)
+            .AddValidatedSettings<BlogOptions>(builder.Configuration, BlogOptions.Section, ValidateBlog);
         builder.Services.AddScoped<IBlogRepository, BlogRepository>();
         builder.Services.AddScoped<ArticleService>();
         builder.Services.AddScoped<TopicService>();
         builder.Services.AddScoped<SiteSettingsService>();
         builder.Services.AddScoped<BlogSeeder>();
         builder.Services.AddScoped<EditorialStarterImporter>();
-        if (builder.Configuration.GetValue("Blog:RunScheduler", true))
-        {
-            builder.Services.AddHostedService<ScheduledPublishingWorker>();
-        }
-
+        builder.Services.AddScoped<ScheduledPublisher>();
+        builder.Services.AddPeriodicJob<ScheduledPublisher>(
+            "scheduled-publishing",
+            (publisher, ct) => publisher.PublishDueAsync(ct),
+            (job, services) =>
+                job.Interval = TimeSpan.FromSeconds(services.GetRequiredService<BlogOptions>().SchedulerSeconds));
         return builder;
     }
+
+    /// <summary>States the rules <c>Blog</c> settings must satisfy at boot and at <c>config check</c>.</summary>
+    private static void ValidateBlog(OptionsBuilder<BlogOptions> blog) => blog
+        .ValidateSetting(nameof(BlogOptions.OrganizationId), "required",
+            options => options.OrganizationId != Guid.Empty,
+            "must name the Identity organization this Editorial instance belongs to")
+        .ValidateSetting(nameof(BlogOptions.DataRoot), "required",
+            options => !string.IsNullOrWhiteSpace(options.DataRoot),
+            "must name the folder for blobs and keys")
+        .ValidateSetting(nameof(BlogOptions.SchedulerSeconds), "range",
+            options => options.SchedulerSeconds == 0 || options.SchedulerSeconds >= BlogOptions.MinimumSchedulerSeconds,
+            $"must be 0 (off) or at least {BlogOptions.MinimumSchedulerSeconds}")
+        .ValidateSetting(nameof(BlogOptions.PreviewSize), "range",
+            options => options.PreviewSize > 0, "must be positive")
+        .ValidateSetting(nameof(BlogOptions.MaximumImageBytes), "range",
+            options => options.MaximumImageBytes > 0, "must be positive")
+        .ValidateSetting(nameof(BlogOptions.TrustedOrigins), "origin",
+            options => options.TrustedOrigins.All(BlogOptions.IsHttpsOrigin),
+            "each entry must be an HTTPS origin: scheme, host and an optional port, with no path or trailing slash");
 
     /// <summary>Registers blob-backed media, image processing and editorial image adapters.</summary>
     private static WebApplicationBuilder AddMedia(this WebApplicationBuilder builder)
@@ -241,12 +276,10 @@ public static partial class HostConfiguration
             app.Logger.LogWarning("Runtime config leaves out {Settings}: each must be a plain HTTPS address.", string.Join(", ", rejected));
     }
 
-    /// <summary>Registers HTTP problem details, controllers and OpenAPI.</summary>
+    /// <summary>Registers the controllers with the SDK wire JSON.</summary>
     private static WebApplicationBuilder AddControllers(this WebApplicationBuilder builder)
     {
-        builder.Services.AddHttpProblemDetails();
-        builder.Services.AddControllers();
-        builder.Services.AddOpenApi();
+        builder.Services.AddControllersWithSdkJson();
         return builder;
     }
 
@@ -262,48 +295,37 @@ public static partial class HostConfiguration
         return app;
     }
 
-    /// <summary>Configures the request boundaries and editorial SPA static files.</summary>
+    /// <summary>Configures the problem-details boundary, then the SDK pipeline with Editorial's boundary after
+    /// routing.</summary>
     private static WebApplication UsePipeline(this WebApplication app)
     {
-        app.UseProxyAwareHosting();
+        // Outermost: every error status, MVC error result and thrown exception leaves as a problem document.
         app.UseHttpProblemDetails();
-        app.UseMiddleware<BlogExceptionMiddleware>();
-        app.UseMiddleware<EditorialHttpBoundaryMiddleware>();
-        app.UseAccess();
-        if (app.Environment.IsLocalRun(app.Configuration))
-        {
-            app.MapOpenApi();
-        }
-
-        // The bare /studio redirect must run before endpoint matching ignores trailing slashes.
-        app.Use((context, next) =>
-        {
-            if (context.Request.Path.Value == "/studio")
-            {
-                context.Response.Redirect("/studio/");
-                return Task.CompletedTask;
-            }
-
-            return next(context);
-        });
-        app.UseStaticFiles();
+        // Forwarded headers, secure headers and compression, the Studio's files before routing; then blog errors,
+        // Editorial's response headers and cross-origin write check, sign-in and access, ahead of the endpoints.
+        app.UseApiDefaults(pipeline => pipeline.UseEditorialBoundary());
         return app;
     }
 
-    /// <summary>Configures controller, status, API error and editorial SPA endpoints.</summary>
+    /// <summary>Configures blog errors as problems, Editorial's response headers and cross-origin write check, then
+    /// sign-in and access.</summary>
+    private static void UseEditorialBoundary(this IApplicationBuilder pipeline)
+    {
+        pipeline.UseMiddleware<BlogExceptionMiddleware>();
+        pipeline.UseMiddleware<EditorialHttpBoundaryMiddleware>();
+        pipeline.UseAccess();
+    }
+
+    /// <summary>Matches a page outside <c>/studio/</c> and <c>/api/</c>: the public site's misses.</summary>
+    private const string PublicPageMiss = "/{**path:regex(^(?!(studio|api)(/|$)).+)}";
+
+    /// <summary>Configures controller, status, Identity and public-miss endpoints.</summary>
     private static WebApplication MapEndpoints(this WebApplication app)
     {
         app.WarnAboutRejectedRuntimeConfig();
         app.MapControllers();
         app.MapIdentityBffEndpoints();
         if (!string.IsNullOrEmpty(app.Configuration[EditorialAccess.SignalUrlKey])) app.MapIdentitySignals(EditorialAccess.SignalPath);
-        app.MapGet("/health", () => Results.Ok(new
-        {
-            status = "healthy",
-            service = "OcharoBlog",
-            version = typeof(HostConfiguration).Assembly.GetCustomAttribute<AssemblyInformationalVersionAttribute>()
-                ?.InformationalVersion ?? "dev",
-        }));
         app.MapGet("/api/system/status", () => Results.Ok(new
         {
             status = "healthy",
@@ -311,8 +333,10 @@ public static partial class HostConfiguration
             version = typeof(HostConfiguration).Assembly.GetCustomAttribute<AssemblyInformationalVersionAttribute>()
                 ?.InformationalVersion ?? "dev",
         }));
-        app.MapFallback("/api/{**slug}", () => Results.Problem(statusCode: 404, title: "API route not found"));
-        app.MapFallbackToFile("/studio/{**path:nonfile}", "studio/index.html");
+        // The SDK falls back to the Studio's shell for every unmatched page and has no path prefix for it yet; the
+        // public site's misses stay 404s, outranking that fallback.
+        app.MapMethods(PublicPageMiss, [HttpMethods.Get, HttpMethods.Head], () => Results.NotFound())
+            .ExcludeFromDescription();
         return app;
     }
 }

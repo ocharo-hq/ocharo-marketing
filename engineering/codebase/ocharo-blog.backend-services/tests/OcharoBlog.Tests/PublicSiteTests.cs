@@ -151,30 +151,85 @@ public sealed class PublicSiteTests
 public sealed class StudioHostingTests
 {
     [Fact]
-    public async Task Bare_studio_path_redirects_once_and_the_slash_path_does_not_loop()
+    public async Task Previews_may_be_framed_by_this_origin_only_and_public_pages_by_none()
     {
         await using var harness = new BlogHarness();
         var client = harness.Client();
+        var id = (await client.GetFromJsonAsync<JsonElement>("/api/blog/articles"))[0].GetProperty("id").GetGuid();
+
+        using var preview = await client.GetAsync($"/preview/{id}");
+        using var page = await client.GetAsync("/");
+
+        Assert.Equal(HttpStatusCode.OK, preview.StatusCode);
+        Assert.Equal("SAMEORIGIN", preview.Headers.GetValues("X-Frame-Options").Single());
+        Assert.Contains("frame-ancestors 'self'", preview.Headers.GetValues("Content-Security-Policy").Single());
+        Assert.Equal("DENY", page.Headers.GetValues("X-Frame-Options").Single());
+        Assert.Contains("frame-ancestors 'none'", page.Headers.GetValues("Content-Security-Policy").Single());
+    }
+
+    [Fact]
+    public async Task Bare_studio_path_redirects_once_and_the_slash_path_does_not_loop()
+    {
+        using var studio = new StudioBundle();
+        await using var host = EditorialHost.Create(new Dictionary<string, string?>(), webRoot: studio.Root);
+        using var client = host.Client();
 
         var bare = await client.GetAsync("/studio");
         var slash = await client.GetAsync("/studio/");
 
-        Assert.Equal(System.Net.HttpStatusCode.Redirect, bare.StatusCode);
-        Assert.Equal("/studio/", bare.Headers.Location?.ToString());
-        Assert.NotEqual(System.Net.HttpStatusCode.Redirect, slash.StatusCode);
+        Assert.Equal(HttpStatusCode.MovedPermanently, bare.StatusCode);
+        Assert.Equal("/studio/", bare.Headers.Location?.AbsolutePath);
+        Assert.Equal(HttpStatusCode.OK, slash.StatusCode);
     }
 
     [Fact]
     public async Task Studio_asset_paths_never_fall_back_to_the_spa_shell()
     {
-        await using var harness = new BlogHarness();
-        var client = harness.Client();
+        using var studio = new StudioBundle();
+        await using var host = EditorialHost.Create(new Dictionary<string, string?>(), webRoot: studio.Root);
+        using var client = host.Client();
 
         var missingAsset = await client.GetAsync("/studio/assets/missing-file.js");
         var deepLink = await client.GetAsync("/studio/stories/123");
 
-        Assert.Equal(System.Net.HttpStatusCode.NotFound, missingAsset.StatusCode);
+        Assert.Equal(HttpStatusCode.NotFound, missingAsset.StatusCode);
         Assert.NotEqual("text/html", missingAsset.Content.Headers.ContentType?.MediaType);
-        Assert.True(deepLink.StatusCode is System.Net.HttpStatusCode.OK or System.Net.HttpStatusCode.NotFound);
+        Assert.Equal(HttpStatusCode.OK, deepLink.StatusCode);
+        Assert.Equal("text/html", deepLink.Content.Headers.ContentType?.MediaType);
+    }
+
+    [Theory]
+    [InlineData("/no-such-page")]
+    [InlineData("/journal/a/b")]
+    [InlineData("/studios")]
+    public async Task Public_misses_stay_404_and_never_serve_the_studio_shell(string path)
+    {
+        using var studio = new StudioBundle();
+        await using var host = EditorialHost.Create(new Dictionary<string, string?>(), webRoot: studio.Root);
+        using var client = host.Client();
+
+        using var response = await client.GetAsync(path);
+
+        Assert.Equal(HttpStatusCode.NotFound, response.StatusCode);
+        Assert.Equal("application/problem+json", response.Content.Headers.ContentType?.MediaType);
+    }
+
+    /// <summary>A built Studio in a temporary web root: its shell and one hashed asset.</summary>
+    private sealed class StudioBundle : IDisposable
+    {
+        public string Root { get; } =
+            Path.Combine(Path.GetTempPath(), "ocharo-blog-studio", Guid.NewGuid().ToString("N"));
+
+        public StudioBundle()
+        {
+            Directory.CreateDirectory(Path.Combine(Root, "studio", "assets"));
+            File.WriteAllText(Path.Combine(Root, "studio", "index.html"), "<!doctype html><title>Studio</title>");
+            File.WriteAllText(Path.Combine(Root, "studio", "assets", "app.js"), "export {};");
+        }
+
+        public void Dispose()
+        {
+            try { Directory.Delete(Root, true); } catch (IOException) { }
+        }
     }
 }

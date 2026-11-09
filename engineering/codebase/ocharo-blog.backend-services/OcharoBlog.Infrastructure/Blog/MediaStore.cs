@@ -1,6 +1,5 @@
 using System.Security.Cryptography;
 using Microsoft.Extensions.Options;
-using OcharoBlog.Application.Abstractions;
 using OcharoBlog.Application.Blog;
 using OcharoBlog.Application.Blog.Repositories;
 using OcharoBlog.Application.Blog.Services;
@@ -14,7 +13,10 @@ namespace OcharoBlog.Infrastructure.Blog;
 /// <summary>Preserves validated original bytes and creates upright alpha-preserving web renditions through the SDK, in the
 /// local blob folder. It serves a run with no WoW2 Files (<c>Files:BaseUrl</c> unset), and <see cref="FilesMediaStore"/>
 /// reads through it the files stored before Files until the migration fills their ids.</summary>
-public sealed class MediaStore(IBlogRepository repository, IBlobRepository blobs, IOptions<BlogOptions> options, IClock clock, IImageService images) : IMediaStore
+public sealed class MediaStore(
+    IBlogRepository repository, IBlobRepository blobs, IOptions<BlogOptions> options, TimeProvider time,
+    IImageService images)
+    : IMediaStore
 {
     public Task<MediaBlobRecord> StoreAsync(byte[] bytes,string fileName,CancellationToken ct)=>StoreCoreAsync(bytes,fileName,null,ct);
     public Task<MediaBlobRecord> StoreEditedAsync(byte[] bytes,string fileName,MediaEditRecord edit,CancellationToken ct)=>StoreCoreAsync(bytes,fileName,edit,ct);
@@ -33,7 +35,8 @@ public sealed class MediaStore(IBlogRepository repository, IBlobRepository blobs
         await using(var input=new MemoryStream(bytes,false))await blobs.SaveAsync(path,input,info.ContentType,ct);
         await using(var rendition=new MemoryStream(preview,false))await blobs.SaveAsync(previewPath,rendition,"image/webp",ct);
         var record=new MediaBlobRecord{Sha256=sha,FileName=MediaInput.SafeName(fileName),
-            ContentType=info.ContentType,ByteLength=bytes.LongLength,BlobPath=path,PreviewPath=previewPath,Width=info.Width,Height=info.Height,StoredAt=clock.UtcNow};
+            ContentType=info.ContentType,ByteLength=bytes.LongLength,BlobPath=path,PreviewPath=previewPath,
+            Width=info.Width,Height=info.Height,StoredAt=time.GetUtcNow()};
         if(edit is null)await repository.SaveMediaAsync(record,ct);
         else await repository.SaveMediaWithEditAsync(record,edit,ct);
         return record;
