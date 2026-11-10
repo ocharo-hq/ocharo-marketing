@@ -17,8 +17,8 @@
     <!-- The organization claim readers Infrastructure's image worker checks; same version as the client above. -->
     <PackageVersion Include="WoW2.Sdk.Beta.Be.Identity.Abstractions" Version="10.0.30-beta" />
     <!-- WoW2 Files: the contract (Infrastructure's store) and its HTTP client (the host's composition). -->
-    <PackageVersion Include="WoW2.Sdk.Beta.Be.Files.Abstractions" Version="10.0.5-beta" />
-    <PackageVersion Include="WoW2.Sdk.Beta.Be.Files.Client" Version="10.0.5-beta" />
+    <PackageVersion Include="WoW2.Sdk.Beta.Be.Files.Abstractions" Version="10.0.6-beta" />
+    <PackageVersion Include="WoW2.Sdk.Beta.Be.Files.Client" Version="10.0.6-beta" />
   </ItemGroup>
 
   <ItemGroup>

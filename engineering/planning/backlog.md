@@ -59,3 +59,4 @@ WoW2 convention breaks found on 2026-11-09, grouped by theme; the top row is the
 |---|---|---|
 | Marketing services return `Result` | `engineering` | 175 throw sites in Marketing's services raise the SDK `AppException`, which the mediator turns into a result; return `Result<T>` instead. Follows M-20 ([sweep](../research/convention-sweep.md)). |
 | Blog services and rendering placement | `engineering` | Blog's services and site rendering still sit in Application; move behaviour to Infrastructure as Marketing's handlers are. |
+| Retire the SQLite volumes | `engineering` | Once `import-sqlite` has run on dev and prod for Marketing and Blog, drop the `marketing-data` and `blog-data` volumes, the legacy SQLite settings, the import gate and verbs, and `Microsoft.Data.Sqlite`. |

@@ -86,15 +86,15 @@ services:
         # migration (files-migration.yml).
         Files:BaseUrl: { from: { repository: platform, key: Identity:Server:Resources:2:Uri } }
         # The Ocharo app menu, served anonymously at /api/runtime-config; an unset key leaves that app out.
-        OcharoApps:Desk: { type: url }
-        OcharoApps:Catalogue: { type: url }
-        OcharoApps:Studio: { type: url }
-        OcharoApps:Marketing: { type: url }
+        OcharoApps:Desk: { from: { repository: platform, key: Sites:desk:Url } }
+        OcharoApps:Catalogue: { from: { repository: platform, key: Sites:catalogue:Url } }
+        OcharoApps:Studio: { from: { repository: studio, key: Sites:studio:Url } }
+        OcharoApps:Marketing: { from: Sites:marketing:Url }
         OcharoApps:Editorial: { type: url }
-        OcharoApps:Brand: { type: url }
+        OcharoApps:Brand: { from: { repository: platform, key: Sites:brand:Url } }
         OcharoApps:Atlas: { type: url }
         OcharoApps:Wear: { type: url }
-        OcharoApps:Blog: { type: url }
+        OcharoApps:Blog: { from: Sites:blog:Url }
     needs: [postgres]
     volumes:
       marketing-data: /data             # the SQLite store until import-sqlite retires it, and blobs stored before Files
@@ -133,15 +133,15 @@ services:
         # token within their session, Editorial's own otherwise; linked to the Uri ocharo-platform types for its Files
         # resource. Media stored before Files read from blog-data until the migration (files-migration.yml).
         Files:BaseUrl: { from: { repository: platform, key: Identity:Server:Resources:2:Uri } }
-        OcharoApps:Desk: { type: url }
-        OcharoApps:Catalogue: { type: url }
-        OcharoApps:Studio: { type: url }
-        OcharoApps:Marketing: { type: url }
+        OcharoApps:Desk: { from: { repository: platform, key: Sites:desk:Url } }
+        OcharoApps:Catalogue: { from: { repository: platform, key: Sites:catalogue:Url } }
+        OcharoApps:Studio: { from: { repository: studio, key: Sites:studio:Url } }
+        OcharoApps:Marketing: { from: Sites:marketing:Url }
         OcharoApps:Editorial: { type: url }
-        OcharoApps:Brand: { type: url }
+        OcharoApps:Brand: { from: { repository: platform, key: Sites:brand:Url } }
         OcharoApps:Atlas: { type: url }
         OcharoApps:Wear: { type: url }
-        OcharoApps:Blog: { type: url }
+        OcharoApps:Blog: { from: Sites:blog:Url }
     needs: [postgres]
     volumes:
       blog-data: /data                  # the SQLite store until import-sqlite retires it, and blobs stored before Files

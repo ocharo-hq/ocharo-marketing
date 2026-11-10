@@ -21,7 +21,7 @@ product/                 ← the WHAT/WHY (no code): product · context · featu
 engineering/             ← the HOW
 ├── architecture/        ← system + per-area design
 ├── development/         ← this repo's dev guidelines (defer to wow-two-ws/conventions/)
-├── deployment/ · planning/ · versions/ · research/ · scripts/
+├── deployment/ · planning/ · research/ · scripts/
 └── codebase/            ← THE CODE — only place code lives
     ├── ocharo-marketing.backend-services/    ← .NET Clean Arch — solution + OcharoMarketing.{Domain} projects (+ tests/)
     └── ocharo-marketing.frontend-services/   ← private pnpm workspace; Vue app in apps/web/

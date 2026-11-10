@@ -28,7 +28,7 @@ public interface IMediaStore
     Task<(MediaBlobRecord Record, Stream Content)?> ReadAsync(string sha256, bool preview, CancellationToken ct);
 
     /// <summary>Records another Ocharo app's WoW2 Files file under its SHA-256 by attaching Editorial's reference to
-    /// it, with no bytes downloaded or uploaded (planning/files-adoption.md #11). A row that already has a file id is
+    /// it, with no bytes downloaded or uploaded (research/files-adoption.md #11). A row that already has a file id is
     /// returned
     /// as it is. Null when this run keeps no Files, or the file is gone or holds other bytes, so the caller copies
     /// instead.</summary>

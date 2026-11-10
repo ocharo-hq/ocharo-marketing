@@ -1,5 +1,5 @@
 # Where this repo's legacy files live, for the Wheelhouse migration module that moves them into WoW2 Files: tenant
-# `ocharo` on the shared files host B (Files t9 #4; ocharo-platform planning/files-adoption.md #20). Each source names
+# `ocharo` on the shared files host B (Files t9 #4; ocharo-platform research/files-adoption.md #20). Each source names
 # the reference its files get, so the cutover build finds each file id in Files' id map; an imported file's app is its
 # reference prefix, the Identity client the app signs in as. Wave 2 runs after wave 1 reads back on dev; prod is parked.
 tenant: ocharo
