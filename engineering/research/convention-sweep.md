@@ -111,9 +111,9 @@ Scope: `workbench/mfts-projects/ventures/ocharo-hq/ocharo-ws/workbench/ocharo-ma
 
 ## Resolution
 
-Each row's outcome, by id: fixed (with the evidence), excepted (with the reason) or waiting (on what). 42 of 43 are fixed,
-three with a recorded part excepted (M-11 problem details, M-35 integration slice, M-41 the v0.1 split); M-6 waits on a
-pipelines release. Closed 2026-11-09 on `v0.1.14` running on `ocharo-dev`. Follow-ups the fixes surfaced are in the
+Each row's outcome, by id: fixed (with the evidence), excepted (with the reason) or waiting (on what). 43 of 43 are fixed,
+three with a recorded part excepted (M-11 problem details, M-35 integration slice, M-41 the v0.1 split); M-6 closed on
+2026-11-10 with pipelines `v0.16.0`. Closed 2026-11-09 on `v0.1.14` running on `ocharo-dev`. Follow-ups the fixes surfaced are in the
 [backlog](../planning/backlog.md#convention-sweep).
 
 | id | outcome | evidence |
@@ -123,7 +123,7 @@ pipelines release. Closed 2026-11-09 on `v0.1.14` running on `ocharo-dev`. Follo
 | M-3 | fixed | `product/product.json` removed; a product of several repositories takes its identity from the catalog, so `deploy.yml` names its two services |
 | M-4 | fixed | `dotnetEnvironment: true`; both `appsettings.Development.json` hold logging levels only |
 | M-5 | fixed | `verify` checks both hosts' `/health`, Marketing's status and the Blog home |
-| M-6 | waiting | a pipelines release containing `e134a47`; the orchestrator took the tag to the developer (2026-11-09) |
+| M-6 | fixed | `publish-docker-image.yml` pins pipelines `v0.16.0`, the first tag containing `e134a47` (2026-11-10) |
 | M-7 | fixed | `.github/renovate.json` extends the pipelines `renovate-private` preset |
 | M-8 | fixed | the four preview ports in the WoW2 port ledger, `wow-two-ws` `59d018c` |
 | M-9 | fixed | loopback URLs, `AllowedHosts` and Blog's trusted origin moved to the gitignored `appsettings.Local.json`; `deploy.yml` sets every removed key dev needs |
