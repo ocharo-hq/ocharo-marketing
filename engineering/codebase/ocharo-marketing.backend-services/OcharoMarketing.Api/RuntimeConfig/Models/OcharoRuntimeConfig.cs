@@ -24,6 +24,9 @@ public sealed record OcharoRuntimeConfig
     [JsonPropertyName("OCHARO_BRAND_URL")]
     public string? BrandUrl { get; init; }
 
+    [JsonPropertyName("OCHARO_EVENTS_URL")]
+    public string? EventsUrl { get; init; }
+
     [JsonPropertyName("OCHARO_ATLAS_URL")]
     public string? AtlasUrl { get; init; }
 

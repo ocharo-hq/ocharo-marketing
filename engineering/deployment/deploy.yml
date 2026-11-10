@@ -92,6 +92,7 @@ services:
         OcharoApps:Marketing: { from: Sites:marketing:Url }
         OcharoApps:Editorial: { type: url }
         OcharoApps:Brand: { from: { repository: platform, key: Sites:brand:Url } }
+        OcharoApps:Events: { from: { repository: platform, key: Sites:events:Url } }
         OcharoApps:Atlas: { type: url }
         OcharoApps:Wear: { type: url }
         OcharoApps:Blog: { from: Sites:blog:Url }
@@ -139,6 +140,7 @@ services:
         OcharoApps:Marketing: { from: Sites:marketing:Url }
         OcharoApps:Editorial: { type: url }
         OcharoApps:Brand: { from: { repository: platform, key: Sites:brand:Url } }
+        OcharoApps:Events: { from: { repository: platform, key: Sites:events:Url } }
         OcharoApps:Atlas: { type: url }
         OcharoApps:Wear: { type: url }
         OcharoApps:Blog: { from: Sites:blog:Url }

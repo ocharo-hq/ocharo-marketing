@@ -44,6 +44,11 @@ export const frameUiMessages: Readonly<
     uz: "Logotip va brend qo‘llanmasi",
     ru: "Логотип и брендбук",
   },
+  Events: { uz: "Tadbirlar", ru: "События" },
+  "Trade events and deadlines": {
+    uz: "Savdo tadbirlari va muddatlar",
+    ru: "Торговые события и сроки",
+  },
   "Ocharo app links could not be loaded, so the app menu uses the built-in addresses.":
     {
       uz: "Ocharo ilovalari havolalarini yuklab bo‘lmadi, shuning uchun ilovalar menyusi o‘rnatilgan manzillardan foydalanadi.",

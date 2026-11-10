@@ -25,6 +25,7 @@ const LocalDefaults = {
   OCHARO_MARKETING_URL: 'https://localhost:8358/',
   OCHARO_EDITORIAL_URL: 'https://localhost:8284/studio/',
   OCHARO_BRAND_URL: 'https://localhost:8288/',
+  OCHARO_EVENTS_URL: 'https://localhost:8292/',
   OCHARO_ATLAS_URL: 'https://localhost:8284/atlas/',
   OCHARO_WEAR_URL: 'https://localhost:8284/wear/',
   OCHARO_BLOG_URL: 'https://localhost:8284/',
@@ -131,10 +132,9 @@ describe('Ocharo app addresses', () => {
   it('lists the same apps, label keys and summaries as Desk, in Desk’s order', () => {
     const apps = ocharoApps(
       Object.fromEntries(
-        ['desk', 'catalogue', 'studio', 'marketing', 'editorial', 'brand', 'atlas', 'wear', 'blog'].map((key) => [
-          key,
-          `https://${key}.example.test/`,
-        ]),
+        ['desk', 'catalogue', 'studio', 'marketing', 'editorial', 'brand', 'events', 'atlas', 'wear', 'blog'].map(
+          (key) => [key, `https://${key}.example.test/`],
+        ),
       ),
     );
 
@@ -145,6 +145,7 @@ describe('Ocharo app addresses', () => {
       ['marketing', 'Marketing', 'Posts and leads', 'workspace'],
       ['editorial', 'Apps menu: Editorial', 'Apps menu: Blog stories', 'workspace'],
       ['brand', 'Brand', 'Logo and brand guide', 'workspace'],
+      ['events', 'Events', 'Trade events and deadlines', 'workspace'],
       ['atlas', 'Atlas', 'Public site', 'public-site'],
       ['wear', 'Wear', 'Public site', 'public-site'],
       ['blog', 'Blog', 'Public site', 'public-site'],
@@ -187,7 +188,7 @@ describe('startup resolution', () => {
       desk: 'https://desk.example.test/',
       catalogue: LocalDefaults.OCHARO_CATALOGUE_URL,
     });
-    expect(ocharoApps(startup.addresses)).toHaveLength(9);
+    expect(ocharoApps(startup.addresses)).toHaveLength(10);
   });
 
   it.each([

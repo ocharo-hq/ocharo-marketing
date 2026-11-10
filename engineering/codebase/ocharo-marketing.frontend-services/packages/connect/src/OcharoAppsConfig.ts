@@ -9,7 +9,7 @@ import {
   type InferConfig,
 } from "@wow-two-beta/fe/foundation/config";
 import { AppSwitcherKind, type AppSwitcherItem } from "@wow-two-beta/fe/presentation/nav";
-import { BookOpen, Globe, LayoutDashboard, Megaphone, Palette, PenLine, Shirt } from "lucide-vue-next";
+import { BookOpen, CalendarDays, Globe, LayoutDashboard, Megaphone, Palette, PenLine, Shirt } from "lucide-vue-next";
 import type { Component } from "vue";
 
 import { notifyFeedback } from "./Feedback";
@@ -37,6 +37,7 @@ export const OcharoAppsConfigSchema = {
   OCHARO_MARKETING_URL: url({ default: "https://localhost:8358/" }),
   OCHARO_EDITORIAL_URL: url({ default: "https://localhost:8284/studio/" }),
   OCHARO_BRAND_URL: url({ default: "https://localhost:8288/" }),
+  OCHARO_EVENTS_URL: url({ default: "https://localhost:8292/" }),
   OCHARO_ATLAS_URL: url({ default: "https://localhost:8284/atlas/" }),
   OCHARO_WEAR_URL: url({ default: "https://localhost:8284/wear/" }),
   OCHARO_BLOG_URL: url({ default: "https://localhost:8284/" }),
@@ -53,6 +54,7 @@ const AppKeys: Readonly<Partial<Record<keyof OcharoAppsConfig, OcharoAppKey>>> =
   OCHARO_MARKETING_URL: "marketing",
   OCHARO_EDITORIAL_URL: "editorial",
   OCHARO_BRAND_URL: "brand",
+  OCHARO_EVENTS_URL: "events",
   OCHARO_ATLAS_URL: "atlas",
   OCHARO_WEAR_URL: "wear",
   OCHARO_BLOG_URL: "blog",
@@ -182,6 +184,7 @@ export const OcharoAppIcons: Readonly<Record<OcharoAppKey, Component>> = {
   marketing: Megaphone,
   editorial: PenLine,
   brand: Palette,
+  events: CalendarDays,
   atlas: Globe,
   wear: Globe,
   blog: Globe,

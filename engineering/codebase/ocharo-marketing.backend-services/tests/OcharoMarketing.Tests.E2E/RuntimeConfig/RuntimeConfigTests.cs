@@ -20,6 +20,7 @@ public sealed class RuntimeConfigTests
         ["OcharoApps:Marketing"] = "https://ocharo-marketing-dev.example.ts.net/",
         ["OcharoApps:Editorial"] = "https://ocharo-blog-dev.example.ts.net/studio/",
         ["OcharoApps:Brand"] = "https://ocharo-brand-dev.example.ts.net/",
+        ["OcharoApps:Events"] = "https://ocharo-events-dev.example.ts.net/",
         ["OcharoApps:Atlas"] = "https://ocharo-atlas-dev.example.ts.net/",
         ["OcharoApps:Wear"] = "https://ocharo-wear-dev.example.ts.net/",
         ["OcharoApps:Blog"] = "https://ocharo-blog-dev.example.ts.net/",
@@ -44,6 +45,7 @@ public sealed class RuntimeConfigTests
             ["OCHARO_MARKETING_URL"] = "https://ocharo-marketing-dev.example.ts.net/",
             ["OCHARO_EDITORIAL_URL"] = "https://ocharo-blog-dev.example.ts.net/studio/",
             ["OCHARO_BRAND_URL"] = "https://ocharo-brand-dev.example.ts.net/",
+            ["OCHARO_EVENTS_URL"] = "https://ocharo-events-dev.example.ts.net/",
             ["OCHARO_ATLAS_URL"] = "https://ocharo-atlas-dev.example.ts.net/",
             ["OCHARO_WEAR_URL"] = "https://ocharo-wear-dev.example.ts.net/",
             ["OCHARO_BLOG_URL"] = "https://ocharo-blog-dev.example.ts.net/",
@@ -107,6 +109,7 @@ public sealed class RuntimeConfigTests
             ["OcharoApps:Marketing"] = "https://ocharo-marketing-dev.example.ts.net/#access_token=abc",
             ["OcharoApps:Editorial"] = "/studio/",
             ["OcharoApps:Brand"] = "not a link",
+            ["OcharoApps:Events"] = "http://ocharo-events-dev.example.ts.net/",
             ["OcharoApps:Atlas"] = "https://ocharo-atlas-dev.example.ts.net/",
             ["OcharoApps:Wear"] = "",
             ["OcharoApps:Blog"] = "javascript:alert(1)",
@@ -128,7 +131,7 @@ public sealed class RuntimeConfigTests
             .Should()
             .Contain(
                 "OcharoApps:Desk, OcharoApps:Catalogue, OcharoApps:Studio, OcharoApps:Marketing, "
-                    + "OcharoApps:Editorial, OcharoApps:Brand, OcharoApps:Blog");
+                    + "OcharoApps:Editorial, OcharoApps:Brand, OcharoApps:Events, OcharoApps:Blog");
         warning.Should().NotContain("secret");
     }
 
