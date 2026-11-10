@@ -57,7 +57,10 @@ describe('Ocharo frame in Marketing', () => {
     expect(main.attributes('tabindex')).toBe('-1');
     const header = wrapper!.get('header[role="banner"]');
     expect(header.find('button[aria-label="Ocharo apps — Marketing"]').exists()).toBe(true);
-    expect(header.get('[title="App version"]').text()).toBe('dev');
+    // The version badge stands beside the full brand; a phone's bar has room for the mark only.
+    const badge = wrapper!.find('[data-version-badge]');
+    expect(badge.exists()).toBe(width >= 768);
+    if (badge.exists()) expect(badge.text()).toBe('dev');
     expect(header.find('button[aria-label="Refresh status"]').exists()).toBe(true);
     expect(header.text()).toContain('New post');
     const controls = header.findAll('button');
@@ -184,12 +187,21 @@ describe('Ocharo frame in Marketing', () => {
     expect(localStorage.getItem(SidebarCollapsedKey)).toBe('false');
   });
 
-  it('shows the icon rail without a collapse control on a tablet', async () => {
+  it('shows the icon rail on a tablet, where the toggle opens the sections in a drawer instead', async () => {
     await renderAt('/channels', { width: 900 });
 
     expect(sidebar().text()).toContain('Channels');
     expect(wrapper!.find('button[aria-label="Expand sidebar"]').exists()).toBe(false);
     expect(wrapper!.find('button[aria-label="Collapse sidebar"]').exists()).toBe(false);
+    const toggle = wrapper!.get('button[aria-label="Open navigation"]');
+    expect(toggle.attributes('aria-expanded')).toBe('false');
+
+    await toggle.trigger('click');
+    await flushPromises();
+
+    const drawer = popup('[role="dialog"]');
+    expect(drawer.get('[aria-label="Marketing sections"]').findAll('a')).toHaveLength(12);
+    expect(localStorage.getItem(SidebarCollapsedKey)).toBeNull();
   });
 
   it('swaps the sidebar for a bottom bar of four sections and More on a phone', async () => {
@@ -199,9 +211,12 @@ describe('Ocharo frame in Marketing', () => {
     const bar = wrapper!.get('[aria-label="Marketing sections"]');
     // The SDK glass variant paints the fill, edge and upward shadow; the solid page fill would hide the glass.
     expect(bar.classes()).toEqual(
-      expect.arrayContaining(['surface-glass', 'border-glass-edge', 'shadow-(--glass-bottom-shadow)', 'md:hidden']),
+      expect.arrayContaining(['surface-glass', 'border-glass-edge', 'shadow-(--glass-bottom-shadow)']),
     );
     expect(bar.classes()).not.toContain('bg-background');
+    // The frame places the bar under the scrolling region and takes it out of print.
+    expect(wrapper!.get('[data-app-frame-phone-nav]').find(`nav[aria-label="Marketing sections"]`).exists()).toBe(true);
+    expect(wrapper!.find('[data-app-frame-toggle]').exists()).toBe(false);
     expect(bar.findAll('a').map((link) => link.text())).toEqual(['Today', 'Posts', 'Products', 'Atlas']);
     expect(bar.get('[aria-current="page"]').text()).toBe('Today');
 

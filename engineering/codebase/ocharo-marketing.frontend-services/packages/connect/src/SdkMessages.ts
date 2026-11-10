@@ -67,13 +67,23 @@ const sdkSources: Record<string, string> = {
   "NumberInput.decrementLabel": "Decrease",
   "ToastHost.notifications": "Notifications",
   "AppShell.skipToContent": "Skip to main content",
+  "AppFrame.collapseLabel": "Collapse sidebar",
+  "AppFrame.expandLabel": "Expand sidebar",
+  "AppFrame.openNavigationLabel": "Open navigation",
+  "AppFrame.navigationLabel": "Navigation",
+  "VersionBadge.label": "Version {version}",
+  "VersionBadge.updateLabel":
+    "Version {running} is live; this tab runs {version}. Reload to update.",
   "MenuItem.newTabLabel": "(opens in a new tab)",
 };
 /**
  * The SDK account menu in Desk's wording, so every Ocharo app names its rows alike. English is the SDK's default text;
  * `{name}` stays for the SDK to fill.
  */
-const accountMenuMessages: Record<string, Readonly<Record<UiLocale, string>>> = {
+const accountMenuMessages: Record<
+  string,
+  Readonly<Record<UiLocale, string>>
+> = {
   "AccountMenu.menuLabel": { en: "Account", uz: "Hisob", ru: "Учётная запись" },
   "AccountMenu.triggerLabel": {
     en: "Account menu for {name}",
@@ -85,13 +95,25 @@ const accountMenuMessages: Record<string, Readonly<Record<UiLocale, string>>> = 
     uz: "Hisob menyusi",
     ru: "Меню учётной записи",
   },
-  "AccountMenu.appearanceLabel": { en: "Appearance", uz: "Ko‘rinish", ru: "Оформление" },
+  "AccountMenu.appearanceLabel": {
+    en: "Appearance",
+    uz: "Ko‘rinish",
+    ru: "Оформление",
+  },
   "AccountMenu.systemModeLabel": { en: "System", uz: "Tizim", ru: "Системная" },
   "AccountMenu.lightModeLabel": { en: "Light", uz: "Yorug‘", ru: "Светлая" },
   "AccountMenu.darkModeLabel": { en: "Dark", uz: "Qorong‘i", ru: "Тёмная" },
   "AccountMenu.languageLabel": { en: "Language", uz: "Til", ru: "Язык" },
-  "AccountMenu.organizationLabel": { en: "Organization", uz: "Tashkilot", ru: "Организация" },
-  "AccountMenu.versionsLabel": { en: "Versions", uz: "Versiyalar", ru: "Версии" },
+  "AccountMenu.organizationLabel": {
+    en: "Organization",
+    uz: "Tashkilot",
+    ru: "Организация",
+  },
+  "AccountMenu.versionsLabel": {
+    en: "Versions",
+    uz: "Versiyalar",
+    ru: "Версии",
+  },
   "AccountMenu.signOutLabel": { en: "Sign out", uz: "Chiqish", ru: "Выйти" },
 };
 export function sdkMessageDictionary(locale: UiLocale): Record<string, string> {
@@ -103,7 +125,10 @@ export function sdkMessageDictionary(locale: UiLocale): Record<string, string> {
       ]),
     ),
     ...Object.fromEntries(
-      Object.entries(accountMenuMessages).map(([key, value]) => [key, value[locale]]),
+      Object.entries(accountMenuMessages).map(([key, value]) => [
+        key,
+        value[locale],
+      ]),
     ),
   };
 }

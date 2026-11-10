@@ -11,7 +11,7 @@ import { SectionIcons } from './ShellIcons';
 
 /**
  * The phone's navigation: a bottom bar of Editorial's sections, then More, a full-screen dialog holding the public
- * site link. The bar sits in the shell's footer row, so the scrolling region ends above it.
+ * site link. The frame places the bar below the scrolling region and hides it from tablets up and in print.
  */
 defineOptions({ name: 'PhoneNav' });
 const props = defineProps<{ current: EditorialSection | null }>();
@@ -20,12 +20,7 @@ const moreOpen = ref(false);
 </script>
 
 <template>
-  <BottomNavMenu
-    :is-fixed="false"
-    variant="glass"
-    v-bind="{ 'aria-label': t('Editorial sections') }"
-    class="no-print z-sticky [grid-area:footer] md:hidden"
-  >
+  <BottomNavMenu :is-fixed="false" variant="glass" v-bind="{ 'aria-label': t('Editorial sections') }">
     <BottomNavMenuItem
       v-for="section in EditorialSections"
       :key="section.id"

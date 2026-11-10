@@ -67,7 +67,10 @@ describe('Ocharo frame in Editorial', () => {
     expect(main.findAll('h1')).toHaveLength(1);
     const header = wrapper!.get('header[role="banner"]');
     expect(header.find('button[aria-label="Ocharo apps — Editorial"]').exists()).toBe(true);
-    expect(header.get('[title="App version"]').text()).toBe('dev');
+    // The version badge stands beside the full brand; a phone's bar has room for the mark only.
+    const badge = wrapper!.find('[data-version-badge]');
+    expect(badge.exists()).toBe(width >= 768);
+    if (badge.exists()) expect(badge.text()).toBe('dev');
     expect(header.get('a[href="/stories/new"]').text()).toContain('New story');
     const controls = header.findAll('button');
     expect(controls.at(-1)!.attributes()).toMatchObject({ 'aria-label': 'Account menu', 'aria-haspopup': 'menu' });
@@ -138,6 +141,25 @@ describe('Ocharo frame in Editorial', () => {
     expect(localStorage.getItem(SidebarCollapsedKey)).toBe('false');
   });
 
+  it('shows the icon rail on a tablet, where the toggle opens the sections in a drawer instead', async () => {
+    await renderAt('/topics', { width: 900 });
+
+    expect(sidebar().text()).toContain('Topics');
+    expect(wrapper!.find('button[aria-label="Expand sidebar"]').exists()).toBe(false);
+    expect(wrapper!.find('button[aria-label="Collapse sidebar"]').exists()).toBe(false);
+    const toggle = wrapper!.get('button[aria-label="Open navigation"]');
+    expect(toggle.attributes('aria-expanded')).toBe('false');
+
+    await toggle.trigger('click');
+    await flushPromises();
+
+    const drawer = new DOMWrapper(document.querySelector<HTMLElement>('[role="dialog"]')!);
+    const links = drawer.get('[aria-label="Editorial sections"]').findAll('a');
+    expect(links).toHaveLength(4);
+    expect(links.at(-1)!.attributes('target')).toBe('_blank');
+    expect(localStorage.getItem(SidebarCollapsedKey)).toBeNull();
+  });
+
   it('swaps the sidebar for a bottom bar with More holding the public site on a phone', async () => {
     const { router } = await renderAt('/topics', { width: 390 });
 
@@ -145,9 +167,12 @@ describe('Ocharo frame in Editorial', () => {
     const bar = wrapper!.get('[aria-label="Editorial sections"]');
     // The SDK glass variant paints the fill, edge and upward shadow; the solid page fill would hide the glass.
     expect(bar.classes()).toEqual(
-      expect.arrayContaining(['surface-glass', 'border-glass-edge', 'shadow-(--glass-bottom-shadow)', 'no-print']),
+      expect.arrayContaining(['surface-glass', 'border-glass-edge', 'shadow-(--glass-bottom-shadow)']),
     );
     expect(bar.classes()).not.toContain('bg-background');
+    // The frame places the bar under the scrolling region and takes it out of print.
+    expect(wrapper!.get('[data-app-frame-phone-nav]').find(`nav[aria-label="Editorial sections"]`).exists()).toBe(true);
+    expect(wrapper!.find('[data-app-frame-toggle]').exists()).toBe(false);
     expect(bar.findAll('a').map((link) => link.text())).toEqual(['Stories', 'Topics', 'Site settings']);
     expect(bar.get('[aria-current="page"]').text()).toBe('Topics');
 

@@ -16,16 +16,28 @@ export async function readServiceVersion(signal: AbortSignal): Promise<string> {
     const response = await fetch("/api/system/status", {
       credentials: "omit",
       cache: "no-store",
-      signal: AbortSignal.any([signal, AbortSignal.timeout(ServiceVersionTimeoutMs)]),
+      signal: AbortSignal.any([
+        signal,
+        AbortSignal.timeout(ServiceVersionTimeoutMs),
+      ]),
     });
     if (!response.ok) return ServiceVersionState.Unavailable;
     const data: unknown = await response.json();
-    return typeof data === "object" && data !== null && "version" in data && typeof data.version === "string"
+    return typeof data === "object" &&
+      data !== null &&
+      "version" in data &&
+      typeof data.version === "string"
       ? data.version
       : ServiceVersionState.Unavailable;
   } catch {
     return ServiceVersionState.Unavailable;
   }
+}
+
+/** The API's version for the frame's version badge; a failed read answers `null`, so the badge keeps its last answer. */
+export async function readRunningVersion(): Promise<string | null> {
+  const version = await readServiceVersion(new AbortController().signal);
+  return version === ServiceVersionState.Unavailable ? null : version;
 }
 
 /**
@@ -41,7 +53,8 @@ export function useServiceVersion() {
     const current = ++generation;
     version.value = ServiceVersionState.Checking;
     const value = await readServiceVersion(controller.signal);
-    if (!controller.signal.aborted && current === generation) version.value = value;
+    if (!controller.signal.aborted && current === generation)
+      version.value = value;
   }
   return { version, refresh };
 }

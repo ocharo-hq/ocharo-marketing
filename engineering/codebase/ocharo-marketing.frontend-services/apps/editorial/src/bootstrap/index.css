@@ -44,9 +44,6 @@
   @apply btn border border-border bg-card hover:bg-muted;
 }
 @media print {
-  .no-print {
-    display: none !important;
-  }
   html,
   body {
     background: white;

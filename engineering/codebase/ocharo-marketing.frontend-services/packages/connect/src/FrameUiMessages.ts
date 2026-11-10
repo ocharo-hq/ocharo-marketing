@@ -4,12 +4,20 @@
  * means something else elsewhere takes an `Apps menu:` key with its English text, as Desk's does, so neither reading
  * replaces the other.
  */
-export const frameUiMessages: Readonly<Record<string, Readonly<{ en?: string; uz: string; ru: string }>>> = {
+export const frameUiMessages: Readonly<
+  Record<string, Readonly<{ en?: string; uz: string; ru: string }>>
+> = {
   "Ocharo apps": { uz: "Ocharo ilovalari", ru: "Приложения Ocharo" },
-  "Ocharo apps — {app}": { uz: "Ocharo ilovalari — {app}", ru: "Приложения Ocharo — {app}" },
+  "Ocharo apps — {app}": {
+    uz: "Ocharo ilovalari — {app}",
+    ru: "Приложения Ocharo — {app}",
+  },
   "Public sites": { uz: "Ommaviy saytlar", ru: "Публичные сайты" },
   "Public site": { uz: "Ommaviy sayt", ru: "Публичный сайт" },
-  "(opens in a new tab)": { uz: "(yangi oynada ochiladi)", ru: "(откроется в новой вкладке)" },
+  "(opens in a new tab)": {
+    uz: "(yangi oynada ochiladi)",
+    ru: "(откроется в новой вкладке)",
+  },
   Desk: { uz: "Desk", ru: "Desk" },
   Atlas: { uz: "Atlas", ru: "Atlas" },
   Wear: { uz: "Wear", ru: "Wear" },
@@ -23,26 +31,58 @@ export const frameUiMessages: Readonly<Record<string, Readonly<{ en?: string; uz
   },
   "Apps menu: Editorial": { en: "Editorial", uz: "Tahririyat", ru: "Редакция" },
   "Garments and fabric": { uz: "Kiyimlar va matolar", ru: "Одежда и ткани" },
-  "Posts and leads": { uz: "Postlar va murojaatlar", ru: "Публикации и заявки" },
-  "Apps menu: Blog stories": { en: "Blog stories", uz: "Blog hikoyalari", ru: "Истории блога" },
-  "Logo and brand guide": { uz: "Logotip va brend qo‘llanmasi", ru: "Логотип и брендбук" },
-  "Ocharo app links could not be loaded, so the app menu uses the built-in addresses.": {
-    uz: "Ocharo ilovalari havolalarini yuklab bo‘lmadi, shuning uchun ilovalar menyusi o‘rnatilgan manzillardan foydalanadi.",
-    ru: "Не удалось загрузить ссылки на приложения Ocharo, поэтому меню приложений использует встроенные адреса.",
+  "Posts and leads": {
+    uz: "Postlar va murojaatlar",
+    ru: "Публикации и заявки",
   },
+  "Apps menu: Blog stories": {
+    en: "Blog stories",
+    uz: "Blog hikoyalari",
+    ru: "Истории блога",
+  },
+  "Logo and brand guide": {
+    uz: "Logotip va brend qo‘llanmasi",
+    ru: "Логотип и брендбук",
+  },
+  "Ocharo app links could not be loaded, so the app menu uses the built-in addresses.":
+    {
+      uz: "Ocharo ilovalari havolalarini yuklab bo‘lmadi, shuning uchun ilovalar menyusi o‘rnatilgan manzillardan foydalanadi.",
+      ru: "Не удалось загрузить ссылки на приложения Ocharo, поэтому меню приложений использует встроенные адреса.",
+    },
   "Some Ocharo app links are misconfigured, so the app menu leaves them out.": {
     uz: "Ba’zi Ocharo ilovalari havolalari noto‘g‘ri sozlangan, shuning uchun ilovalar menyusida ko‘rsatilmaydi.",
     ru: "Некоторые ссылки на приложения Ocharo настроены неверно, поэтому меню приложений их не показывает.",
   },
-  "App version": { uz: "Ilova versiyasi", ru: "Версия приложения" },
+  "Version {version}": { uz: "Versiya {version}", ru: "Версия {version}" },
+  "Version {running} is live; this tab runs {version}. Reload to update.": {
+    uz: "{running} versiyasi chiqdi; bu oyna {version} versiyasida ishlayapti. Yangilash uchun sahifani qayta yuklang.",
+    ru: "Вышла версия {running}; эта вкладка работает на {version}. Перезагрузите страницу, чтобы обновить.",
+  },
   "You are here": { uz: "Siz shu yerdasiz", ru: "Вы здесь" },
-  "Expand sidebar": { uz: "Yon panelni yoyish", ru: "Развернуть боковую панель" },
-  "Collapse sidebar": { uz: "Yon panelni yig‘ish", ru: "Свернуть боковую панель" },
+  "Expand sidebar": {
+    uz: "Yon panelni yoyish",
+    ru: "Развернуть боковую панель",
+  },
+  "Collapse sidebar": {
+    uz: "Yon panelni yig‘ish",
+    ru: "Свернуть боковую панель",
+  },
+  "Open navigation": { uz: "Navigatsiyani ochish", ru: "Открыть навигацию" },
+  Navigation: { uz: "Navigatsiya", ru: "Навигация" },
   More: { uz: "Yana", ru: "Ещё" },
-  "Marketing sections": { uz: "Marketing bo‘limlari", ru: "Разделы маркетинга" },
-  "More in Marketing": { uz: "Marketingdagi boshqa bo‘limlar", ru: "Другие разделы маркетинга" },
+  "Marketing sections": {
+    uz: "Marketing bo‘limlari",
+    ru: "Разделы маркетинга",
+  },
+  "More in Marketing": {
+    uz: "Marketingdagi boshqa bo‘limlar",
+    ru: "Другие разделы маркетинга",
+  },
   "Editorial sections": { uz: "Tahririyat bo‘limlari", ru: "Разделы редакции" },
-  "More in Editorial": { uz: "Tahririyatdagi boshqa bo‘limlar", ru: "Другие разделы редакции" },
+  "More in Editorial": {
+    uz: "Tahririyatdagi boshqa bo‘limlar",
+    ru: "Другие разделы редакции",
+  },
   Create: { uz: "Yaratish", ru: "Создание" },
   Plan: { uz: "Reja", ru: "План" },
   Settings: { uz: "Sozlamalar", ru: "Настройки" },
@@ -51,14 +91,16 @@ export const frameUiMessages: Readonly<Record<string, Readonly<{ en?: string; uz
     uz: "Hisobdan chiqib bo‘lmadi. Qayta urinib ko‘ring.",
     ru: "Не удалось выйти. Попробуйте ещё раз.",
   },
-  "This tab could not confirm its Ocharo sign-in. Reload the app, then sign out.": {
-    uz: "Bu oyna Ocharo’ga kirishni tasdiqlay olmadi. Ilovani qayta yuklang, so‘ng hisobdan chiqing.",
-    ru: "Эта вкладка не смогла подтвердить вход в Ocharo. Перезагрузите приложение, затем выйдите.",
-  },
-  "Ocharo could not end this sign-in. Your work stays here; try again shortly.": {
-    uz: "Ocharo bu kirishni yakunlay olmadi. Ishingiz shu yerda qoladi; birozdan so‘ng qayta urinib ko‘ring.",
-    ru: "Ocharo не смог завершить этот вход. Ваша работа остаётся здесь; повторите попытку чуть позже.",
-  },
+  "This tab could not confirm its Ocharo sign-in. Reload the app, then sign out.":
+    {
+      uz: "Bu oyna Ocharo’ga kirishni tasdiqlay olmadi. Ilovani qayta yuklang, so‘ng hisobdan chiqing.",
+      ru: "Эта вкладка не смогла подтвердить вход в Ocharo. Перезагрузите приложение, затем выйдите.",
+    },
+  "Ocharo could not end this sign-in. Your work stays here; try again shortly.":
+    {
+      uz: "Ocharo bu kirishni yakunlay olmadi. Ishingiz shu yerda qoladi; birozdan so‘ng qayta urinib ko‘ring.",
+      ru: "Ocharo не смог завершить этот вход. Ваша работа остаётся здесь; повторите попытку чуть позже.",
+    },
   "Save or discard your unsaved changes before signing out.": {
     uz: "Hisobdan chiqishdan oldin saqlanmagan o‘zgarishlarni saqlang yoki bekor qiling.",
     ru: "Перед выходом сохраните или отмените несохранённые изменения.",

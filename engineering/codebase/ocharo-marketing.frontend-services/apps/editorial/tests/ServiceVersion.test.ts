@@ -1,7 +1,7 @@
 import { flushPromises } from '@vue/test-utils';
 import { effectScope } from 'vue';
 import { afterEach, describe, expect, it, vi } from 'vitest';
-import { ServiceVersionState, useServiceVersion } from '@ocharomarketing/connect/ServiceVersion';
+import { readRunningVersion, ServiceVersionState, useServiceVersion } from '@ocharomarketing/connect/ServiceVersion';
 afterEach(() => vi.unstubAllGlobals());
 
 /** Runs the account menu's version read inside its own scope, as the frame does. */
@@ -49,5 +49,14 @@ describe('API version in the account menu', () => {
     const signal = fetcher.mock.calls[0]![1].signal as AbortSignal;
     stop();
     expect(signal.aborted).toBe(true);
+  });
+});
+
+describe('running version for the frame badge', () => {
+  it('answers the served version, or nothing when the status cannot be read', async () => {
+    vi.stubGlobal('fetch', vi.fn().mockResolvedValueOnce(Response.json({ version: '0.1.8+abc123' })));
+    expect(await readRunningVersion()).toBe('0.1.8+abc123');
+    vi.stubGlobal('fetch', vi.fn().mockRejectedValueOnce(new Error('offline')));
+    expect(await readRunningVersion()).toBeNull();
   });
 });
