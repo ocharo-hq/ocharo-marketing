@@ -14,6 +14,16 @@
 | Ocharo suite frame and app links | shipped v0.1 | [features](../../product/features/features.md) |
 | File storage in WoW2 Files | shipped v0.1 | — |
 
+## Specced next
+
+ChatGPT builds these in the pull order of wow-two-ws `system/sessions/events-integration/tasks/tasks.md`; each row's spec is its id in the named file there. Delete a row when it ships, with any older row it covers.
+
+| Item | Type | Notes |
+|---|---|---|
+| O04 Editorial calls the Image service; Desk drops its relay | engineering | spec in `tasks-platform.md` |
+| O10 One public catalogue feed for Marketing and Blog (E4) | engineering | spec in `tasks-platform.md` |
+| O11 Post drafts move from Desk to Marketing | engineering | spec in `tasks-platform.md` |
+
 ## Delivery
 
 | Item | Type | Notes |
