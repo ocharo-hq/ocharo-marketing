@@ -8,6 +8,16 @@ The adopted backend remains `ocharo-blog.backend-services`; the old frontend roo
 See `engineering/architecture/blog-adoption.md` for independent hosts and source boundaries.
 Platform owns canonical brand/product facts; this repository owns editorial and campaign lifecycles.
 
+## Interface language
+
+- English only for every app's interface until the WoW2 SDKs' translation layer is improved (developer, 2026-11-20:
+  "we gonna stick to english until we improve the translations layer in all sdks"; the current translations are
+  "really not good") — the [Ocharo rule](../../CLAUDE.md) in full.
+- Write new interface strings in English only; leave the existing uz and ru tables in place, untouched.
+- Authored content languages (posts, stories, catalogues, campaigns) are content and keep their own settings.
+- Not yet in code: the desk and the editor still start in Uzbek and offer a language choice; switching them to
+  English is later work.
+
 ## Lazy loading
 
 - Do NOT pre-read files at conversation start; open a file only when the task needs it.
